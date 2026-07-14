@@ -1,0 +1,49 @@
+---
+/**
+ * SERTECLine — <head> de marca (Astro)
+ * Incluir dentro de <head> en tu Layout base:
+ *   <BrandHead title="…" description="…" />
+ */
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+}
+
+const {
+  title = 'SERTECLine — Servicio técnico de línea blanca en Santiago',
+  description = 'Reparación, limpieza y mantención de refrigeradores, lavadoras, secadoras, hornos y calefont. Mostramos el trabajo, no lo prometemos.',
+  image = '/brand/social/og-image.png',
+  url = Astro.site?.href ?? 'https://sertecline.cl/',
+} = Astro.props;
+---
+
+{/* Favicons & PWA */}
+<link rel="icon" href="/brand/favicon/favicon.ico" sizes="any" />
+<link rel="icon" type="image/svg+xml" href="/brand/favicon/favicon.svg" />
+<link rel="apple-touch-icon" href="/brand/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/brand/site.webmanifest" />
+<meta name="theme-color" content="#4C9E5D" />
+
+{/* SEO base */}
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={url} />
+
+{/* Open Graph */}
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="SERTECLine" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={url} />
+<meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="es_CL" />
+
+{/* Twitter / X */}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content="/brand/social/twitter-card.png" />

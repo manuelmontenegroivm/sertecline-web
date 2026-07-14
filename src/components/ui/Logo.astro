@@ -1,0 +1,52 @@
+---
+/**
+ * Logo de marca Sertecline. Variantes servidas desde public/brand/logo/
+ * (SVG, checkpoint 3.2 — EPIC 3.1 Brand Asset System).
+ */
+export type LogoVariant = 'primary' | 'dark' | 'light' | 'mono' | 'horizontal' | 'monogram';
+
+interface LogoFile {
+  src: string;
+  width: number;
+  height: number;
+}
+
+const LOGO_FILES: Record<LogoVariant, LogoFile> = {
+  primary: { src: '/brand/logo/logo.svg', width: 860, height: 150 },
+  dark: { src: '/brand/logo/logo-dark.svg', width: 860, height: 150 },
+  light: { src: '/brand/logo/logo-light.svg', width: 860, height: 150 },
+  mono: { src: '/brand/logo/logo-mono.svg', width: 860, height: 150 },
+  horizontal: { src: '/brand/logo/logo-horizontal.svg', width: 880, height: 200 },
+  monogram: { src: '/brand/logo/logo-monogram.svg', width: 512, height: 512 },
+};
+
+interface Props extends Omit<astroHTML.JSX.ImgHTMLAttributes, 'src' | 'width' | 'height' | 'alt'> {
+  /** Variante del logo a renderizar. @default 'primary' */
+  variant?: LogoVariant;
+  /** Texto alternativo. Ignorado si `decorative` es true. @default 'Sertecline' */
+  alt?: string;
+  /** Marca el logo como puramente decorativo (aria-hidden, alt vacío) cuando ya existe un texto/heading equivalente cerca. */
+  decorative?: boolean;
+}
+
+const {
+  variant = 'primary',
+  alt = 'Sertecline',
+  decorative = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const file = LOGO_FILES[variant];
+---
+
+<img
+  src={file.src}
+  width={file.width}
+  height={file.height}
+  alt={decorative ? '' : alt}
+  aria-hidden={decorative ? 'true' : undefined}
+  class={className}
+  decoding="async"
+  {...rest}
+/>

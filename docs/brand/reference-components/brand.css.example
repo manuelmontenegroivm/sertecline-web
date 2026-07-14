@@ -1,0 +1,34 @@
+/**
+ * SERTECLine — Tokens de marca para Tailwind CSS v4.
+ * Importar una sola vez en tu hoja global (p. ej. src/styles/global.css):
+ *   @import "./brand.css";
+ * Genera utilidades: bg-paper, text-ink, text-brand-ink, border-hairline, font-mono, rounded-brand, etc.
+ * (Los tokens completos del Design System llegan en el siguiente checkpoint.)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* — Marca — */
+  --color-brand: #4C9E5D;        /* verde del logo */
+  --color-brand-ink: #2E6B43;    /* verde de oficio · acento UI */
+  --color-brand-dark: #7FC06E;   /* verde sobre fondo oscuro */
+  --color-taupe: #8C8377;        /* neutro cálido "Line" */
+
+  /* — Superficies — */
+  --color-paper: #F4F1EB;        /* fondo */
+  --color-paper-2: #FCFBF7;      /* tarjetas */
+  --color-stage: #141210;        /* evidence stage (oscuro) */
+  --color-ink: #1A1712;          /* texto principal */
+  --color-ink-2: #57524A;        /* texto secundario */
+  --color-hairline: #DED8CC;     /* bordes 1px */
+
+  /* — Semántica — */
+  --color-alert: #B02A1F;        /* urgencias / error */
+
+  /* — Tipografía — */
+  --font-sans: 'Archivo', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* — Radios — */
+  --radius-brand: 16px;
+}

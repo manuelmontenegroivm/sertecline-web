@@ -1,0 +1,28 @@
+---
+/**
+ * SERTECLine — Logo (Astro)
+ * Coloca la carpeta /brand dentro de public/ y usa:
+ *   <Logo variant="primary" class="h-6 w-auto" />
+ */
+export type LogoVariant = 'primary' | 'dark' | 'light' | 'mono' | 'horizontal' | 'monogram';
+
+interface Props {
+  variant?: LogoVariant;
+  class?: string;
+  alt?: string;
+}
+
+const FILES: Record<LogoVariant, { src: string; w: number; h: number }> = {
+  primary: { src: '/brand/logo/logo.svg', w: 860, h: 150 },
+  dark: { src: '/brand/logo/logo-dark.svg', w: 860, h: 150 },
+  light: { src: '/brand/logo/logo-light.svg', w: 860, h: 150 },
+  mono: { src: '/brand/logo/logo-mono.svg', w: 860, h: 150 },
+  horizontal: { src: '/brand/logo/logo-horizontal.svg', w: 880, h: 200 },
+  monogram: { src: '/brand/logo/logo-monogram.svg', w: 512, h: 512 },
+};
+
+const { variant = 'primary', class: className = 'h-6 w-auto', alt = 'SERTECLine' } = Astro.props;
+const f = FILES[variant] ?? FILES.primary;
+---
+
+<img src={f.src} width={f.w} height={f.h} alt={alt} class={className} decoding="async" />

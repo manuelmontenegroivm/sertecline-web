@@ -1,0 +1,32 @@
+/* ============================================================================
+   SERTECLine · Brand Foundation
+   Estilos fundacionales que activan el design system (tokens.css) a nivel
+   de documento. No redefine valores — todo se referencia vía var(--token).
+   Import order (ver global.css): tailwindcss → tokens.css → brand.css.
+   ========================================================================== */
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selección de texto — legible sobre papel y stage sin depender del color por defecto del navegador. */
+::selection {
+  background-color: var(--color-brand-on-dark);
+  color: var(--color-ink);
+}
+
+/* Foco visible — obligatorio en todo elemento interactivo (Accessibility First). */
+:focus-visible {
+  outline: var(--border-emphasis) solid var(--color-ring);
+  outline-offset: 2px;
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 200" width="880" height="200" role="img" aria-label="SERTECLine">
+  <rect x="20" y="30" width="140" height="140" rx="31" fill="#4C9E5D"></rect>
+  <text x="90" y="138" text-anchor="middle" font-family="&#39;Arial Black&#39;, Arial, Helvetica, sans-serif" font-weight="900" font-size="90" fill="#FFFFFF">S</text>
+  <text x="196" y="138" font-family="&#39;Arial Black&#39;, Arial, Helvetica, sans-serif" font-weight="900" font-size="96" letter-spacing="-2"><tspan fill="#4C9E5D">SERTEC</tspan><tspan fill="#8C8377">Line</tspan></text>
+</svg>

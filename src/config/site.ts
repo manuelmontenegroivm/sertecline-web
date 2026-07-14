@@ -22,10 +22,10 @@ export const siteConfig: SiteConfig = {
   url: 'https://www.sertecline.cl',
   defaultLocale: 'es-CL',
   locales: ['es-CL'],
-  themeColor: '#000000', // TODO: reemplazar con el color de marca real
+  themeColor: '#4C9E5D', // color.brand — ver src/config/design/tokens.json
   logo: {
-    default: '/src/assets/images/brand/logo.svg', // TODO: agregar archivo real
-    icon: '/src/assets/images/brand/icon.svg', // TODO: agregar archivo real
-    og: '/src/assets/images/og/default-og.jpg', // TODO: agregar archivo real
+    default: '/brand/logo/logo.svg',
+    icon: '/brand/favicon/favicon.svg',
+    og: '/brand/social/og-image.png',
   },
 };
