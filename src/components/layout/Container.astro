@@ -1,0 +1,38 @@
+---
+/**
+ * Ancho máximo + gutters responsive. Primitiva de layout — no lleva fondo
+ * ni padding vertical propio (eso lo define <Section>).
+ */
+export type ContainerSize = 'narrow' | 'content' | 'wide';
+export type ContainerTag = 'div' | 'main' | 'section' | 'article';
+
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  /** @default 'content' — ver --container-* en tokens.css */
+  size?: ContainerSize;
+  as?: ContainerTag;
+}
+
+const { size = 'content', as = 'div', class: className, ...rest } = Astro.props as Props;
+
+// max-w-narrow/content/wide se generan automáticamente desde --container-*
+// en tokens.css (@theme) — ningún valor está hardcodeado aquí.
+const SIZE_CLASSES: Record<ContainerSize, string> = {
+  narrow: 'max-w-narrow',
+  content: 'max-w-content',
+  wide: 'max-w-wide',
+};
+
+const Tag = as;
+
+// px-4 (16px) / md:px-6 (24px) coinciden exactamente con los tokens
+// --grid-gutter-mobile / --grid-gutter (custom properties fuera de @theme,
+// sin utilidad Tailwind propia): se usa la escala numérica de espaciado
+// (4px por paso) en vez de var() arbitrario, mismo valor, menos ruido.
+const classes = ['mx-auto w-full px-4 md:px-6', SIZE_CLASSES[size], className]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<Tag class={classes} {...rest}>
+  <slot />
+</Tag>

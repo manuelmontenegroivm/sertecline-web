@@ -1,0 +1,63 @@
+---
+/**
+ * Encapsula padding vertical + fondo semántico de una sección de página.
+ * Envuelve el contenido en <Container> por defecto (desactivable para
+ * secciones full-bleed con `containerSize={false}`).
+ */
+import Container from './Container.astro';
+import type { ContainerSize } from './Container.astro';
+
+export type SectionBackground = 'paper' | 'paper-2' | 'stage';
+export type SectionSpacing = 'sm' | 'md' | 'lg';
+export type SectionTag = 'section' | 'div' | 'article';
+
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  /** Elemento semántico. Usar 'section' salvo que ya exista un heading de jerarquía superior fuera de este bloque. @default 'section' */
+  as?: SectionTag;
+  background?: SectionBackground;
+  spacing?: SectionSpacing;
+  /** Ancho del <Container> interno. `false` = sección full-bleed sin contenedor. @default 'content' */
+  containerSize?: ContainerSize | false;
+}
+
+const {
+  as = 'section',
+  background = 'paper',
+  spacing = 'md',
+  containerSize = 'content',
+  class: className,
+  ...rest
+} = Astro.props as Props;
+
+// stage es la única superficie oscura del sistema: exige el par de texto
+// ink-on-dark (16.58:1 AAA) en vez de ink (que fallaría contraste ahí).
+const BACKGROUND_CLASSES: Record<SectionBackground, string> = {
+  paper: 'bg-paper text-ink',
+  'paper-2': 'bg-paper-2 text-ink',
+  stage: 'bg-stage text-ink-on-dark',
+};
+
+// Valores tomados de la escala de espaciado de tokens.css (40·64·96px), mobile-first.
+const SPACING_CLASSES: Record<SectionSpacing, string> = {
+  sm: 'py-10 md:py-16',
+  md: 'py-16 md:py-24',
+  lg: 'py-24 md:py-32',
+};
+
+const Tag = as;
+const classes = [BACKGROUND_CLASSES[background], SPACING_CLASSES[spacing], className]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<Tag class={classes} {...rest}>
+  {
+    containerSize === false ? (
+      <slot />
+    ) : (
+      <Container size={containerSize}>
+        <slot />
+      </Container>
+    )
+  }
+</Tag>

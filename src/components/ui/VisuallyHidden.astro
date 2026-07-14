@@ -1,0 +1,25 @@
+---
+/**
+ * Oculta contenido visualmente sin quitarlo del árbol de accesibilidad.
+ * Usar para texto de contexto para lectores de pantalla (labels de estado,
+ * anuncios "abre en pestaña nueva", etc.) o como base de un skip-link con
+ * `focusable`.
+ */
+export type VisuallyHiddenTag = 'span' | 'div' | 'p';
+
+interface Props {
+  as?: VisuallyHiddenTag;
+  /** Revela el contenido visualmente al recibir foco (patrón skip-link). @default false */
+  focusable?: boolean;
+  class?: string;
+}
+
+const { as = 'span', focusable = false, class: className } = Astro.props as Props;
+
+const Tag = as;
+const classes = [focusable ? 'sr-only focus:not-sr-only' : 'sr-only', className]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<Tag class={classes}><slot /></Tag>

@@ -1,0 +1,34 @@
+---
+/**
+ * Etiqueta corta no interactiva (ej. "Mantención", "Reparación",
+ * "Instalación", "Servicio destacado"). El texto es contenido del slot;
+ * `variant` solo controla el tratamiento de color.
+ */
+export type BadgeVariant = 'default' | 'success' | 'warning' | 'neutral';
+
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  variant?: BadgeVariant;
+}
+
+const { variant = 'default', class: className, ...rest } = Astro.props as Props;
+
+// success/warning usan los pares "-bg" pensados en tokens.json para esto
+// exactamente (fondo suave + texto semántico, contraste ya verificado).
+// default usa brand-ink (no `brand`: ese token está prohibido para texto).
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+  default: 'bg-brand-ink text-paper',
+  success: 'bg-success-bg text-success',
+  warning: 'bg-warning-bg text-warning',
+  neutral: 'border border-hairline bg-paper-2 text-ink-2',
+};
+
+const classes = [
+  'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs leading-none font-medium',
+  VARIANT_CLASSES[variant],
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<span class={classes} {...rest}><slot /></span>

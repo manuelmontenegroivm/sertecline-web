@@ -1,0 +1,56 @@
+---
+/**
+ * Enlace de texto (no confundir con <Button>: este es para navegación).
+ * Detecta automáticamente enlaces externos por protocolo (http/https) y
+ * aplica target/rel seguros + anuncio para lectores de pantalla + icono.
+ * `external` permite forzar el tratamiento cuando la detección automática
+ * no aplica (ej. mailto:, tel:, o un dominio propio servido con protocolo
+ * absoluto).
+ */
+import VisuallyHidden from './VisuallyHidden.astro';
+
+interface Props extends Omit<astroHTML.JSX.AnchorHTMLAttributes, 'href' | 'target' | 'rel'> {
+  href: string;
+  external?: boolean;
+}
+
+const { href, external, class: className, ...rest } = Astro.props as Props;
+
+const isExternal = external ?? /^https?:\/\//.test(href);
+
+const classes = [
+  'text-brand-ink inline-flex items-center gap-1 underline decoration-1 underline-offset-2',
+  'transition-[text-decoration-thickness] [transition-duration:var(--duration-fast)]',
+  'hover:decoration-2',
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<a
+  href={href}
+  class={classes}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noopener noreferrer' : undefined}
+  {...rest}
+>
+  <slot />
+  {
+    isExternal && (
+      <>
+        <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
+        <svg
+          class="size-[var(--icon-xs)] shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 17 17 7M7 7h10v10" />
+        </svg>
+      </>
+    )
+  }
+</a>

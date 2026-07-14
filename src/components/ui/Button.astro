@@ -1,0 +1,101 @@
+---
+/**
+ * Botón de marca — primitiva del Design System (EPIC 3.4).
+ * Elemento <button> semántico únicamente: para navegación usar <TextLink>,
+ * nunca un <Button> con href fingiendo ser enlace.
+ *
+ * Iconos: pasar SVG a los slots `icon-leading` / `icon-trailing` con
+ * `aria-hidden="true"` (el nombre accesible del botón lo da el slot por
+ * defecto). El tamaño recomendado del icono está expuesto en la custom
+ * property `--btn-icon-size` del propio <button>, ej. `width="var(--btn-icon-size)"`.
+ *
+ * El foco visible NO se redefine aquí: hereda la regla global
+ * `:focus-visible` de src/styles/brand.css (evita duplicar el token de foco).
+ *
+ * `loading` es puramente prop-driven (SSR, sin JS propio). Un consumidor que
+ * necesite alternarlo en cliente (ej. envío de formulario) lo controla desde
+ * el island que maneja ese estado.
+ */
+import VisuallyHidden from './VisuallyHidden.astro';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+interface Props extends Omit<astroHTML.JSX.ButtonHTMLAttributes, 'type'> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Estado de carga: deshabilita el botón, muestra spinner y aria-busy. @default false */
+  loading?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  disabled = false,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props as Props;
+
+// Contraste verificado en tokens.json: brand-ink whiteOn 6.36:1 AA (fondo sólido);
+// ghost/outline usan brand-ink como texto sobre papel, 5.64:1 AA.
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
+  primary: 'bg-brand-ink text-paper hover:opacity-90 active:opacity-80',
+  secondary:
+    'border border-hairline bg-paper-2 text-ink hover:border-hairline-strong hover:bg-paper active:bg-paper-2',
+  ghost: 'bg-transparent text-brand-ink hover:bg-paper-2 active:bg-paper',
+  outline: 'border border-brand-ink bg-transparent text-brand-ink hover:bg-paper-2 active:bg-paper',
+};
+
+// Padding/tamaños de texto tomados directamente de la escala de espaciado y
+// tipografía de tokens.css (4·8·12·16·20·24 / text-sm·base·lg) — nada arbitrario.
+const SIZE_CLASSES: Record<ButtonSize, string> = {
+  sm: 'gap-1.5 rounded-sm px-4 py-2 text-sm',
+  md: 'gap-2 rounded-md px-5 py-3 text-base',
+  lg: 'gap-2.5 rounded-lg px-6 py-4 text-lg',
+};
+
+const ICON_SIZE: Record<ButtonSize, string> = {
+  sm: 'var(--icon-sm)',
+  md: 'var(--icon-md)',
+  lg: 'var(--icon-lg)',
+};
+
+const isDisabled = disabled || loading;
+
+const classes = [
+  'inline-flex items-center justify-center whitespace-nowrap font-medium',
+  'transition-colors [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out)]',
+  'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[var(--opacity-disabled)]',
+  VARIANT_CLASSES[variant],
+  SIZE_CLASSES[size],
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<button
+  type={type}
+  class={classes}
+  style={`--btn-icon-size:${ICON_SIZE[size]}`}
+  disabled={isDisabled}
+  aria-busy={loading ? 'true' : undefined}
+  {...rest}
+>
+  {
+    loading ? (
+      <span
+        class="size-[var(--btn-icon-size)] animate-spin rounded-full border-2 border-current border-t-transparent"
+        aria-hidden="true"
+      />
+    ) : (
+      <slot name="icon-leading" />
+    )
+  }
+  <slot />
+  {!loading && <slot name="icon-trailing" />}
+  {loading && <VisuallyHidden>Cargando</VisuallyHidden>}
+</button>
