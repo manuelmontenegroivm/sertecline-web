@@ -1,12 +1,15 @@
 ---
 /**
  * Layout base del sitio: documento HTML, metadata SEO/OG/Twitter, favicons
- * y activación del design system. No incluye Header/Footer todavía
- * (EPIC 3.3 — Brand Foundation Implementation).
+ * y activación del design system. Header sticky incluido (EPIC 3.5 — Core
+ * Experience). Footer definitivo queda para una épica posterior.
+ * Landmark <main> + skip link agregados en el checkpoint correctivo de
+ * cierre de EPIC 3.5 (auditoría de accesibilidad).
  */
 import '../styles/global.css';
 import { siteConfig } from '../config/site';
 import { seoDefaults } from '../config/seo';
+import Header from '../components/layout/Header.astro';
 
 interface Props {
   /** Título de página (sin el sufijo " | Sertecline", se agrega automáticamente). */
@@ -80,6 +83,15 @@ const ogLocale = seoDefaults.locale.replace('-', '_');
     <slot name="head" />
   </head>
   <body>
-    <slot />
+    <a
+      href="#main-content"
+      class="border-hairline bg-paper text-ink fixed top-4 left-4 z-[var(--z-tooltip)] -translate-y-full rounded-md border px-4 py-2 text-sm font-medium opacity-0 shadow-md transition [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out)] focus:translate-y-0 focus:opacity-100"
+    >
+      Saltar al contenido
+    </a>
+    <Header />
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
   </body>
 </html>

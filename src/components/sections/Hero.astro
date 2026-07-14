@@ -1,0 +1,44 @@
+---
+/**
+ * Primera sección visible del sitio. Sin subcomponentes: badge, h1, subtítulo
+ * y CTAs no tienen consumidor propio fuera de este archivo (ver EPIC 3.5).
+ * CTAs renderizados `disabled`: no existe aún destino real (contacto sin NAP
+ * confirmado, trabajos realizados fuera de alcance de esta épica).
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import Button from '../ui/Button.astro';
+import { heroContent } from '../../data/hero';
+---
+
+<Section as="section" background="paper" spacing="lg">
+  <div class="grid gap-10 md:grid-cols-2 md:items-center md:gap-16">
+    <div class="flex flex-col items-start gap-6">
+      <Badge>{heroContent.badge}</Badge>
+
+      <h1 class="text-ink text-3xl font-black tracking-tighter md:text-6xl">
+        {heroContent.title}
+      </h1>
+
+      <p class="text-ink-2 max-w-prose text-lg">
+        {heroContent.subtitle}
+      </p>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <Button variant="primary" size="lg" disabled>
+          {heroContent.primaryCtaLabel}
+        </Button>
+        <Button variant="outline" size="lg" disabled>
+          {heroContent.secondaryCtaLabel}
+        </Button>
+      </div>
+    </div>
+
+    <!-- Espacio reservado para fotografía real (futura épica de assets) -->
+    <div
+      class="border-hairline bg-paper-2 aspect-[4/3] w-full rounded-2xl border"
+      aria-hidden="true"
+    >
+    </div>
+  </div>
+</Section>

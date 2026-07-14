@@ -1,0 +1,23 @@
+---
+/**
+ * Link de navegación principal (desktop). Distinto de <TextLink> (ui/):
+ * sin subrayado, con estado aria-current para la página activa.
+ */
+import type { NavItem } from '../../data/navigation';
+
+interface Props {
+  item: NavItem;
+}
+
+const { item } = Astro.props as Props;
+
+const isCurrent = Astro.url.pathname === item.href;
+---
+
+<a
+  href={item.href}
+  aria-current={isCurrent ? 'page' : undefined}
+  class="text-ink-2 hover:text-ink aria-[current=page]:text-brand-ink text-sm font-medium transition-colors [transition-duration:var(--duration-fast)]"
+>
+  {item.label}
+</a>

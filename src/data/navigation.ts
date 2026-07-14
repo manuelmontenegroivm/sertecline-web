@@ -1,19 +1,24 @@
 export interface NavItem {
   label: string;
   href: string;
+  /** false mientras no exista una página o sección real para este destino — ver EPIC 3.5. */
+  available: boolean;
   external?: boolean;
 }
 
-// TODO: confirmar estructura final de menú (¿dropdown de servicios?, ¿casos de éxito?)
+// El href de los ítems no disponibles queda como referencia para la épica que
+// construya ese destino (página o sección con ese id). No se renderizan hasta
+// que `available` pase a `true`.
 export const primaryNav: NavItem[] = [
-  { label: 'Inicio', href: '/' },
-  { label: 'Servicios', href: '/servicios' },
-  { label: 'Nosotros', href: '/nosotros' }, // TODO: confirmar si existirá esta página
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contacto', href: '/contacto' },
+  { label: 'Servicios', href: '#servicios', available: false }, // TODO: promover a /servicios cuando exista esa página
+  { label: 'Trabajos', href: '#trabajos', available: false },
+  { label: 'Mantención', href: '#mantencion', available: false },
+  { label: 'Contacto', href: '#contacto', available: false }, // TODO: requiere src/data/contact.ts con NAP real
 ];
 
+export const availableNav: NavItem[] = primaryNav.filter((item) => item.available);
+
 export const footerNav: NavItem[] = [
-  { label: 'Aviso legal', href: '/aviso-legal' },
-  { label: 'Política de privacidad', href: '/politica-privacidad' },
+  { label: 'Aviso legal', href: '/aviso-legal', available: false },
+  { label: 'Política de privacidad', href: '/politica-privacidad', available: false },
 ];

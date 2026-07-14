@@ -1,0 +1,23 @@
+---
+/**
+ * Nav desktop + trigger móvil. Renderiza únicamente `availableNav`: mientras
+ * ningún ítem tenga destino real, no se muestra nada (ni links ni hamburguesa)
+ * — ver EPIC 3.5.
+ */
+import NavLink from './NavLink.astro';
+import MobileMenu from './MobileMenu';
+import { availableNav } from '../../data/navigation';
+---
+
+{
+  availableNav.length > 0 && (
+    <>
+      <nav aria-label="Principal" class="hidden items-center gap-8 md:flex">
+        {availableNav.map((item) => (
+          <NavLink item={item} />
+        ))}
+      </nav>
+      <MobileMenu items={availableNav} client:load />
+    </>
+  )
+}
