@@ -1,6 +1,9 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { services as serviceCatalog } from './data/services';
+
+const serviceIds = serviceCatalog.map((service) => service.id) as [string, ...string[]];
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
@@ -52,4 +55,36 @@ const testimonials = defineCollection({
   }),
 });
 
-export const collections = { blog, services, testimonials };
+const cases = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/cases' }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      shortDescription: z.string(),
+      // No usa reference('services'): eso validaría contra la content collection
+      // `services`, que está vacía hoy. La fuente real es el catálogo liviano
+      // src/data/services.ts — el enum se deriva de sus IDs (serviceIds arriba)
+      // para no duplicarlos a mano y mantener una sola fuente de verdad.
+      service: z.enum(serviceIds),
+      // IDs de src/data/brands.ts / src/data/areas.ts — sin validar contra el catálogo (igual que services.relatedBrands).
+      brand: z.string().optional(),
+      area: z.string().optional(),
+      // pairs[0] es el par principal (comparador). pairs[1+] se tratan como
+      // galería adicional — decisión de render, no de schema.
+      pairs: z
+        .array(
+          z.object({
+            before: image(),
+            after: image(),
+            caption: z.string().optional(),
+          })
+        )
+        .min(1),
+      // Opcional: casos históricos sin fecha confirmada omiten este campo en vez de inventarla.
+      completedAt: z.coerce.date().optional(),
+      featured: z.boolean().default(false),
+      draft: z.boolean().default(false),
+    }),
+});
+
+export const collections = { blog, services, testimonials, cases };
