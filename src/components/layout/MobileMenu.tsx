@@ -45,7 +45,7 @@ export default function MobileMenu({ items }: Props) {
   }, [open]);
 
   return (
-    <div className="relative md:hidden">
+    <div className="md:hidden">
       <button
         ref={triggerRef}
         type="button"
