@@ -1,0 +1,41 @@
+---
+/**
+ * Sección "Cobertura" (EPIC 3.8). Vive debajo de "Servicios" en home. Lista
+ * las comunas de src/data/areas.ts (única fuente — mismo dato que usa el
+ * areaServed del JSON-LD de LocalBusiness) reutilizando Badge.astro por
+ * comuna: son etiquetas de texto no interactivas, así que no se justifica un
+ * componente propio todavía. Cuando exista /comunas/[slug], este es el único
+ * archivo que cambia para envolver cada Badge en un <a href={`/comunas/${area.slug}`}>
+ * (area.slug ya existe en ServiceArea para ese momento).
+ * `scroll-mt-24` compensa el header sticky al navegar por ancla (`/#cobertura`,
+ * ver src/data/navigation.ts) — mismo tratamiento que FeaturedWork.astro y Services.astro.
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import { serviceAreas } from '../../data/areas';
+import { coverageSectionContent } from '../../data/coverageSection';
+---
+
+<Section as="section" id="cobertura" background="paper-2" spacing="lg" class="scroll-mt-24">
+  <div class="flex flex-col gap-8">
+    <div class="max-w-prose">
+      <Badge>{coverageSectionContent.eyebrow}</Badge>
+      <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
+        {coverageSectionContent.heading}
+      </h2>
+      <p class="text-ink-2 mt-4 text-lg">{coverageSectionContent.intro}</p>
+    </div>
+
+    <ul class="flex flex-wrap gap-3">
+      {
+        serviceAreas.map((area) => (
+          <li>
+            <Badge variant="neutral">{area.name}</Badge>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="text-ink-2 text-sm">{coverageSectionContent.note}</p>
+  </div>
+</Section>
