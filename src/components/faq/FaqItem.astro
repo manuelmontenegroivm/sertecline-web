@@ -1,0 +1,35 @@
+---
+/**
+ * Un `<details>/<summary>` nativo por pregunta — sin React ni Framer Motion:
+ * el disclosure no necesita estado real (regla de React en CLAUDE.md), y a
+ * diferencia de un acordeón con JS, la respuesta queda en el DOM inicial
+ * aunque esté colapsada (clave para AEO/GEO: crawlers y asistentes de IA la
+ * leen igual). El `<h3>` dentro de `<summary>` es válido por HTML spec
+ * (summary acepta un heading como primer hijo) y le da a cada pregunta
+ * jerarquía de encabezado real para SEO/GEO.
+ * Sin `border`/`shadow`/fondo propio (mismo criterio que ServiceCard.astro):
+ * la separación la da el `border-t` + el gap de la lista contenedora.
+ */
+import { ChevronDown } from '@lucide/astro';
+
+interface Props {
+  question: string;
+  answer: string;
+}
+
+const { question, answer } = Astro.props as Props;
+---
+
+<details class="group border-hairline border-t py-5">
+  <summary
+    class="focus-visible:ring-brand-ink flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+  >
+    <h3 class="text-ink text-base font-bold md:text-lg">{question}</h3>
+    <ChevronDown
+      class="text-ink-2 size-[var(--icon-md)] shrink-0 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
+      stroke-width={1.75}
+      aria-hidden="true"
+    />
+  </summary>
+  <p class="text-ink-2 mt-3 max-w-prose">{answer}</p>
+</details>
