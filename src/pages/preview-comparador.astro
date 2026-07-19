@@ -1,0 +1,30 @@
+---
+/**
+ * Página temporal de QA visual para el Before/After Comparator (EPIC 3.6.1).
+ * No se enlaza desde el nav ni desde ninguna otra página. Se elimina (o se
+ * decide conservar) cuando exista /trabajos/[slug] y el comparador se
+ * renderice ahí en contexto real.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/layout/Section.astro';
+import BeforeAfterComparator from '../components/cases/BeforeAfterComparator.astro';
+
+const caseEntry = await getEntry('cases', 'limpieza-profunda-lavadora');
+if (!caseEntry) {
+  throw new Error('Caso piloto no encontrado: limpieza-profunda-lavadora');
+}
+
+const pair = caseEntry.data.pairs[0];
+---
+
+<BaseLayout title="Preview — Comparador" noindex>
+  <Section spacing="lg">
+    <h1 class="text-ink text-2xl font-bold md:text-3xl">{caseEntry.data.title}</h1>
+    <p class="text-ink-2 mt-2 max-w-prose">{caseEntry.data.shortDescription}</p>
+
+    <div class="mt-8 max-w-2xl">
+      <BeforeAfterComparator pair={pair} alt={caseEntry.data.title} />
+    </div>
+  </Section>
+</BaseLayout>

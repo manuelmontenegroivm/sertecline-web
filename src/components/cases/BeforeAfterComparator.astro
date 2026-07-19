@@ -1,0 +1,53 @@
+---
+/**
+ * Wrapper del comparador antes/después (EPIC 3.6.1). Resuelve las imágenes
+ * de un `pair` de la collection `cases` con getImage() en build/SSG: React
+ * solo recibe props serializables (src/width/height planos), nunca el
+ * ImageMetadata de Astro (decisión aprobada, ver CLAUDE.md).
+ * No es full-bleed (vive dentro de <Container size="content"> a lo sumo a
+ * media columna) — una sola densidad en formato moderno basta, sin srcset.
+ * Hidratación client:visible: no es above-the-fold crítico (regla de
+ * CLAUDE.md sobre directivas de cliente).
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BeforeAfterComparatorIsland from './BeforeAfterComparatorIsland';
+
+export interface ComparatorPair {
+  before: ImageMetadata;
+  after: ImageMetadata;
+  caption?: string;
+}
+
+interface Props {
+  pair: ComparatorPair;
+  alt: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+}
+
+const { pair, alt, beforeLabel, afterLabel } = Astro.props as Props;
+
+const [beforeImage, afterImage] = await Promise.all([
+  getImage({ src: pair.before, width: 960, format: 'webp' }),
+  getImage({ src: pair.after, width: 960, format: 'webp' }),
+]);
+---
+
+<BeforeAfterComparatorIsland
+  client:visible
+  before={{
+    src: beforeImage.src,
+    width: beforeImage.attributes.width,
+    height: beforeImage.attributes.height,
+  }}
+  after={{
+    src: afterImage.src,
+    width: afterImage.attributes.width,
+    height: afterImage.attributes.height,
+  }}
+  alt={alt}
+  beforeLabel={beforeLabel}
+  afterLabel={afterLabel}
+  caption={pair.caption}
+/>
