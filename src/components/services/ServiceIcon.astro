@@ -1,0 +1,42 @@
+---
+/**
+ * Resuelve el string `service.icon` (src/data/services.ts, kebab-case) al
+ * componente Lucide correspondiente. Único punto que importa de
+ * '@lucide/astro': si el set de íconos cambia algún día, solo se toca este
+ * archivo y este Record — el resto del sistema sigue hablando en strings.
+ * Decorativo por defecto (aria-hidden): el nombre accesible del servicio lo
+ * da el `h3` del ServiceCard, nunca el ícono.
+ */
+import {
+  WashingMachine,
+  Sparkles,
+  Refrigerator,
+  Wind,
+  Flame,
+  Wrench,
+  Droplets,
+  type IconProps,
+} from '@lucide/astro';
+
+const ICONS = {
+  'washing-machine': WashingMachine,
+  sparkles: Sparkles,
+  refrigerator: Refrigerator,
+  wind: Wind,
+  flame: Flame,
+  wrench: Wrench,
+  droplets: Droplets,
+} as const;
+
+export type ServiceIconName = keyof typeof ICONS;
+
+interface Props extends Omit<IconProps, 'name'> {
+  name: string;
+}
+
+const { name, class: className, ...rest } = Astro.props as Props;
+
+const IconComponent = ICONS[name as ServiceIconName] ?? Wrench;
+---
+
+<IconComponent class={className} stroke-width={1.75} aria-hidden="true" {...rest} />

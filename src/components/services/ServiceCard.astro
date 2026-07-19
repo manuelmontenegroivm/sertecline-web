@@ -1,0 +1,23 @@
+---
+/**
+ * Un servicio dentro de la grilla de Services.astro. Deliberadamente sin
+ * `border`/`shadow`/fondo propio (Dirección Creativa: nada de tarjetas
+ * pesadas) — la separación entre ítems la da el `border-t` + el gap del
+ * grid contenedor. Sin link/CTA: no existe aún /servicios/[slug]; cuando
+ * exista, este componente pasa a envolver el contenido en un <a>.
+ */
+import ServiceIcon from './ServiceIcon.astro';
+import type { Service } from '../../data/services';
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props as Props;
+---
+
+<article class="border-hairline flex flex-col gap-4 border-t pt-6">
+  <ServiceIcon name={service.icon} class="text-brand-ink size-[var(--icon-2xl)]" />
+  <h3 class="text-ink text-lg font-bold">{service.title}</h3>
+  <p class="text-ink-2">{service.shortDescription}</p>
+</article>

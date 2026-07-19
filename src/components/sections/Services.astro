@@ -1,0 +1,37 @@
+---
+/**
+ * Sección "Nuestros servicios" (EPIC 3.7). Vive debajo de "Trabajos reales"
+ * en home. Muestra los servicios marcados `featured: true` en
+ * src/data/services.ts (única fuente — ver ese archivo), ordenados por
+ * `order`. Base futura de /servicios, /servicios/[slug], FAQ y blog: por eso
+ * el copy (título + shortDescription) ya se redacta como afirmación
+ * autocontenida y verificable, no como eslogan (ver EPIC 3.7 en el plan).
+ * `scroll-mt-24` compensa el header sticky al navegar por ancla (`/#servicios`,
+ * ver src/data/navigation.ts) — mismo tratamiento que FeaturedWork.astro.
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import ServiceCard from '../services/ServiceCard.astro';
+import { services } from '../../data/services';
+import { servicesSectionContent } from '../../data/servicesSection';
+
+const featuredServices = services
+  .filter((service) => service.featured)
+  .sort((a, b) => a.order - b.order);
+---
+
+<Section as="section" id="servicios" background="paper" spacing="lg" class="scroll-mt-24">
+  <div class="flex flex-col gap-12">
+    <div class="max-w-prose">
+      <Badge>{servicesSectionContent.eyebrow}</Badge>
+      <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
+        {servicesSectionContent.heading}
+      </h2>
+      <p class="text-ink-2 mt-4 text-lg">{servicesSectionContent.intro}</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+      {featuredServices.map((service) => <ServiceCard service={service} />)}
+    </div>
+  </div>
+</Section>
