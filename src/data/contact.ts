@@ -15,27 +15,17 @@ export interface ContactInfo {
   legalName: string;
   phone: string;
   whatsapp: string;
-  email: string;
-  address: Address;
-  hours: string;
-  social: SocialLink[];
+  email?: string;
+  address?: Address;
+  hours?: string;
+  social?: SocialLink[];
 }
 
-// TODO: reemplazar todos los valores con los datos reales (NAP) de Sertecline
+// NAP: solo se declaran los campos ya confirmados por el negocio (EPIC 3.10).
+// email, address, hours y social quedan sin declarar (no `undefined` explícito,
+// no placeholder) hasta que existan valores reales — ver ContactInfo, opcionales.
 export const contactInfo: ContactInfo = {
-  legalName: 'Sertecline SpA', // TODO
-  phone: '+56 9 0000 0000', // TODO
-  whatsapp: '+56 9 0000 0000', // TODO
-  email: 'contacto@sertecline.cl', // TODO: confirmar casilla real
-  address: {
-    street: 'TODO: calle y número',
-    comuna: 'TODO: comuna',
-    region: 'TODO: región',
-    country: 'Chile',
-  },
-  hours: 'TODO: horario de atención',
-  social: [
-    { platform: 'instagram', url: 'https://instagram.com/TODO' },
-    { platform: 'linkedin', url: 'https://linkedin.com/company/TODO' },
-  ],
+  legalName: 'Sertecline SpA', // TODO: confirmar razón social
+  phone: '+56 9 9222 7231',
+  whatsapp: '+56 9 9222 7231',
 };

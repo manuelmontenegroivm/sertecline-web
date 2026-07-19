@@ -14,7 +14,7 @@ export const primaryNav: NavItem[] = [
   { label: 'Trabajos', href: '/#trabajos', available: true }, // EPIC 3.6.2: ancla a la sección FeaturedWork en home
   { label: 'Cobertura', href: '/#cobertura', available: true }, // EPIC 3.8: ancla a la sección Coverage en home; promover a /comunas cuando exista esa página
   { label: 'Mantención', href: '#mantencion', available: false },
-  { label: 'Contacto', href: '#contacto', available: false }, // TODO: requiere src/data/contact.ts con NAP real
+  { label: 'Contacto', href: '/#contacto', available: true }, // EPIC 3.10: ancla a la sección Contact en home; phone/whatsapp confirmados en src/data/contact.ts
 ];
 
 export const availableNav: NavItem[] = primaryNav.filter((item) => item.available);

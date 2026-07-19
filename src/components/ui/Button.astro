@@ -1,8 +1,11 @@
 ---
 /**
  * Botón de marca — primitiva del Design System (EPIC 3.4).
- * Elemento <button> semántico únicamente: para navegación usar <TextLink>,
- * nunca un <Button> con href fingiendo ser enlace.
+ * Elemento <button> semántico únicamente: para un enlace con esta misma
+ * apariencia usar <ButtonLink> (EPIC 3.10) — nunca un <Button> con href
+ * fingiendo ser enlace. Variantes/tamaños viven en ./buttonStyles.ts,
+ * compartido con <ButtonLink>; lo que sigue local a este archivo (estado
+ * disabled, tamaño de ícono) es exclusivo de <button>.
  *
  * Iconos: pasar SVG a los slots `icon-leading` / `icon-trailing` con
  * `aria-hidden="true"` (el nombre accesible del botón lo da el slot por
@@ -17,9 +20,15 @@
  * el island que maneja ese estado.
  */
 import VisuallyHidden from './VisuallyHidden.astro';
+import {
+  BUTTON_BASE_CLASSES,
+  BUTTON_VARIANT_CLASSES,
+  BUTTON_SIZE_CLASSES,
+  type ButtonVariant,
+  type ButtonSize,
+} from './buttonStyles';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type { ButtonVariant, ButtonSize };
 
 interface Props extends Omit<astroHTML.JSX.ButtonHTMLAttributes, 'type'> {
   variant?: ButtonVariant;
@@ -39,24 +48,6 @@ const {
   ...rest
 } = Astro.props as Props;
 
-// Contraste verificado en tokens.json: brand-ink whiteOn 6.36:1 AA (fondo sólido);
-// ghost/outline usan brand-ink como texto sobre papel, 5.64:1 AA.
-const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-ink text-paper hover:opacity-90 active:opacity-80',
-  secondary:
-    'border border-hairline bg-paper-2 text-ink hover:border-hairline-strong hover:bg-paper active:bg-paper-2',
-  ghost: 'bg-transparent text-brand-ink hover:bg-paper-2 active:bg-paper',
-  outline: 'border border-brand-ink bg-transparent text-brand-ink hover:bg-paper-2 active:bg-paper',
-};
-
-// Padding/tamaños de texto tomados directamente de la escala de espaciado y
-// tipografía de tokens.css (4·8·12·16·20·24 / text-sm·base·lg) — nada arbitrario.
-const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: 'gap-1.5 rounded-sm px-4 py-2 text-sm',
-  md: 'gap-2 rounded-md px-5 py-3 text-base',
-  lg: 'gap-2.5 rounded-lg px-6 py-4 text-lg',
-};
-
 const ICON_SIZE: Record<ButtonSize, string> = {
   sm: 'var(--icon-sm)',
   md: 'var(--icon-md)',
@@ -66,11 +57,10 @@ const ICON_SIZE: Record<ButtonSize, string> = {
 const isDisabled = disabled || loading;
 
 const classes = [
-  'inline-flex items-center justify-center whitespace-nowrap font-medium',
-  'transition-colors [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out)]',
+  BUTTON_BASE_CLASSES,
   'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[var(--opacity-disabled)]',
-  VARIANT_CLASSES[variant],
-  SIZE_CLASSES[size],
+  BUTTON_VARIANT_CLASSES[variant],
+  BUTTON_SIZE_CLASSES[size],
   className,
 ]
   .filter(Boolean)

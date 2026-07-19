@@ -1,0 +1,38 @@
+---
+/**
+ * Enlace con apariencia de botón — primitiva del Design System (EPIC 3.10).
+ * Elemento <a> semántico únicamente: para un botón real usar <Button>, para
+ * un enlace de texto inline usar <TextLink>. Comparte variantes/tamaños con
+ * <Button> vía ./buttonStyles.ts (única fuente de verdad visual entre ambos).
+ *
+ * target/rel no se deciden aquí: siguen siendo responsabilidad del consumidor
+ * (mismo criterio que un <a> nativo). No acepta `disabled` ni `type`: esos
+ * estados no existen en un enlace real.
+ *
+ * El foco visible NO se redefine aquí: hereda la regla global
+ * `:focus-visible` de src/styles/brand.css (evita duplicar el token de foco).
+ */
+import {
+  BUTTON_BASE_CLASSES,
+  BUTTON_VARIANT_CLASSES,
+  BUTTON_SIZE_CLASSES,
+  type ButtonVariant,
+  type ButtonSize,
+} from './buttonStyles';
+
+interface Props extends Omit<astroHTML.JSX.AnchorHTMLAttributes, 'href'> {
+  href: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}
+
+const { href, variant = 'primary', size = 'md', class: className, ...rest } = Astro.props as Props;
+
+const classes = [BUTTON_BASE_CLASSES, BUTTON_VARIANT_CLASSES[variant], BUTTON_SIZE_CLASSES[size], className]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<a href={href} class={classes} {...rest}>
+  <slot />
+</a>

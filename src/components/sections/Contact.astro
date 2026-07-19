@@ -1,0 +1,70 @@
+---
+/**
+ * Sección "Contacto" (EPIC 3.10). Última sección de home, debajo de
+ * "Preguntas frecuentes". Consume únicamente el NAP ya confirmado de
+ * src/data/contact.ts (phone, whatsapp) — email, address, hours y social son
+ * opcionales en ContactInfo y hoy no existen, por lo que deliberadamente no
+ * se renderizan (ver contact.ts).
+ * Las dos acciones usan <ButtonLink> (ver src/components/ui/buttonStyles.ts,
+ * contrato visual compartido con <Button>). El CTA de teléfono sobreescribe
+ * puntualmente el fondo de la variante `secondary` (bg-paper-2 → bg-paper)
+ * porque esta sección tiene background="paper-2": sin el override, el botón
+ * quedaría del mismo color que el fondo de la sección. Se usa el modificador
+ * `!` de Tailwind para garantizar la sobreescritura sin depender del orden de
+ * generación del stylesheet.
+ * El CTA de WhatsApp (`primary`, sin borde) lleva `border border-transparent`
+ * para reservar el mismo espacio de borde que `secondary` (que sí tiene
+ * `border`) — sin esto, en móvil (`flex-col`, sin stretch de altura entre
+ * hermanos) el CTA de WhatsApp queda 2px más bajo que el de Llamar.
+ * `scroll-mt-24` compensa el header sticky al navegar por ancla (`/#contacto`,
+ * ver src/data/navigation.ts) — mismo tratamiento que las demás secciones.
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import ButtonLink from '../ui/ButtonLink.astro';
+import VisuallyHidden from '../ui/VisuallyHidden.astro';
+import { contactInfo } from '../../data/contact';
+import { contactSectionContent } from '../../data/contactSection';
+
+const phoneHref = `tel:${contactInfo.phone.replace(/\s+/g, '')}`;
+
+const whatsappNumber = contactInfo.whatsapp.replace(/\D/g, '');
+const whatsappMessage = 'Hola, necesito ayuda con un equipo de línea blanca.';
+const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+---
+
+<Section as="section" id="contacto" background="paper-2" spacing="lg" class="scroll-mt-24">
+  <div class="flex flex-col gap-8">
+    <div class="max-w-prose">
+      <Badge>{contactSectionContent.eyebrow}</Badge>
+      <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
+        {contactSectionContent.heading}
+      </h2>
+      <p class="text-ink-2 mt-4 text-lg">{contactSectionContent.intro}</p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <ButtonLink
+        href={whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        size="lg"
+        class="w-full border border-transparent sm:w-auto"
+      >
+        Escríbenos por WhatsApp
+        <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
+      </ButtonLink>
+
+      <ButtonLink
+        href={phoneHref}
+        variant="secondary"
+        size="lg"
+        class="w-full !bg-paper hover:!bg-paper-2 sm:w-auto"
+      >
+        Llamar al {contactInfo.phone}
+      </ButtonLink>
+    </div>
+
+    <p class="text-ink-2 text-sm">{contactSectionContent.note}</p>
+  </div>
+</Section>
