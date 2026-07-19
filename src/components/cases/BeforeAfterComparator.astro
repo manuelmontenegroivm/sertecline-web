@@ -11,7 +11,7 @@
  */
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import BeforeAfterComparatorIsland from './BeforeAfterComparatorIsland';
+import BeforeAfterComparatorIsland, { type AspectRatio } from './BeforeAfterComparatorIsland';
 
 export interface ComparatorPair {
   before: ImageMetadata;
@@ -24,9 +24,11 @@ interface Props {
   alt: string;
   beforeLabel?: string;
   afterLabel?: string;
+  /** Proporción del contenedor. @default 'natural' (proporción real de la imagen "after") */
+  aspectRatio?: AspectRatio;
 }
 
-const { pair, alt, beforeLabel, afterLabel } = Astro.props as Props;
+const { pair, alt, beforeLabel, afterLabel, aspectRatio } = Astro.props as Props;
 
 const [beforeImage, afterImage] = await Promise.all([
   getImage({ src: pair.before, width: 960, format: 'webp' }),
@@ -50,4 +52,5 @@ const [beforeImage, afterImage] = await Promise.all([
   beforeLabel={beforeLabel}
   afterLabel={afterLabel}
   caption={pair.caption}
+  aspectRatio={aspectRatio}
 />

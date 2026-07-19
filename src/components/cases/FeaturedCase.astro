@@ -1,0 +1,37 @@
+---
+/**
+ * Presenta el caso destacado de la sección "Trabajos reales" (home):
+ * contexto de servicio + comparador antes/después en proporción cuadrada
+ * (EPIC 3.6.2). El caso a mostrar lo decide FeaturedWork.astro
+ * (src/data/featuredWork.ts#caseId) — este componente solo lo renderiza.
+ */
+import type { CollectionEntry } from 'astro:content';
+import BeforeAfterComparator from './BeforeAfterComparator.astro';
+import Badge from '../ui/Badge.astro';
+import { services } from '../../data/services';
+import { serviceAreas } from '../../data/areas';
+
+interface Props {
+  case: CollectionEntry<'cases'>;
+}
+
+const { case: caseEntry } = Astro.props as Props;
+const { title, shortDescription, service: serviceId, area: areaId, pairs } = caseEntry.data;
+
+const service = services.find((item) => item.id === serviceId);
+const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefined;
+---
+
+<article class="grid gap-8 md:grid-cols-2 md:items-center md:gap-16">
+  <div class="flex flex-col items-start gap-4">
+    {service && <Badge variant="neutral">{service.title}</Badge>}
+
+    <h3 class="text-ink text-2xl font-bold md:text-3xl">{title}</h3>
+
+    <p class="text-ink-2 max-w-prose text-lg">{shortDescription}</p>
+
+    {area && <p class="text-ink-3 text-sm">Trabajo realizado en {area.name}, {area.region}.</p>}
+  </div>
+
+  <BeforeAfterComparator pair={pairs[0]} alt={title} aspectRatio="square" />
+</article>

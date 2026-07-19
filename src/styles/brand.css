@@ -9,6 +9,14 @@ html {
   color-scheme: light;
 }
 
+/* Scroll suave en navegación por ancla (ej. nav "Trabajos" → /#trabajos).
+   Gateado por prefers-reduced-motion: no-preference, sin JS. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);

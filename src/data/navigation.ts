@@ -11,7 +11,7 @@ export interface NavItem {
 // que `available` pase a `true`.
 export const primaryNav: NavItem[] = [
   { label: 'Servicios', href: '#servicios', available: false }, // TODO: promover a /servicios cuando exista esa página
-  { label: 'Trabajos', href: '#trabajos', available: false },
+  { label: 'Trabajos', href: '/#trabajos', available: true }, // EPIC 3.6.2: ancla a la sección FeaturedWork en home
   { label: 'Mantención', href: '#mantencion', available: false },
   { label: 'Contacto', href: '#contacto', available: false }, // TODO: requiere src/data/contact.ts con NAP real
 ];

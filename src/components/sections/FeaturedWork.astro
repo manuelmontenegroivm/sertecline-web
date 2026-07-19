@@ -1,0 +1,37 @@
+---
+/**
+ * Sección "Trabajos reales" (EPIC 3.6.2). Vive debajo del Hero en home.
+ * Muestra exactamente un caso, seleccionado editorialmente vía
+ * `featuredWorkContent.caseId` (src/data/featuredWork.ts) y resuelto con
+ * getPublishedCaseById() — única fuente de consulta a la collection `cases`
+ * (regla de dependencia, ver CLAUDE.md). Si el caso no existe o está en
+ * `draft`, la sección no se renderiza.
+ * `scroll-mt-24` compensa el header sticky al navegar por ancla desde el nav
+ * (`/#trabajos`, ver src/data/navigation.ts).
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import FeaturedCase from '../cases/FeaturedCase.astro';
+import { getPublishedCaseById } from '../../lib/content/cases';
+import { featuredWorkContent } from '../../data/featuredWork';
+
+const caseEntry = await getPublishedCaseById(featuredWorkContent.caseId);
+---
+
+{
+  caseEntry && (
+    <Section as="section" id="trabajos" background="paper-2" spacing="lg" class="scroll-mt-24">
+      <div class="flex flex-col gap-12">
+        <div class="max-w-prose">
+          <Badge>{featuredWorkContent.eyebrow}</Badge>
+          <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
+            {featuredWorkContent.heading}
+          </h2>
+          <p class="text-ink-2 mt-4 text-lg">{featuredWorkContent.intro}</p>
+        </div>
+
+        <FeaturedCase case={caseEntry} />
+      </div>
+    </Section>
+  )
+}

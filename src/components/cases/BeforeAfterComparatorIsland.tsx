@@ -26,6 +26,16 @@ export interface ComparatorImage {
   height: number;
 }
 
+// Unión cerrada (no CSS libre): única fuente del mapeo proporción → valor
+// CSS, compartida por este Island y su wrapper BeforeAfterComparator.astro
+// (que solo reexporta el tipo, sin duplicar el mapa).
+export type AspectRatio = 'natural' | 'square' | 'fourThree';
+
+const ASPECT_RATIO_CSS: Record<Exclude<AspectRatio, 'natural'>, string> = {
+  square: '1/1',
+  fourThree: '4/3',
+};
+
 interface Props {
   before: ComparatorImage;
   after: ComparatorImage;
@@ -33,6 +43,8 @@ interface Props {
   beforeLabel?: string;
   afterLabel?: string;
   caption?: string;
+  /** Proporción del contenedor. @default 'natural' (proporción real de `after`) */
+  aspectRatio?: AspectRatio;
 }
 
 const MIN = 0;
@@ -50,6 +62,7 @@ export default function BeforeAfterComparatorIsland({
   beforeLabel = 'Antes',
   afterLabel = 'Después',
   caption,
+  aspectRatio = 'natural',
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -150,7 +163,12 @@ export default function BeforeAfterComparatorIsland({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className="border-hairline bg-paper-2 relative w-full touch-none overflow-hidden rounded-2xl border select-none"
-        style={{ aspectRatio: `${after.width} / ${after.height}` }}
+        style={{
+          aspectRatio:
+            aspectRatio === 'natural'
+              ? `${after.width} / ${after.height}`
+              : ASPECT_RATIO_CSS[aspectRatio],
+        }}
       >
         <img
           src={after.src}
