@@ -2,6 +2,14 @@ export interface Service {
   id: string;
   slug: string;
   title: string;
+  /**
+   * Denominación completa para el <title> de buscador. Solo se define cuando
+   * `title` (pensado para UI corta: Badge, ServiceCard) omite la entidad
+   * principal del servicio y por eso resulta ambiguo como <title> — ver
+   * src/lib/seo/services.ts#buildServiceSeoTitle. Si no se define, el SEO
+   * reutiliza `title` tal cual.
+   */
+  seoTitle?: string;
   shortDescription: string;
   /** Nombre de ícono Lucide (kebab-case) resuelto por ServiceIcon.astro. */
   icon: string;
@@ -30,6 +38,7 @@ export const services: Service[] = [
     id: 'limpieza-lavadoras',
     slug: 'limpieza-lavadoras',
     title: 'Mantención y Limpieza',
+    seoTitle: 'Limpieza y mantención de lavadoras',
     shortDescription:
       'Mantención preventiva y limpieza técnica para cuidar el funcionamiento del equipo.',
     icon: 'sparkles',

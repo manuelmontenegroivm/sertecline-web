@@ -4,26 +4,39 @@
  * Hero (header) + área de contenido MDX. Reutiliza <Container> de
  * components/layout/ para anchos (max-w-content/narrow generados desde
  * --container-* en tokens.css) en vez de duplicar valores.
+ *
+ * SEO (Checkpoint 8): este layout es el único punto compartido por todas las
+ * páginas de servicio, así que aquí se compone título/descripción SEO a
+ * partir de los datos crudos de catálogo + contenido editorial, vía
+ * src/lib/seo/services.ts. La ruta ([slug].astro) solo resuelve datos; no
+ * conoce la estrategia SEO.
  */
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/layout/Container.astro';
+import { buildServiceSeoTitle, buildServiceMetaDescription } from '../lib/seo/services';
 
 interface Props {
   title: string;
+  /** Override opcional del catálogo — ver src/data/services.ts#seoTitle. */
+  seoTitle?: string;
   intro: string;
+  metaDescription: string;
 }
 
-const { title, intro } = Astro.props;
+const { title, seoTitle, intro, metaDescription } = Astro.props;
+
+const pageTitle = buildServiceSeoTitle(title, seoTitle);
+const pageDescription = buildServiceMetaDescription(metaDescription);
 ---
 
-<BaseLayout title={title}>
+<BaseLayout title={pageTitle} description={pageDescription}>
   <article>
     <header class="border-hairline bg-paper-2 border-b">
       <Container size="content" class="py-16 md:py-24">
         <h1 class="text-ink max-w-narrow text-3xl font-black tracking-tight md:text-4xl">
           {title}
         </h1>
-        <p class="text-ink-2 mt-4 max-w-narrow text-lg leading-relaxed md:mt-6">
+        <p class="text-ink-2 max-w-narrow mt-4 text-lg leading-relaxed md:mt-6">
           {intro}
         </p>
       </Container>

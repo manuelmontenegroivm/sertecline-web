@@ -26,10 +26,11 @@ if (!service) {
 
 const catalogEntry = serviceCatalog.find((entry) => entry.id === service.id);
 const title = catalogEntry?.title ?? service.id;
-const { intro } = service.data;
+const seoTitle = catalogEntry?.seoTitle;
+const { intro, metaDescription } = service.data;
 const { Content } = await render(service);
 ---
 
-<ServiceLayout title={title} intro={intro}>
+<ServiceLayout title={title} seoTitle={seoTitle} intro={intro} metaDescription={metaDescription}>
   <Content />
 </ServiceLayout>
