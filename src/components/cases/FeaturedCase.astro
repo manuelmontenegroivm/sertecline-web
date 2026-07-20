@@ -30,7 +30,13 @@ const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefine
 
     <p class="text-ink-2 max-w-prose text-lg">{shortDescription}</p>
 
-    {area && <p class="text-ink-3 text-sm">Trabajo realizado en {area.name}, {area.region}.</p>}
+    {
+      area && (
+        <p class="text-ink-3 text-sm">
+          Trabajo realizado en {area.name}, {area.region}.
+        </p>
+      )
+    }
   </div>
 
   <BeforeAfterComparator pair={pairs[0]} alt={title} aspectRatio="square" />

@@ -28,7 +28,12 @@ interface Props extends Omit<astroHTML.JSX.AnchorHTMLAttributes, 'href'> {
 
 const { href, variant = 'primary', size = 'md', class: className, ...rest } = Astro.props as Props;
 
-const classes = [BUTTON_BASE_CLASSES, BUTTON_VARIANT_CLASSES[variant], BUTTON_SIZE_CLASSES[size], className]
+const classes = [
+  BUTTON_BASE_CLASSES,
+  BUTTON_VARIANT_CLASSES[variant],
+  BUTTON_SIZE_CLASSES[size],
+  className,
+]
   .filter(Boolean)
   .join(' ');
 ---
