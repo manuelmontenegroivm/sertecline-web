@@ -22,24 +22,26 @@ const blog = defineCollection({
 
 const services = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/services' }),
-  schema: z.object({
-    title: z.string(),
-    slug: z.string(),
-    description: z.string(),
-    shortDescription: z.string(),
-    featured: z.boolean().default(false),
-    category: z.string(),
-    // IDs de src/data/brands.ts
-    relatedBrands: z.array(z.string()).default([]),
-    faqs: z
-      .array(
-        z.object({
-          question: z.string(),
-          answer: z.string(),
-        })
-      )
-      .default([]),
-  }),
+  // title, shortDescription y featured NO viven aquí: son datos de catálogo
+  // y siguen viviendo exclusivamente en src/data/services.ts (fuente única).
+  // Esta colección solo aporta el contenido editorial largo por servicio.
+  schema: ({ image }) =>
+    z.object({
+      metaDescription: z.string(),
+      intro: z.string(),
+      heroImage: image().optional(),
+      // IDs de src/data/brands.ts
+      relatedBrands: z.array(z.string()).default([]),
+      faqs: z
+        .array(
+          z.object({
+            question: z.string(),
+            answer: z.string(),
+          })
+        )
+        .default([]),
+      draft: z.boolean().default(false),
+    }),
 });
 
 const testimonials = defineCollection({
