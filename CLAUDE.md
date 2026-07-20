@@ -25,12 +25,12 @@ No asumas otras librerías o integraciones salvo que ya estén en `package.json`
 
 El proyecto sigue una versión ligera de Clean Architecture adaptada a un sitio mayormente estático: el contenido y las reglas de negocio no dependen de Astro ni de un proveedor externo concreto.
 
-| Capa | Qué es | Dónde vive |
-|---|---|---|
-| Entidades | Esquemas de contenido (Post, Servicio, Testimonio) | `src/content.config.ts` |
-| Casos de uso | Funciones puras que consultan/transforman ese contenido | `src/lib/` |
-| Adaptadores de interfaz | Componentes que presentan esos datos | `src/components/`, `src/layouts/` |
-| Detalles/Frameworks | Astro, hosting, proveedor de email/CRM del formulario | `astro.config.mjs`, integraciones |
+| Capa                    | Qué es                                                  | Dónde vive                        |
+| ----------------------- | ------------------------------------------------------- | --------------------------------- |
+| Entidades               | Esquemas de contenido (Post, Servicio, Testimonio)      | `src/content.config.ts`           |
+| Casos de uso            | Funciones puras que consultan/transforman ese contenido | `src/lib/`                        |
+| Adaptadores de interfaz | Componentes que presentan esos datos                    | `src/components/`, `src/layouts/` |
+| Detalles/Frameworks     | Astro, hosting, proveedor de email/CRM del formulario   | `astro.config.mjs`, integraciones |
 
 **Regla de dependencia:** nada en `src/lib/` importa un componente `.astro` o `.tsx`. Los componentes importan de `src/lib/`, `src/data/` y `src/config/` — nunca al revés.
 
@@ -52,6 +52,7 @@ src/
 ```
 
 Reglas:
+
 - Un componente nuevo va en la carpeta de su **rol**, no en una carpeta por feature/página.
 - `data/` es para datos tipo negocio editables (nav, servicios, comunas, marcas, contacto). `config/` es para configuración técnica de la app (SEO defaults, presets de animación). No mezclar ambos.
 - Contenido largo/editorial (posts, fichas de servicio extensas) va en `content/`, nunca en `data/`.
