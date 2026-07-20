@@ -1,0 +1,32 @@
+---
+import { getPublishedServices, getServiceBySlug } from '../../lib/content/services';
+import { services as serviceCatalog } from '../../data/services';
+
+export async function getStaticPaths() {
+  const services = await getPublishedServices();
+
+  return services.map((service) => ({
+    params: { slug: service.id },
+  }));
+}
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  throw new Error('Missing service slug');
+}
+
+const service = await getServiceBySlug(slug);
+
+if (!service) {
+  throw new Error(`Published service not found for slug: ${slug}`);
+}
+
+const catalogEntry = serviceCatalog.find((entry) => entry.id === service.id);
+const title = catalogEntry?.title ?? service.id;
+const { intro } = service.data;
+---
+
+<h1>{title}</h1>
+<p>{intro}</p>
+<p>El diseño definitivo de esta página llegará en checkpoints posteriores.</p>
