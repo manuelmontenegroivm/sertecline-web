@@ -1,5 +1,12 @@
 ---
+/**
+ * Estructura visual base de una ficha de servicio (EPIC 4.0 — Checkpoint 6).
+ * Hero (header) + área de contenido MDX. Reutiliza <Container> de
+ * components/layout/ para anchos (max-w-content/narrow generados desde
+ * --container-* en tokens.css) en vez de duplicar valores.
+ */
 import BaseLayout from './BaseLayout.astro';
+import Container from '../components/layout/Container.astro';
 
 interface Props {
   title: string;
@@ -11,10 +18,117 @@ const { title, intro } = Astro.props;
 
 <BaseLayout title={title}>
   <article>
-    <header>
-      <h1>{title}</h1>
-      <p>{intro}</p>
+    <header class="border-hairline bg-paper-2 border-b">
+      <Container size="content" class="py-16 md:py-24">
+        <h1 class="text-ink max-w-narrow text-3xl font-black tracking-tight md:text-4xl">
+          {title}
+        </h1>
+        <p class="text-ink-2 mt-4 max-w-narrow text-lg leading-relaxed md:mt-6">
+          {intro}
+        </p>
+      </Container>
     </header>
-    <slot />
+
+    <!-- Contenido MDX: empieza en h2 (el h1 ya lo ocupa el hero). -->
+    <Container size="narrow" class="service-content py-12 md:py-16">
+      <slot />
+    </Container>
   </article>
 </BaseLayout>
+
+<style>
+  /* Contenido inyectado vía <slot/> desde MDX: no hereda el scope de este
+     componente, por eso :global(). Cubre h2–h4/p/listas/enlaces/imágenes/
+     blockquote ahora (aunque el MDX actual solo use <p>) para que futuros
+     checkpoints de contenido (imágenes, listas, bloques informativos) no
+     requieran tocar este layout. */
+  .service-content :global(> *:first-child) {
+    margin-top: 0;
+  }
+
+  .service-content :global(h2) {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+  }
+
+  .service-content :global(h3) {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+  }
+
+  .service-content :global(h4) {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink);
+  }
+
+  .service-content :global(p) {
+    margin-bottom: 1.5rem;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    color: var(--color-ink-2);
+  }
+
+  .service-content :global(ul),
+  .service-content :global(ol) {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+    color: var(--color-ink-2);
+  }
+
+  .service-content :global(ul) {
+    list-style-type: disc;
+  }
+
+  .service-content :global(ol) {
+    list-style-type: decimal;
+  }
+
+  .service-content :global(li + li) {
+    margin-top: 0.5rem;
+  }
+
+  .service-content :global(a) {
+    color: var(--color-brand-ink);
+    text-underline-offset: 2px;
+    text-decoration: underline;
+  }
+
+  .service-content :global(strong) {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink);
+  }
+
+  .service-content :global(blockquote) {
+    margin-bottom: 1.5rem;
+    border-left: var(--border-accent) solid var(--color-hairline-strong);
+    padding-left: 1rem;
+    color: var(--color-ink-2);
+    font-style: italic;
+  }
+
+  .service-content :global(img) {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .service-content :global(hr) {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    border-color: var(--color-hairline);
+  }
+</style>
