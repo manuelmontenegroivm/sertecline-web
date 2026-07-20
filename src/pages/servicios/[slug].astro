@@ -1,4 +1,5 @@
 ---
+import { render } from 'astro:content';
 import ServiceLayout from '../../layouts/ServiceLayout.astro';
 import { getPublishedServices, getServiceBySlug } from '../../lib/content/services';
 import { services as serviceCatalog } from '../../data/services';
@@ -26,8 +27,9 @@ if (!service) {
 const catalogEntry = serviceCatalog.find((entry) => entry.id === service.id);
 const title = catalogEntry?.title ?? service.id;
 const { intro } = service.data;
+const { Content } = await render(service);
 ---
 
 <ServiceLayout title={title} intro={intro}>
-  <p>El diseño definitivo de esta página llegará en checkpoints posteriores.</p>
+  <Content />
 </ServiceLayout>
