@@ -1,0 +1,56 @@
+---
+/**
+ * CTA que cierra una ficha de servicio (EPIC 4.0 — Checkpoint 12).
+ * Vive fuera del contenedor `.service-content` de ServiceLayout: las reglas
+ * `:global(a)` de ese contenedor (color + subrayado, pensadas para enlaces de
+ * prosa MDX) pisarían la apariencia de los <ButtonLink> del CTA.
+ *
+ * No renderiza teléfono ni URLs: delega en <ContactActions>, el mismo par de
+ * acciones que usa la sección Contacto de home. `background="paper-2"` no es
+ * solo estético — es el fondo que ContactActions asume para su override del
+ * botón secundario (ver ese archivo).
+ *
+ * Sin `id="contacto"`: ese ancla pertenece a la sección de home a la que apunta
+ * la navegación (`/#contacto`, src/data/navigation.ts) y duplicarlo aquí
+ * generaría dos destinos con el mismo nombre.
+ *
+ * El h2 usa la escala de los h2 de la ficha (los del MDX y el de "Preguntas
+ * frecuentes"), no la de las secciones de home, que es mayor.
+ */
+import Section from '../layout/Section.astro';
+import Badge from '../ui/Badge.astro';
+import ContactActions from '../contact/ContactActions.astro';
+import { serviceCtaContent } from '../../data/serviceCta';
+
+interface Props {
+  /** Denominación ya resuelta del servicio — ver lib/seo/services.ts#resolveServiceName. */
+  serviceName: string;
+}
+
+const { serviceName } = Astro.props as Props;
+
+const whatsappMessage = serviceCtaContent.whatsappMessageTemplate.replace(
+  '{servicio}',
+  serviceName
+);
+---
+
+<Section
+  as="section"
+  background="paper-2"
+  containerSize="narrow"
+  spacing="md"
+  aria-labelledby="cta-servicio"
+>
+  <div class="flex flex-col gap-8">
+    <div class="max-w-prose">
+      <Badge>{serviceCtaContent.eyebrow}</Badge>
+      <h2 id="cta-servicio" class="text-ink mt-4 text-2xl font-bold tracking-tight md:text-3xl">
+        {serviceCtaContent.heading}
+      </h2>
+      <p class="text-ink-2 mt-4 text-lg">{serviceCtaContent.intro}</p>
+    </div>
+
+    <ContactActions whatsappMessage={whatsappMessage} />
+  </div>
+</Section>

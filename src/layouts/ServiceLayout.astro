@@ -26,10 +26,17 @@
  * `breadcrumbs` se recorre para el <ol> visible y se pasa al @graph, de modo
  * que el rastro estructurado no pueda declarar una jerarquía distinta de la
  * que se muestra.
+ *
+ * CTA (Checkpoint 12): <ServiceCta> cierra el <article> después de las FAQs.
+ * Al ser este el único punto compartido por todas las fichas, toda ficha —
+ * presente o futura — termina con una salida de contacto sin repetir nada en
+ * el MDX. Recibe el mismo `serviceName` ya resuelto que usan el <h1>, el
+ * <title> y el rastro; no aporta datos estructurados propios.
  */
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/layout/Container.astro';
 import FaqItem from '../components/faq/FaqItem.astro';
+import ServiceCta from '../components/services/ServiceCta.astro';
 import {
   buildServiceSeoTitle,
   buildServiceMetaDescription,
@@ -145,6 +152,8 @@ const structuredData = buildServiceStructuredData({
         </section>
       )
     }
+
+    <ServiceCta serviceName={serviceName} />
   </article>
 </BaseLayout>
 

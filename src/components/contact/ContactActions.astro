@@ -1,0 +1,63 @@
+---
+/**
+ * Par de acciones de contacto: WhatsApp (primaria) + llamada telefónica
+ * (secundaria). Extraído de sections/Contact.astro (EPIC 3.10) en el
+ * Checkpoint 12, cuando las fichas de servicio pasaron a necesitar exactamente
+ * el mismo par. Los href salen de lib/utils/contact.ts — aquí no se escribe
+ * ni se normaliza el número.
+ *
+ * Ambas acciones usan <ButtonLink> (ver ui/buttonStyles.ts, contrato visual
+ * compartido con <Button>).
+ *
+ * SUPERFICIE: este componente asume que su contenedor tiene fondo `paper-2`
+ * (hoy sus dos consumidores lo tienen: la sección Contacto de home y el CTA de
+ * ficha de servicio, ambas con <Section background="paper-2">). Por eso el CTA
+ * de teléfono sobreescribe puntualmente el fondo de la variante `secondary`
+ * (bg-paper-2 → bg-paper): sin el override quedaría del mismo color que el
+ * fondo. Se usa el modificador `!` de Tailwind para garantizar la
+ * sobreescritura sin depender del orden de generación del stylesheet. Un
+ * consumidor futuro sobre otro fondo debe revisar este supuesto en vez de
+ * heredarlo.
+ *
+ * El CTA de WhatsApp (`primary`, sin borde) lleva `border border-transparent`
+ * para reservar el mismo espacio de borde que `secondary` (que sí tiene
+ * `border`) — sin esto, en móvil (`flex-col`, sin stretch de altura entre
+ * hermanos) el CTA de WhatsApp queda 2px más bajo que el de Llamar.
+ */
+import ButtonLink from '../ui/ButtonLink.astro';
+import VisuallyHidden from '../ui/VisuallyHidden.astro';
+import { contactInfo } from '../../data/contact';
+import { buildPhoneHref, buildWhatsappHref } from '../../lib/utils/contact';
+
+interface Props {
+  /** Mensaje precargado del chat. Por defecto, el genérico de lib/utils/contact.ts. */
+  whatsappMessage?: string;
+}
+
+const { whatsappMessage } = Astro.props as Props;
+
+const phoneHref = buildPhoneHref();
+const whatsappHref = buildWhatsappHref(whatsappMessage);
+---
+
+<div class="flex flex-col gap-3 sm:flex-row">
+  <ButtonLink
+    href={whatsappHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    size="lg"
+    class="w-full border border-transparent sm:w-auto"
+  >
+    Escríbenos por WhatsApp
+    <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
+  </ButtonLink>
+
+  <ButtonLink
+    href={phoneHref}
+    variant="secondary"
+    size="lg"
+    class="!bg-paper hover:!bg-paper-2 w-full sm:w-auto"
+  >
+    Llamar al {contactInfo.phone}
+  </ButtonLink>
+</div>
