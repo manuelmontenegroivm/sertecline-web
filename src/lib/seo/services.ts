@@ -1,5 +1,6 @@
 import { siteConfig } from '../../config/site';
 import {
+  buildBreadcrumbListSchema,
   buildFaqPageSchema,
   buildServiceNodeId,
   buildServiceSchema,
@@ -7,6 +8,7 @@ import {
   type JsonLdNode,
   type OrganizationRef,
 } from './schema';
+import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
 
 // Ubicación usada para enriquecer título/descripción de páginas de servicio
@@ -67,6 +69,25 @@ export function buildServiceCanonicalUrl(pathname: string, site?: URL): string {
   return new URL(pathname, site ?? siteConfig.url).toString();
 }
 
+/**
+ * Rastro de navegación de una ficha de servicio.
+ *
+ * Hoy son dos niveles: la home y la ficha. Deliberadamente **no** existe un
+ * nivel intermedio "Servicios": ese destino sería `/#servicios`, un fragmento
+ * de la home, y un ancla dentro de otra página no es una página padre.
+ * Declararla como tal inventaría una jerarquía que el sitio no tiene.
+ * Cuando exista una página `/servicios` real, el nivel se agrega aquí — es el
+ * único punto a tocar, porque de este array salen tanto el `<ol>` visible
+ * como el BreadcrumbList.
+ *
+ * `serviceName` debe venir ya resuelto con resolveServiceName(): el rastro usa
+ * la denominación completa del servicio, no el título corto de UI, y esa regla
+ * ya vive en un solo lugar.
+ */
+export function buildServiceBreadcrumbs(serviceName: string): ServiceBreadcrumb[] {
+  return [{ name: 'Inicio', href: '/' }, { name: serviceName }];
+}
+
 export interface ServiceStructuredDataInput {
   /** Ya resuelto con resolveServiceName(). */
   name: string;
@@ -79,6 +100,11 @@ export interface ServiceStructuredDataInput {
    * existir dato estructurado sin su contraparte visible en el HTML.
    */
   faqs?: readonly ServiceFaq[];
+  /**
+   * Exactamente el mismo array que ServiceLayout renderiza en el `<nav>` de
+   * breadcrumbs — ver buildServiceBreadcrumbs().
+   */
+  breadcrumbs?: readonly ServiceBreadcrumb[];
 }
 
 /**
@@ -90,16 +116,17 @@ export interface ServiceStructuredDataInput {
  * `provider` y `areaServed`, y repetirlas en prosa duplicaría en el grafo lo
  * que el grafo ya declara.
  *
- * Service siempre está; FAQPage solo cuando la ficha muestra preguntas. Ambos
- * viajan en un único @graph, no en dos bloques <script>: así el FAQPage puede
- * referenciar al Service por @id (`about`) y declarar de qué trata, en vez de
- * quedar como un set de preguntas suelto.
+ * Service siempre está; FAQPage y BreadcrumbList solo cuando la ficha muestra
+ * preguntas y rastro. Todos viajan en un único @graph, no en bloques <script>
+ * separados: así el FAQPage puede referenciar al Service por @id (`about`) y
+ * declarar de qué trata, en vez de quedar como un set de preguntas suelto.
  */
 export function buildServiceStructuredData({
   name,
   description,
   canonical,
   faqs = [],
+  breadcrumbs = [],
 }: ServiceStructuredDataInput): string {
   const nodes: JsonLdNode[] = [
     buildServiceSchema({
@@ -119,6 +146,20 @@ export function buildServiceStructuredData({
 
   if (faqPage) {
     nodes.push(faqPage);
+  }
+
+  // Base explícita en la raíz del sitio, derivada de la propia canónica: los
+  // href del rastro son relativos al raíz, y tomar el origen de la canónica
+  // evita que las URLs del breadcrumb queden en un dominio distinto del que
+  // se acaba de declarar como canónico.
+  const breadcrumbList = buildBreadcrumbListSchema({
+    items: breadcrumbs,
+    url: canonical,
+    baseUrl: new URL('/', canonical).toString(),
+  });
+
+  if (breadcrumbList) {
+    nodes.push(breadcrumbList);
   }
 
   return serializeJsonLdGraph(nodes);

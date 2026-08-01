@@ -5,6 +5,7 @@
  * resueltos y devuelve nodos, sin importar Astro ni config. La política (qué
  * organización, qué área, qué canónica) vive en src/lib/seo/services.ts.
  */
+import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
 
 /** Nodo JSON-LD ya construido, listo para entrar en un @graph. */
@@ -110,6 +111,53 @@ export function buildFaqPageSchema({ url, faqs, aboutId }: FaqPageSchemaInput): 
         '@type': 'Answer',
         text: faq.answer.trim(),
       },
+    })),
+  };
+}
+
+export interface BreadcrumbListSchemaInput {
+  /** Exactamente el array que la página renderiza — no una copia editada. */
+  items: readonly ServiceBreadcrumb[];
+  /** Canónica de la página, para el @id. */
+  url: string;
+  /** Base sobre la que se absolutizan los `href` relativos de los items. */
+  baseUrl: string;
+}
+
+/**
+ * BreadcrumbList schema a partir del rastro visible de la página.
+ *
+ * Correspondencia 1:1 con el `<ol>`: un ListItem por elemento, en el mismo
+ * orden y con el `name` tal como llega. `position` arranca en 1 porque
+ * schema.org numera desde uno, no desde el índice del array.
+ *
+ * Los `href` del rastro son relativos —el HTML no debe enlazar con URLs
+ * absolutas— y aquí se absolutizan contra `baseUrl`, que es lo que el JSON-LD
+ * sí exige. Es una derivación del mismo dato, no una segunda lista de rutas.
+ *
+ * El elemento actual no trae `href` y por eso sale sin `item`: schema.org
+ * admite omitirlo en el último tramo, que es la propia página.
+ *
+ * Devuelve `null` con menos de dos elementos: un rastro de un solo nodo no
+ * describe jerarquía y emitirlo sería declarar una estructura inexistente.
+ */
+export function buildBreadcrumbListSchema({
+  items,
+  url,
+  baseUrl,
+}: BreadcrumbListSchemaInput): JsonLdNode | null {
+  if (items.length < 2) {
+    return null;
+  }
+
+  return {
+    '@type': 'BreadcrumbList',
+    '@id': `${url}#breadcrumb`,
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      ...(item.href ? { item: new URL(item.href, baseUrl).toString() } : {}),
     })),
   };
 }
