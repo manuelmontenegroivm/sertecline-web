@@ -5,6 +5,7 @@
  * resueltos y devuelve nodos, sin importar Astro ni config. La política (qué
  * organización, qué área, qué canónica) vive en src/lib/seo/services.ts.
  */
+import type { ServiceFaq } from '../../types/serviceFaq';
 
 /** Nodo JSON-LD ya construido, listo para entrar en un @graph. */
 export type JsonLdNode = Record<string, unknown>;
@@ -31,6 +32,18 @@ export interface ServiceSchemaInput {
 }
 
 /**
+ * @id del nodo Service de una ficha, derivado de su canónica.
+ *
+ * Existe como función y no como plantilla repetida porque otros nodos del
+ * mismo @graph necesitan apuntar a ese Service (ver `about` en
+ * buildFaqPageSchema): con una sola definición, la referencia no puede quedar
+ * apuntando a un @id que ya no existe.
+ */
+export function buildServiceNodeId(url: string): string {
+  return `${url}#service`;
+}
+
+/**
  * Service schema.
  *
  * `provider` es Organization y no LocalBusiness ni un subtipo de
@@ -41,7 +54,7 @@ export interface ServiceSchemaInput {
 export function buildServiceSchema(input: ServiceSchemaInput): JsonLdNode {
   return {
     '@type': 'Service',
-    '@id': `${input.url}#service`,
+    '@id': buildServiceNodeId(input.url),
     name: input.name,
     description: input.description,
     url: input.url,
@@ -52,6 +65,52 @@ export function buildServiceSchema(input: ServiceSchemaInput): JsonLdNode {
       name: input.provider.name,
       url: input.provider.url,
     },
+  };
+}
+
+export interface FaqPageSchemaInput {
+  /** URL canónica de la página que muestra estas preguntas. */
+  url: string;
+  /** Exactamente el array que la página renderiza — no una copia editada. */
+  faqs: readonly ServiceFaq[];
+  /** @id del nodo que estas preguntas describen (ver buildServiceNodeId). */
+  aboutId?: string;
+}
+
+/**
+ * FAQPage schema a partir de las preguntas visibles de la página.
+ *
+ * Correspondencia 1:1 con el HTML: una Question por elemento recibido, en el
+ * mismo orden, sin filtrar ni fusionar. Aplicar aquí cualquier criterio
+ * propio — deduplicar, descartar, reordenar — haría que el grafo describiera
+ * un conjunto distinto del que ve el lector, que es justo lo que este
+ * checkpoint evita al alimentar ambas salidas con un único array.
+ *
+ * Devuelve `null` cuando no hay preguntas: un FAQPage con `mainEntity` vacío
+ * es inválido, y la mayoría de las fichas todavía no declara ninguna. Que sea
+ * el llamador quien decida es preferible a emitir un nodo vacío.
+ *
+ * El texto solo se recorta en los extremos: las respuestas son contenido
+ * editorial y esta capa no las reescribe.
+ */
+export function buildFaqPageSchema({ url, faqs, aboutId }: FaqPageSchemaInput): JsonLdNode | null {
+  if (faqs.length === 0) {
+    return null;
+  }
+
+  return {
+    '@type': 'FAQPage',
+    '@id': `${url}#faq`,
+    url,
+    ...(aboutId ? { about: { '@id': aboutId } } : {}),
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question.trim(),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer.trim(),
+      },
+    })),
   };
 }
 

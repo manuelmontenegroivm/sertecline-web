@@ -1,5 +1,13 @@
 import { siteConfig } from '../../config/site';
-import { buildServiceSchema, serializeJsonLdGraph, type OrganizationRef } from './schema';
+import {
+  buildFaqPageSchema,
+  buildServiceNodeId,
+  buildServiceSchema,
+  serializeJsonLdGraph,
+  type JsonLdNode,
+  type OrganizationRef,
+} from './schema';
+import type { ServiceFaq } from '../../types/serviceFaq';
 
 // Ubicación usada para enriquecer título/descripción de páginas de servicio
 // con contexto de búsqueda local. Santiago es la plaza de cobertura formal
@@ -65,6 +73,12 @@ export interface ServiceStructuredDataInput {
   /** metaDescription editorial en crudo — ver nota abajo. */
   description: string;
   canonical: string;
+  /**
+   * Exactamente el mismo array que ServiceLayout renderiza en la sección
+   * "Preguntas frecuentes". Si está vacío, no se emite nodo FAQPage: no debe
+   * existir dato estructurado sin su contraparte visible en el HTML.
+   */
+  faqs?: readonly ServiceFaq[];
 }
 
 /**
@@ -75,13 +89,19 @@ export interface ServiceStructuredDataInput {
  * buildServiceMetaDescription(): marca y ubicación ya están expresadas en
  * `provider` y `areaServed`, y repetirlas en prosa duplicaría en el grafo lo
  * que el grafo ya declara.
+ *
+ * Service siempre está; FAQPage solo cuando la ficha muestra preguntas. Ambos
+ * viajan en un único @graph, no en dos bloques <script>: así el FAQPage puede
+ * referenciar al Service por @id (`about`) y declarar de qué trata, en vez de
+ * quedar como un set de preguntas suelto.
  */
 export function buildServiceStructuredData({
   name,
   description,
   canonical,
+  faqs = [],
 }: ServiceStructuredDataInput): string {
-  return serializeJsonLdGraph([
+  const nodes: JsonLdNode[] = [
     buildServiceSchema({
       name,
       description: description.trim(),
@@ -89,5 +109,17 @@ export function buildServiceStructuredData({
       areaServed: SERVICE_AREA_SERVED,
       provider: SERTECLINE_ORGANIZATION,
     }),
-  ]);
+  ];
+
+  const faqPage = buildFaqPageSchema({
+    url: canonical,
+    faqs,
+    aboutId: buildServiceNodeId(canonical),
+  });
+
+  if (faqPage) {
+    nodes.push(faqPage);
+  }
+
+  return serializeJsonLdGraph(nodes);
 }

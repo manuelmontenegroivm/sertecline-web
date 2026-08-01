@@ -16,9 +16,15 @@
  * pide el string ya serializado a lib/seo/services.ts, no construye objetos
  * schema.org. La canónica se calcula una vez y se pasa a BaseLayout para que
  * <link rel="canonical"> y el @id del JSON-LD no puedan divergir.
+ *
+ * FAQs (Checkpoint 10): un único array `faqs` alimenta a la vez la sección
+ * visible y el nodo FAQPage del mismo @graph. No hay una segunda fuente para
+ * lo estructurado, así que no puede declararse una pregunta que la página no
+ * muestre. Sin preguntas no hay sección ni nodo.
  */
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/layout/Container.astro';
+import FaqItem from '../components/faq/FaqItem.astro';
 import {
   buildServiceSeoTitle,
   buildServiceMetaDescription,
@@ -26,6 +32,7 @@ import {
   buildServiceStructuredData,
   resolveServiceName,
 } from '../lib/seo/services';
+import type { ServiceFaq } from '../types/serviceFaq';
 
 interface Props {
   title: string;
@@ -33,9 +40,11 @@ interface Props {
   seoTitle?: string;
   intro: string;
   metaDescription: string;
+  /** Frontmatter `faqs` de la ficha, tal cual — ver src/content.config.ts. */
+  faqs?: readonly ServiceFaq[];
 }
 
-const { title, seoTitle, intro, metaDescription } = Astro.props;
+const { title, seoTitle, intro, metaDescription, faqs = [] } = Astro.props;
 
 const pageTitle = buildServiceSeoTitle(title, seoTitle);
 const pageDescription = buildServiceMetaDescription(metaDescription);
@@ -44,6 +53,7 @@ const structuredData = buildServiceStructuredData({
   name: resolveServiceName(title, seoTitle),
   description: metaDescription,
   canonical,
+  faqs,
 });
 ---
 
@@ -66,6 +76,30 @@ const structuredData = buildServiceStructuredData({
     <Container size="narrow" class="service-content py-12 md:py-16">
       <slot />
     </Container>
+
+    {
+      /* Mismo nivel que los h2 del MDX: el h1 es el hero y FaqItem aporta el
+         h3 de cada pregunta, así que la jerarquía queda h1 → h2 → h3 sin
+         saltos. FaqItem usa <details> nativo — sin JS de cliente, y con la
+         respuesta en el DOM inicial aunque esté colapsada. */
+      faqs.length > 0 && (
+        <section aria-labelledby="preguntas-frecuentes" class="border-hairline border-t">
+          <Container size="narrow" class="py-12 md:py-16">
+            <h2
+              id="preguntas-frecuentes"
+              class="text-ink text-2xl font-bold tracking-tight md:text-3xl"
+            >
+              Preguntas frecuentes
+            </h2>
+            <div class="mt-6 md:mt-8">
+              {faqs.map((faq) => (
+                <FaqItem question={faq.question} answer={faq.answer} />
+              ))}
+            </div>
+          </Container>
+        </section>
+      )
+    }
   </article>
 </BaseLayout>
 
