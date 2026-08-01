@@ -10,10 +10,22 @@
  * partir de los datos crudos de catálogo + contenido editorial, vía
  * src/lib/seo/services.ts. La ruta ([slug].astro) solo resuelve datos; no
  * conoce la estrategia SEO.
+ *
+ * Datos estructurados (Checkpoint 9): el JSON-LD se inyecta aquí y sirve a
+ * cualquier ficha de servicio, presente y futura. Este archivo solo cablea —
+ * pide el string ya serializado a lib/seo/services.ts, no construye objetos
+ * schema.org. La canónica se calcula una vez y se pasa a BaseLayout para que
+ * <link rel="canonical"> y el @id del JSON-LD no puedan divergir.
  */
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/layout/Container.astro';
-import { buildServiceSeoTitle, buildServiceMetaDescription } from '../lib/seo/services';
+import {
+  buildServiceSeoTitle,
+  buildServiceMetaDescription,
+  buildServiceCanonicalUrl,
+  buildServiceStructuredData,
+  resolveServiceName,
+} from '../lib/seo/services';
 
 interface Props {
   title: string;
@@ -27,9 +39,17 @@ const { title, seoTitle, intro, metaDescription } = Astro.props;
 
 const pageTitle = buildServiceSeoTitle(title, seoTitle);
 const pageDescription = buildServiceMetaDescription(metaDescription);
+const canonical = buildServiceCanonicalUrl(Astro.url.pathname, Astro.site);
+const structuredData = buildServiceStructuredData({
+  name: resolveServiceName(title, seoTitle),
+  description: metaDescription,
+  canonical,
+});
 ---
 
-<BaseLayout title={pageTitle} description={pageDescription}>
+<BaseLayout title={pageTitle} description={pageDescription} canonical={canonical}>
+  <!-- is:inline explícito: JSON-LD es datos, no un script a procesar/bundlear. -->
+  <script type="application/ld+json" slot="head" is:inline set:html={structuredData} />
   <article>
     <header class="border-hairline bg-paper-2 border-b">
       <Container size="content" class="py-16 md:py-24">
