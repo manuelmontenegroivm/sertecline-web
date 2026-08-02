@@ -3,21 +3,86 @@
  * Un servicio dentro de la grilla de Services.astro. Deliberadamente sin
  * `border`/`shadow`/fondo propio (Dirección Creativa: nada de tarjetas
  * pesadas) — la separación entre ítems la da el `border-t` + el gap del
- * grid contenedor. Sin link/CTA: no existe aún /servicios/[slug]; cuando
- * exista, este componente pasa a envolver el contenido en un <a>.
+ * grid contenedor.
+ *
+ * Enlace (EPIC 4.0 — Checkpoint 14): `href` llega ya resuelto desde
+ * lib/content/services.ts#getFeaturedServiceCards y solo está presente si el
+ * servicio tiene ficha publicada. Este componente no consulta astro:content ni
+ * decide qué está publicado: presenta las dos formas que puede tomar la misma
+ * tarjeta. Sin `href` el markup es exactamente el que tenía antes de existir
+ * /servicios/[slug].
+ *
+ * Afordancia deliberadamente mínima, porque durante la publicación progresiva
+ * del catálogo conviven tarjetas enlazadas y no enlazadas en la misma grilla:
+ * en reposo, una flecha terciaria junto al título; al recorrer con el puntero
+ * o el teclado, el hairline superior —el mismo primitivo con que el sistema
+ * separa, ver tokens.css— se marca, el título toma el verde de acento y la
+ * flecha avanza. Sin sombra ni fondo (el sistema los prohíbe para tarjetas) ni
+ * etiqueta "Ver servicio": la diferencia se percibe, no interrumpe.
+ *
+ * La flecha va inline y no vía <ServiceIcon>: ese componente es el único punto
+ * que importa de '@lucide/astro' y su record mapea íconos *de servicio*
+ * (src/data/services.ts#icon); una flecha de UI no pertenece a ese catálogo.
+ * Mismo criterio que el ícono externo de TextLink.astro.
+ *
+ * El <a> envuelve solo el <h3> y se extiende sobre la tarjeta con un
+ * pseudo-elemento (`after:inset-0`): toda la superficie es clickeable, pero el
+ * nombre accesible del enlace es únicamente el título, no el título más la
+ * descripción. El anillo de foco lo aporta la regla global `:focus-visible` de
+ * src/styles/brand.css — no se redefine aquí.
  */
 import ServiceIcon from './ServiceIcon.astro';
 import type { Service } from '../../data/services';
 
 interface Props {
   service: Service;
+  /** Ausente mientras el servicio no tenga ficha publicada. */
+  href?: string;
 }
 
-const { service } = Astro.props as Props;
+const { service, href } = Astro.props as Props;
 ---
 
-<article class="border-hairline flex flex-col gap-4 border-t pt-6">
+<article
+  class:list={[
+    'border-hairline flex flex-col gap-4 border-t pt-6',
+    href && [
+      'group relative transition-colors [transition-duration:var(--duration-fast)]',
+      'hover:border-hairline-strong focus-within:border-hairline-strong',
+    ],
+  ]}
+>
   <ServiceIcon name={service.icon} class="text-brand-ink size-[var(--icon-2xl)]" />
-  <h3 class="text-ink text-lg font-bold">{service.title}</h3>
+
+  <h3 class="text-ink text-lg font-bold">
+    {
+      href ? (
+        <a
+          href={href}
+          class="group-hover:text-brand-ink inline-flex items-center gap-1.5 underline-offset-4 transition-colors [transition-duration:var(--duration-fast)] group-hover:underline after:absolute after:inset-0"
+        >
+          {/* `inline-flex` + `gap` y no un margen sobre texto corrido (misma
+              receta que TextLink.astro): la flecha es un ítem flex hermano del
+              título, así que no hay whitespace entre ambos que ofrezca un punto
+              de salto de línea. Un título de dos líneas nunca deja la flecha
+              huérfana debajo. */}
+          {service.title}
+          <svg
+            class="text-ink-3 group-hover:text-brand-ink group-focus-within:text-brand-ink size-[var(--icon-sm)] shrink-0 transition-[transform,color] [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out)] group-focus-within:translate-x-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </a>
+      ) : (
+        service.title
+      )
+    }
+  </h3>
+
   <p class="text-ink-2">{service.shortDescription}</p>
 </article>
