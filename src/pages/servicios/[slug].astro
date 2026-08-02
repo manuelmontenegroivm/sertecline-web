@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import ServiceLayout from '../../layouts/ServiceLayout.astro';
 import { getPublishedServices, getServiceBySlug } from '../../lib/content/services';
+import { getRelatedCases } from '../../lib/content/cases';
 import { services as serviceCatalog } from '../../data/services';
 
 export async function getStaticPaths() {
@@ -29,6 +30,12 @@ const title = catalogEntry?.title ?? service.id;
 const seoTitle = catalogEntry?.seoTitle;
 const { intro, metaDescription, faqs } = service.data;
 const { Content } = await render(service);
+
+// Sin condicionales por slug: la relación la declara cada caso en su propio
+// frontmatter (`service`), así que esta línea sirve igual a los 8 servicios del
+// catálogo y a los que se agreguen. Hoy se pide 1; el layout no asume esa
+// cantidad.
+const relatedCases = await getRelatedCases(service.id, 1);
 ---
 
 <ServiceLayout
@@ -37,6 +44,7 @@ const { Content } = await render(service);
   intro={intro}
   metaDescription={metaDescription}
   faqs={faqs}
+  relatedCases={relatedCases}
 >
   <Content />
 </ServiceLayout>

@@ -1,0 +1,52 @@
+---
+/**
+ * Presenta un caso ya resuelto dentro de una ficha de servicio (EPIC 4.0 —
+ * Checkpoint 13). Hermano de FeaturedCase.astro, no una variante suya: aquel
+ * compone para home (grid de dos columnas dentro de <Container size="content">
+ * y <Badge> con el nombre del servicio). Aquí ese badge repetiría el <h1> de la
+ * propia ficha, y dos columnas quedarían estrechas dentro de
+ * <Container size="narrow">, así que esta composición es de una sola columna.
+ * Lo que sí se comparte es el activo reutilizable de verdad: el wrapper
+ * BeforeAfterComparator (getImage en build + la island existente, hidratada con
+ * client:visible). Este componente no introduce ninguna island nueva.
+ *
+ * No decide qué caso mostrar ni consulta astro:content: recibe la entrada ya
+ * seleccionada por la ruta (ver src/lib/content/cases.ts#getRelatedCases).
+ *
+ * `pairs[0]` es seguro sin comprobación: el schema declara `pairs` con
+ * `.min(1)` (ver src/content.config.ts).
+ */
+import type { CollectionEntry } from 'astro:content';
+import BeforeAfterComparator from './BeforeAfterComparator.astro';
+import { serviceAreas } from '../../data/areas';
+
+interface Props {
+  case: CollectionEntry<'cases'>;
+}
+
+const { case: caseEntry } = Astro.props as Props;
+const { title, shortDescription, area: areaId, pairs } = caseEntry.data;
+
+// `area` es opcional en el schema. Si el caso no la declara —o declara un ID
+// que no existe en el catálogo— no se muestra ubicación: no se infiere ni se
+// rellena con una comuna genérica.
+const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefined;
+---
+
+<article class="flex flex-col gap-6">
+  <div class="flex flex-col gap-3">
+    <h3 class="text-ink text-xl font-semibold tracking-tight">{title}</h3>
+
+    <p class="text-ink-2 max-w-prose">{shortDescription}</p>
+
+    {
+      area && (
+        <p class="text-ink-3 text-sm">
+          Trabajo realizado en {area.name}, {area.region}.
+        </p>
+      )
+    }
+  </div>
+
+  <BeforeAfterComparator pair={pairs[0]} alt={title} aspectRatio="fourThree" />
+</article>

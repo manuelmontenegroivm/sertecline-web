@@ -32,11 +32,20 @@
  * presente o futura — termina con una salida de contacto sin repetir nada en
  * el MDX. Recibe el mismo `serviceName` ya resuelto que usan el <h1>, el
  * <title> y el rastro; no aporta datos estructurados propios.
+ *
+ * Caso relacionado (Checkpoint 13): `relatedCases` llega ya resuelto y ordenado
+ * desde la ruta (mismo criterio que `faqs`: la ruta resuelve datos, el layout
+ * compone). El bloque se recorre como lista y no asume una cantidad, aunque hoy
+ * la ruta pida uno solo. Va fuera del contenedor `.service-content` porque las
+ * reglas `:global()` de ese contenedor están pensadas para prosa MDX.
  */
+import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Container from '../components/layout/Container.astro';
 import FaqItem from '../components/faq/FaqItem.astro';
+import ServiceCase from '../components/cases/ServiceCase.astro';
 import ServiceCta from '../components/services/ServiceCta.astro';
+import { serviceCasesContent } from '../data/serviceCases';
 import {
   buildServiceSeoTitle,
   buildServiceMetaDescription,
@@ -55,9 +64,11 @@ interface Props {
   metaDescription: string;
   /** Frontmatter `faqs` de la ficha, tal cual — ver src/content.config.ts. */
   faqs?: readonly ServiceFaq[];
+  /** Casos ya filtrados y ordenados — ver src/lib/content/cases.ts#getRelatedCases. */
+  relatedCases?: readonly CollectionEntry<'cases'>[];
 }
 
-const { title, seoTitle, intro, metaDescription, faqs = [] } = Astro.props;
+const { title, seoTitle, intro, metaDescription, faqs = [], relatedCases = [] } = Astro.props;
 
 // Resuelto una sola vez: el <h1>, el <title>, el nombre del Service y el
 // último tramo del rastro son la misma denominación, no cuatro decisiones
@@ -128,6 +139,33 @@ const structuredData = buildServiceStructuredData({
     <Container size="narrow" class="service-content py-12 md:py-16">
       <slot />
     </Container>
+
+    {
+      /* Evidencia entre la explicación (MDX) y las objeciones (FAQ). El h2 de
+         sección deja el h1 del hero arriba y el h3 de cada caso abajo, sin
+         saltos de nivel. Sin <Badge> del servicio dentro de cada caso: en esta
+         página ese dato ya es el h1. */
+      relatedCases.length > 0 && (
+        <section aria-labelledby="caso-relacionado" class="border-hairline border-t">
+          <Container size="narrow" class="py-12 md:py-16">
+            <h2
+              id="caso-relacionado"
+              class="text-ink text-2xl font-bold tracking-tight md:text-3xl"
+            >
+              {serviceCasesContent.heading}
+            </h2>
+            {serviceCasesContent.intro && (
+              <p class="text-ink-2 mt-4 text-lg">{serviceCasesContent.intro}</p>
+            )}
+            <div class="mt-8 flex flex-col gap-12">
+              {relatedCases.map((caseEntry) => (
+                <ServiceCase case={caseEntry} />
+              ))}
+            </div>
+          </Container>
+        </section>
+      )
+    }
 
     {
       /* Mismo nivel que los h2 del MDX: el h1 es el hero y FaqItem aporta el
