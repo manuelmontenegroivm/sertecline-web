@@ -1,9 +1,11 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { brands as brandCatalog } from './data/brands';
 import { services as serviceCatalog } from './data/services';
 
 const serviceIds = serviceCatalog.map((service) => service.id) as [string, ...string[]];
+const brandIds = brandCatalog.map((brand) => brand.id) as [string, ...string[]];
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
@@ -30,8 +32,11 @@ const services = defineCollection({
       metaDescription: z.string(),
       intro: z.string(),
       heroImage: image().optional(),
-      // IDs de src/data/brands.ts
-      relatedBrands: z.array(z.string()).default([]),
+      // Validado contra el catálogo de src/data/brands.ts (brandIds arriba), no
+      // contra strings libres: una marca que el negocio no confirmó no puede
+      // entrar por contenido. Mismo criterio que `service` en la colección
+      // `cases`.
+      relatedBrands: z.array(z.enum(brandIds)).default([]),
       faqs: z
         .array(
           z.object({
@@ -68,8 +73,13 @@ const cases = defineCollection({
       // src/data/services.ts — el enum se deriva de sus IDs (serviceIds arriba)
       // para no duplicarlos a mano y mantener una sola fuente de verdad.
       service: z.enum(serviceIds),
-      // IDs de src/data/brands.ts / src/data/areas.ts — sin validar contra el catálogo (igual que services.relatedBrands).
-      brand: z.string().optional(),
+      // `brand` se valida contra el catálogo de src/data/brands.ts (brandIds
+      // arriba): una marca inexistente falla el build en vez de publicarse.
+      brand: z.enum(brandIds).optional(),
+      // `area` sigue como string libre: IDs de src/data/areas.ts sin validar.
+      // Los componentes que la imprimen ya tratan un ID desconocido como
+      // "sin ubicación" (ver ServiceCase.astro), así que no hay dato falso que
+      // cerrar aquí.
       area: z.string().optional(),
       // pairs[0] es el par principal (comparador). pairs[1+] se tratan como
       // galería adicional — decisión de render, no de schema.
