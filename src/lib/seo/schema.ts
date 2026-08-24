@@ -3,7 +3,8 @@
  *
  * Sabe cómo se escribe schema.org, no qué declara Sertecline: recibe datos ya
  * resueltos y devuelve nodos, sin importar Astro ni config. La política (qué
- * organización, qué área, qué canónica) vive en src/lib/seo/services.ts.
+ * organización, qué área, qué canónica) vive en src/lib/seo/organization.ts
+ * y src/lib/seo/services.ts.
  */
 import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
@@ -20,6 +21,45 @@ export interface OrganizationRef {
   id: string;
   name: string;
   url: string;
+}
+
+export interface OrganizationSchemaInput {
+  /** @id estable de la entidad — ver OrganizationRef. */
+  id: string;
+  name: string;
+  /** URL raíz del sitio de la organización, ya absoluta. */
+  url: string;
+  description: string;
+  /** Tal como se muestra al lector; esta capa no lo normaliza. */
+  telephone: string;
+  areaServed: string;
+  /** URL absoluta del archivo de logo. */
+  logo: string;
+}
+
+/**
+ * Organization schema.
+ *
+ * Todas las propiedades son obligatorias en el input: este builder no decide
+ * qué publica el negocio, solo cómo se escribe. Un dato que la organización no
+ * tenga confirmado se resuelve no llamando a este builder con él —
+ * src/lib/seo/organization.ts es quien aplica esa política.
+ *
+ * `logo` y `areaServed` salen como valores planos, no como ImageObject ni
+ * Place: schema.org admite ambas formas y la envuelta exigiría dimensiones y
+ * coordenadas que aquí nadie recibe.
+ */
+export function buildOrganizationSchema(input: OrganizationSchemaInput): JsonLdNode {
+  return {
+    '@type': 'Organization',
+    '@id': input.id,
+    name: input.name,
+    url: input.url,
+    description: input.description,
+    telephone: input.telephone,
+    areaServed: input.areaServed,
+    logo: input.logo,
+  };
 }
 
 export interface ServiceSchemaInput {

@@ -1,36 +1,19 @@
 import { siteConfig } from '../../config/site';
 import {
+  SERTECLINE_AREA_SERVED,
+  SERTECLINE_LOCATION,
+  SERTECLINE_ORGANIZATION,
+} from './organization';
+import {
   buildBreadcrumbListSchema,
   buildFaqPageSchema,
   buildServiceNodeId,
   buildServiceSchema,
   serializeJsonLdGraph,
   type JsonLdNode,
-  type OrganizationRef,
 } from './schema';
 import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
-
-// Ubicación usada para enriquecer título/descripción de páginas de servicio
-// con contexto de búsqueda local. Santiago es la plaza de cobertura formal
-// del proyecto (ver CLAUDE.md) — label regional, no una comuna puntual de
-// src/data/areas.ts.
-const DEFAULT_SERVICE_LOCATION = 'Santiago';
-
-// areaServed como texto: las comunas de src/data/areas.ts siguen marcadas
-// como placeholder sin confirmar, y no hay dirección ni coordenadas para
-// declarar un Place estructurado. Región y país sí son verificables y
-// desambiguan "Santiago".
-const SERVICE_AREA_SERVED = `${DEFAULT_SERVICE_LOCATION}, Región Metropolitana, Chile`;
-
-// Prestador de todos los servicios. El @id se mantiene estable para que un
-// futuro nodo de organización (home/contacto, con el NAP real) se fusione con
-// estas referencias sin tocar las fichas.
-const SERTECLINE_ORGANIZATION: OrganizationRef = {
-  id: new URL('/#organization', siteConfig.url).toString(),
-  name: siteConfig.name,
-  url: new URL('/', siteConfig.url).toString(),
-};
 
 // Denominación del servicio como entidad. `catalogTitle` es el nombre corto
 // pensado para UI (ver src/data/services.ts#title); el catálogo puede declarar
@@ -46,7 +29,7 @@ export function resolveServiceName(catalogTitle: string, seoTitleOverride?: stri
 export function buildServiceSeoTitle(
   catalogTitle: string,
   seoTitleOverride?: string,
-  location: string = DEFAULT_SERVICE_LOCATION
+  location: string = SERTECLINE_LOCATION
 ): string {
   return `${resolveServiceName(catalogTitle, seoTitleOverride)} en ${location}`;
 }
@@ -56,7 +39,7 @@ export function buildServiceSeoTitle(
 // pedirle a cada ficha de servicio que repita esos datos en su contenido.
 export function buildServiceMetaDescription(
   metaDescription: string,
-  location: string = DEFAULT_SERVICE_LOCATION
+  location: string = SERTECLINE_LOCATION
 ): string {
   const normalized = metaDescription.trim().replace(/\.?$/, '.');
   return `${normalized} ${siteConfig.name}, servicio técnico a domicilio en ${location}.`;
@@ -133,7 +116,7 @@ export function buildServiceStructuredData({
       name,
       description: description.trim(),
       url: canonical,
-      areaServed: SERVICE_AREA_SERVED,
+      areaServed: SERTECLINE_AREA_SERVED,
       provider: SERTECLINE_ORGANIZATION,
     }),
   ];

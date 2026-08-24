@@ -7,9 +7,19 @@ import Coverage from '../components/sections/Coverage.astro';
 import FAQ from '../components/sections/FAQ.astro';
 import Accreditations from '../components/sections/Accreditations.astro';
 import Contact from '../components/sections/Contact.astro';
+import { buildOrganizationStructuredData } from '../lib/seo/organization';
+
+// Home es la única página que publica el nodo Organization: su @id es un
+// fragmento de la URL raíz (ver lib/seo/organization.ts), así que aquí es
+// donde la entidad queda definida. Las fichas de servicio solo la referencian
+// desde su `provider`. Por lo mismo no va en BaseLayout, que lo emitiría en
+// todas las páginas.
+const organizationStructuredData = buildOrganizationStructuredData();
 ---
 
 <BaseLayout>
+  <!-- is:inline explícito: JSON-LD es datos, no un script a procesar/bundlear. -->
+  <script type="application/ld+json" slot="head" is:inline set:html={organizationStructuredData} />
   <Hero />
   <FeaturedWork />
   <Services />

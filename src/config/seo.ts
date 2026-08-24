@@ -7,8 +7,6 @@ export interface SeoDefaults {
   defaultImage: string;
   twitterHandle: string;
   locale: string;
-  /** Tipo usado como base para el JSON-LD de la organización */
-  organizationType: 'Organization' | 'LocalBusiness';
 }
 
 export const seoDefaults: SeoDefaults = {
@@ -22,5 +20,4 @@ export const seoDefaults: SeoDefaults = {
   defaultImage: siteConfig.logo.og,
   twitterHandle: '@TODO_usuario', // TODO: confirmar si aplica o eliminar
   locale: siteConfig.defaultLocale,
-  organizationType: 'LocalBusiness', // TODO: confirmar según alcance geográfico real
 };
