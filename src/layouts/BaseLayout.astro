@@ -2,7 +2,9 @@
 /**
  * Layout base del sitio: documento HTML, metadata SEO/OG/Twitter, favicons
  * y activación del design system. Header sticky incluido (EPIC 3.5 — Core
- * Experience). Footer definitivo queda para una épica posterior.
+ * Experience). Footer incluido (EPIC 4.1 — Checkpoint 4.1.17): va después de
+ * </main> y fuera de él, de modo que su landmark `contentinfo` no quede
+ * anidado dentro del contenido principal.
  * Landmark <main> + skip link agregados en el checkpoint correctivo de
  * cierre de EPIC 3.5 (auditoría de accesibilidad).
  */
@@ -10,6 +12,7 @@ import '../styles/global.css';
 import { siteConfig } from '../config/site';
 import { seoDefaults } from '../config/seo';
 import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
 
 interface Props {
   /** Título de página (sin el sufijo " | Sertecline", se agrega automáticamente). */
@@ -93,5 +96,6 @@ const ogLocale = seoDefaults.locale.replace('-', '_');
     <main id="main-content" tabindex="-1">
       <slot />
     </main>
+    <Footer />
   </body>
 </html>

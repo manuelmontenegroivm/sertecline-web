@@ -1,0 +1,207 @@
+---
+/**
+ * Footer del sitio (EPIC 4.1 — Checkpoint 4.1.17). Cierra todas las páginas,
+ * después de </main> y fuera de él: como hijo directo de <body> expone el
+ * landmark `contentinfo` sin declararlo, así que no lleva `role` ni
+ * `aria-label` (hay uno solo por página; nombrarlo sería ruido).
+ *
+ * Compone <footer> + <Container> y no <Section>: es chrome, igual que
+ * Header.astro, que sigue exactamente ese patrón. Además SectionTag no admite
+ * 'footer', y ampliar esa unión por un componente de chrome no corresponde
+ * aquí.
+ *
+ * SUPERFICIE `paper`, no `paper-2` ni `stage`:
+ * - Hoy todas las páginas terminan en `paper-2` (sección Contacto en home,
+ *   ServiceCta en las fichas). Un footer `paper-2` no tendría frontera alguna
+ *   con el bloque de arriba.
+ * - `paper` sobre `paper-2` es un salto de solo 1.09:1, así que el `border-t`
+ *   hairline NO es decorativo: es lo que hace visible el corte. Es el mismo
+ *   primitivo con que separan Header (border-b), Accreditations (border-b) y
+ *   las secciones de ServiceLayout (border-t).
+ * - `stage` se descarta por accesibilidad, no por estética: la regla global
+ *   :focus-visible de brand.css fija el anillo en --color-ring (brand-ink),
+ *   que sobre stage mide 2.94:1 y no alcanza el mínimo de 3:1 de WCAG 1.4.11.
+ *   Usarlo exigiría redefinir el token de foco para superficies oscuras:
+ *   decisión de sistema, no de un componente de chrome.
+ * Sobre `paper` siguen válidos ink (15.85:1), ink-2 (6.87:1), brand-ink
+ * (5.64:1) y el anillo de foco global, sin una sola sobreescritura. `ink-3`
+ * (3.31:1) no se usa en ningún texto de este archivo.
+ *
+ * Los rótulos de grupo son <p> y no headings: un <h2> aquí entraría al outline
+ * al mismo nivel que "Nuestros servicios" o "Cobertura", y el footer no es
+ * contenido de página. Tampoco se envuelven las listas en <nav>: la página ya
+ * expone banner + nav[Principal] + main + contentinfo (+ nav[Breadcrumb] en
+ * las fichas), y dos landmarks más no aportan orientación a quien ya llegó a
+ * contentinfo esperando listas de enlaces.
+ *
+ * CONTACTO: no reutiliza <ContactActions>. Ese componente documenta que asume
+ * fondo `paper-2` para el override de su botón secundario (`!bg-paper`), que
+ * sobre esta superficie lo dejaría del mismo color que el fondo — el mismo
+ * motivo por el que Hero.astro tampoco lo usa. Y dos botones `size="lg"` justo
+ * debajo del CTA que ya cierra cada página serían redundantes. Aquí el par es
+ * texto: <TextLink> aporta target/rel/aviso de pestaña nueva/ícono al detectar
+ * el href https:// de wa.me, y `tel:` correctamente no los recibe. Los href
+ * salen de lib/utils/contact.ts — el número no se escribe ni se normaliza aquí.
+ *
+ * NAP: solo lo confirmado en src/data/contact.ts — nombre, teléfono y
+ * WhatsApp. Sin dirección, correo ni horario. El copyright usa siteConfig.name
+ * y nunca `legalName`, que sigue siendo un placeholder con TODO.
+ *
+ * COBERTURA — ausente a propósito. No existe en src/data/ ni en src/config/
+ * una fuente de negocio que represente la plaza regional, y un componente
+ * visual no debe depender de la capa de política SEO para obtener un dato de
+ * negocio: lib/seo/organization.ts#SERTECLINE_AREA_SERVED queda fuera como
+ * import. Las dos alternativas se descartaron por incorrectas, no por
+ * conveniencia: areas.ts#REGION_METROPOLITANA es privado del módulo y dice
+ * solo "Región Metropolitana", que declararía las 52 comunas de la región
+ * cuando el catálogo cubre 39; y coverageSectionContent.heading es el título
+ * de una sección de home, no un dato reutilizable. El ítem "Cobertura" del
+ * grupo de navegación sigue llevando a /#cobertura, donde el dato sí está
+ * publicado. Cuando exista la fuente adecuada, se agrega una línea al bloque
+ * de contacto y nada más cambia.
+ *
+ * Sin JS, sin island y sin datos estructurados: el nodo Organization que
+ * publica home ya declara name, telephone, areaServed y logo desde las mismas
+ * SSOT que se leen aquí.
+ */
+import Container from './Container.astro';
+import Logo from '../ui/Logo.astro';
+import TextLink from '../ui/TextLink.astro';
+import { siteConfig } from '../../config/site';
+import { contactInfo } from '../../data/contact';
+import { availableNav, footerNav } from '../../data/navigation';
+import { services as serviceCatalog } from '../../data/services';
+import { buildPhoneHref, buildWhatsappHref } from '../../lib/utils/contact';
+import { buildServicePath, getPublishedServices } from '../../lib/content/services';
+
+/**
+ * Servicios enlazables = los que tienen ficha publicada. Se deriva de
+ * getPublishedServices(), la misma función con la que
+ * src/pages/servicios/[slug].astro genera sus rutas, así que enlazar una
+ * página inexistente es imposible por construcción: publicar o despublicar una
+ * ficha (`draft` en su MDX) mueve la ruta y este enlace en el mismo build.
+ *
+ * No se filtra por `featured`: esa es la selección editorial de home (seis
+ * tarjetas), mientras que el criterio de un footer es "tiene página". Hoy
+ * ambos conjuntos coinciden; cuando se publique una ficha no destacada, el
+ * footer la tomará solo y home seguirá mostrando sus seis.
+ *
+ * El rótulo es `title` y no `seoTitle`: el catálogo reserva el primero para UI
+ * compacta (Badge, ServiceCard) y el segundo para h1/<title>/breadcrumb.
+ *
+ * La transformación se queda en este archivo y no en lib/content/services.ts:
+ * es Service → {label, href} para esta lista, sin una regla de dominio propia
+ * que justifique una función compartida. `.filter()` devuelve un array nuevo,
+ * así que el `.sort()` no reordena el catálogo importado.
+ */
+const publishedServiceIds = new Set((await getPublishedServices()).map((entry) => entry.id));
+
+const footerServices = serviceCatalog
+  .filter((service) => publishedServiceIds.has(service.id))
+  .sort((a, b) => a.order - b.order)
+  .map((service) => ({ label: service.title, href: buildServicePath(service.id) }));
+
+// Aviso legal y política de privacidad siguen `available: false` en
+// navigation.ts, así que esta lista queda vacía y su fila no se renderiza —
+// mismo gateo que Navbar.astro aplica sobre availableNav. Cuando existan esas
+// páginas, el checkpoint que las cree solo cambia la bandera.
+const availableFooterNav = footerNav.filter((item) => item.available);
+
+const phoneHref = buildPhoneHref();
+const whatsappHref = buildWhatsappHref();
+---
+
+<footer class="border-hairline bg-paper border-t">
+  <Container>
+    <div class="grid gap-10 py-10 md:grid-cols-2 md:py-16 lg:grid-cols-4">
+      {/* A · Marca + contacto. Ocupa doble ancho desde md: es el bloque NAP. */}
+      <div class="flex flex-col gap-6 md:col-span-2">
+        {
+          /* w-fit: dentro de un contenedor flex el <a> se estiraría a todo el
+             ancho y el área clicable cubriría espacio vacío. */
+        }
+        <a href="/" aria-label="Sertecline — inicio" class="w-fit">
+          <Logo variant="primary" class="h-8 w-auto" />
+        </a>
+
+        <div class="flex flex-col gap-2">
+          <p class="text-ink text-sm font-medium">Contacto</p>
+          <ul class="flex flex-col gap-1">
+            <li>
+              {
+                /* Tamaño de cuerpo (los otros dos grupos van en text-sm): el
+                   NAP pesa más que las listas de enlaces. El padding vertical
+                   hace de cada enlace una fila táctil, no un enlace de prosa. */
+              }
+              <TextLink href={phoneHref} class="py-1.5 whitespace-nowrap">
+                {contactInfo.phone}
+              </TextLink>
+            </li>
+            <li>
+              <TextLink href={whatsappHref} class="py-1.5">WhatsApp</TextLink>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* B · Servicios con ficha publicada. */}
+      <div class="flex flex-col gap-2">
+        <p class="text-ink text-sm font-medium">Servicios</p>
+        <ul class="flex flex-col gap-1">
+          {
+            footerServices.map((service) => (
+              <li>
+                <TextLink href={service.href} class="py-1.5 text-sm">
+                  {service.label}
+                </TextLink>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      {
+        /* C · Navegación disponible: availableNav ya viene filtrado en
+           navigation.ts y es el mismo conjunto que renderiza el Header. */
+      }
+      <div class="flex flex-col gap-2">
+        <p class="text-ink text-sm font-medium">Navegación</p>
+        <ul class="flex flex-col gap-1">
+          {
+            availableNav.map((item) => (
+              <li>
+                <TextLink href={item.href} class="py-1.5 text-sm">
+                  {item.label}
+                </TextLink>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    {
+      /* D · Barra inferior. Sin año: el sitio es estático, así que un año
+         "dinámico" se congela en el build y queda obsoleto sin rebuild; un
+         aviso de copyright no lo necesita para ser válido. */
+    }
+    <div
+      class="border-hairline flex flex-col gap-4 border-t py-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="text-ink-2 text-sm">© {siteConfig.name}</p>
+      {
+        availableFooterNav.length > 0 && (
+          <ul class="flex flex-wrap gap-x-6 gap-y-2">
+            {availableFooterNav.map((item) => (
+              <li>
+                <TextLink href={item.href} class="text-sm">
+                  {item.label}
+                </TextLink>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </Container>
+</footer>
