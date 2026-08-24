@@ -15,9 +15,22 @@ import {
   Flame,
   Wrench,
   Droplets,
+  Heater,
+  CalendarCheck,
+  HardHat,
+  Grid2x2,
+  Microwave,
   type IconProps,
 } from '@lucide/astro';
 
+// Las llaves son los `icon` de src/data/services.ts. El nombre Lucide describe
+// la forma del trazo, no el equipo: `microwave` es la caja con puerta y panel
+// que representa un horno, y `grid-2x2` la superficie de cuatro zonas que
+// representa una encimera —Lucide no tiene un ícono de horno ni de encimera—.
+// Cuando la entrada es una intención sobre un equipo que ya tiene ícono propio,
+// el ícono representa la intención y no el equipo: así `sparkles` distingue la
+// limpieza de lavadoras de su reparación, y `calendar-check` y `hard-hat`
+// distinguen la mantención y la instalación de calefones de su reparación.
 const ICONS = {
   'washing-machine': WashingMachine,
   sparkles: Sparkles,
@@ -26,6 +39,11 @@ const ICONS = {
   flame: Flame,
   wrench: Wrench,
   droplets: Droplets,
+  heater: Heater,
+  'calendar-check': CalendarCheck,
+  'hard-hat': HardHat,
+  'grid-2x2': Grid2x2,
+  microwave: Microwave,
 } as const;
 
 export type ServiceIconName = keyof typeof ICONS;
