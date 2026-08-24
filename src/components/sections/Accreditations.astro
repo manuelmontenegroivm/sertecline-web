@@ -1,0 +1,76 @@
+---
+/**
+ * Bloque de acreditaciones del técnico (EPIC 4.1 — Checkpoint 4.1.15). Vive
+ * entre "Preguntas frecuentes" y "Contacto" en home: es la última objeción
+ * antes de escribir —quién entra a mi casa— y por eso se resuelve pegado a la
+ * decisión, no arriba compitiendo con el Hero.
+ *
+ * Comparte el fondo `paper-2` con la sección Contacto que va debajo, de modo
+ * que ambas forman una sola superficie: la franja se lee como el preámbulo del
+ * CTA y no como una sexta sección de contenido. El `border-b` es el hairline
+ * del sistema —el mismo primitivo con que Header y ServiceLayout separan— y
+ * evita que el corte quede solo en el aire entre dos paddings del mismo color.
+ *
+ * `as="div"` y no `as="section"`: el bloque no tiene heading propio, y un
+ * <section> sin nombre accesible no se expone como landmark (HTML-AAM), así que
+ * declararlo sería anunciar una región que el lector de pantalla nunca listará.
+ * Tampoco se le inventa un h2 ni un <Badge> de eyebrow: ese es el patrón de las
+ * cinco secciones temáticas de home, y aplicarlo aquí inflaría dos rótulos al
+ * peso visual de "Nuestros servicios" o "Cobertura".
+ *
+ * Los rótulos van en <ul>: son una colección, y la lista es lo que anuncia su
+ * cantidad al lector de pantalla. Sin íconos —ni escudos, ni sellos, ni checks,
+ * ni la llama de src/data/services.ts#reparacion-cocinas—: el vocabulario de
+ * insignias es justo lo que esta franja debe evitar, y un ícono prestado del
+ * catálogo de servicios mezclaría dos vocabularios distintos.
+ *
+ * La distinción la hacen el tamaño y el peso dentro de la familia de texto del
+ * sitio. `text-lg` es el "cuerpo grande" de tokens.css —el mismo paso de escala
+ * con que las secciones de home fijan su intro—, así que sube la presencia del
+ * rótulo sin salirse del cuerpo. `font-medium` es el peso con que el sistema
+ * enfatiza sin titular (Badge, tramo actual del breadcrumb); `font-semibold` y
+ * `font-bold` están tomados por los headings —`text-lg font-bold` es
+ * literalmente la receta del h3 de ServiceCard—, y usarlos aquí haría leer dos
+ * rótulos como encabezados de una lista que no los tiene.
+ *
+ * Se probó la familia monoespaciada del sistema, que tokens.css reserva para
+ * "datos técnicos, overlines, cifras (grabado de herramienta)". Revisada en
+ * navegador leía como salida de consola: le restaba naturalidad justo a la
+ * afirmación que debe sonar humana, porque habla de una persona y no de una
+ * especificación. Su utilidad no se nombra aquí a propósito — Tailwind escanea
+ * este archivo como texto plano, comentarios incluidos, y escribirla haría
+ * emitir una regla CSS que ningún elemento usa.
+ *
+ * Sin JS, sin island, sin animación y sin datos estructurados: las
+ * acreditaciones son contenido visible para personas. El nodo Organization al
+ * que colgarían no existe todavía (ver src/lib/seo/services.ts), y este
+ * proyecto no emite dato estructurado antes que su contraparte visible.
+ */
+import Section from '../layout/Section.astro';
+import { technicianAccreditations, accreditationsContent } from '../../data/accreditations';
+---
+
+<Section as="div" background="paper-2" spacing="sm" class="border-hairline border-b">
+  <div class="flex flex-col gap-6">
+    <p class="text-ink-2 max-w-prose">{accreditationsContent.intro}</p>
+
+    {
+      /* Columna en móvil y fila a partir de sm: los dos rótulos no caben lado a
+         lado en pantallas angostas sin partirse, y `flex-wrap` los devuelve a
+         dos filas si el ancho disponible no alcanza. El filete izquierdo usa
+         hairline-strong ("guías / divisores marcados" en tokens.css) y da
+         estructura de listado técnico sin encerrar el texto en una cápsula. */
+    }
+    <ul class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-10">
+      {
+        technicianAccreditations.map((accreditation) => (
+          <li class="border-hairline-strong text-ink border-l pl-4 text-lg font-medium">
+            {accreditation}
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="text-ink-2 max-w-prose text-sm">{accreditationsContent.note}</p>
+  </div>
+</Section>
