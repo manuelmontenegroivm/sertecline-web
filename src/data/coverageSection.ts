@@ -9,11 +9,16 @@ export interface CoverageSectionContent {
 // featuredWork.ts: contenido editorial separado del dato de negocio. Las áreas
 // en sí viven en src/data/areas.ts (única fuente) — este archivo no las
 // duplica: la selección de abajo declara solo IDs.
+// El intro no enumera tipos de trabajo: hacerlo aquí los presentaría como
+// disponibles por igual en todo equipo, que es justo lo que el catálogo evita.
+// "Estas son algunas de ellas" señala, antes del listado, que los badges son
+// una selección editorial y no la cobertura completa — el `note` lo repite
+// después, de modo que la señal rodea al listado por ambos lados.
 export const coverageSectionContent: CoverageSectionContent = {
   eyebrow: 'Dónde trabajamos',
   heading: 'Cobertura en Santiago',
   intro:
-    'Prestamos servicios de reparación, mantención e instalación de línea blanca en distintas comunas de Santiago.',
+    'Prestamos servicio técnico a domicilio en distintas comunas de Santiago. Estas son algunas de ellas.',
   note: '¿No ves tu comuna? Escríbenos y revisaremos la disponibilidad del servicio.',
 };
 

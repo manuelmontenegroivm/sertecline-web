@@ -11,10 +11,13 @@ export interface SeoDefaults {
   organizationType: 'Organization' | 'LocalBusiness';
 }
 
-// TODO: ajustar título/descripción por defecto cuando se defina el copy final
 export const seoDefaults: SeoDefaults = {
   titleTemplate: '%s | Sertecline',
-  defaultTitle: 'Sertecline', // TODO
+  // Se usa en crudo, sin pasar por `titleTemplate`: BaseLayout solo aplica la
+  // plantilla cuando la página declara un `title` propio. Por eso el sufijo de
+  // marca va escrito aquí, en el mismo orden que produce la plantilla para las
+  // fichas de servicio ("… en Santiago | Sertecline").
+  defaultTitle: 'Servicio técnico de línea blanca y calefones en Santiago | Sertecline',
   defaultDescription: siteConfig.description,
   defaultImage: siteConfig.logo.og,
   twitterHandle: '@TODO_usuario', // TODO: confirmar si aplica o eliminar
