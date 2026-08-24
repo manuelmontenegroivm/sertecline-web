@@ -6,9 +6,11 @@ export interface HeroContent {
   secondaryCtaLabel: string;
 }
 
-// Los CTAs quedan sin destino funcional hasta que existan la épica de
-// contacto y la épica de trabajos realizados — ver componentes/sections/Hero.astro
-// (botones renderizados `disabled` mientras tanto).
+// Solo copy. Los destinos de los CTAs no viven aquí: el de WhatsApp se deriva
+// del NAP en build (lib/utils/contact.ts#buildWhatsappHref) y el secundario es
+// un ancla de la propia página, así que ambos los resuelve Hero.astro. Mismo
+// reparto que src/data/serviceCta.ts, que guarda la plantilla del mensaje y
+// deja el href al componente.
 //
 // Posicionamiento (EPIC 4.1 — Checkpoint 4.1.7): el h1 nombra "línea blanca y
 // calefones" en vez de solo "línea blanca". Los calefones son prioridad
@@ -23,6 +25,9 @@ export const heroContent: HeroContent = {
   title: 'Servicio técnico de línea blanca y calefones en Santiago',
   subtitle:
     'Reparación, mantención e instalación según el tipo de equipo. Coordinamos una visita técnica y revisamos tu equipo a domicilio.',
-  primaryCtaLabel: 'Solicitar diagnóstico',
-  secondaryCtaLabel: 'Ver trabajos realizados',
+  // El primario nombra el canal: el usuario sabe qué se abre antes de pulsar,
+  // y es el mismo rótulo ya usado por ContactActions. "Solicitar diagnóstico"
+  // sugería un formulario que no existe.
+  primaryCtaLabel: 'Escríbenos por WhatsApp',
+  secondaryCtaLabel: 'Ver servicios',
 };
