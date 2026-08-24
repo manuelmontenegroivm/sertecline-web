@@ -91,7 +91,11 @@ Reglas:
 ## Reglas de SEO, SEO local, GEO y AEO
 
 - Ninguna página se cierra sin `SeoHead` (title, description, canonical, Open Graph) correctamente completado.
-- JSON-LD obligatorio: `LocalBusiness` (home y contacto, con el NAP real de `src/data/contact.ts`), `Article` en cada post de blog, `BreadcrumbList` donde exista jerarquía de navegación.
+- JSON-LD obligatorio: `Organization` (home), `Service` en cada página de servicio, `Article` en cada post de blog, `BreadcrumbList` donde exista jerarquía de navegación.
+- **Entidad de negocio canónica:** el sitio declara `Organization` —no `LocalBusiness`—, definida en `src/lib/seo/organization.ts` y publicada únicamente en home. Su `@id` (`SERTECLINE_ORGANIZATION_ID`) es estable; cada `Service` la referencia vía `provider` con ese mismo `@id`, nunca redeclarando una organización aparte.
+- **No migrar a `LocalBusiness` por defecto:** mientras SERTECLINE no disponga de una dirección comercial real, confirmada y publicable, la entidad canónica se mantiene en `Organization`. `src/data/contact.ts` omite dirección, horarios y email deliberadamente porque el negocio no los ha confirmado. `LocalBusiness` solo se evalúa mediante una decisión arquitectónica explícita, cuando existan datos reales suficientes para representarlo correctamente.
+- **Nunca inventar datos de negocio** (`address`, `legalName`, horarios, email, redes) para completar un tipo de schema.org: si el dato no está confirmado, la propiedad no se declara.
+- Cambiar el `@type` de la entidad canónica es una decisión arquitectónica explícita del usuario, nunca un efecto colateral de otra tarea, y debe conservar el `@id` para no romper las referencias `provider` existentes.
 - **SEO local:** el `areaServed` del schema y el contenido de páginas de servicio deben reflejar las comunas reales listadas en `src/data/areas.ts` — no inventar cobertura geográfica.
 - **AEO/GEO (optimización para respuestas de IA):** el contenido debe responder preguntas concretas de forma directa y citable — frases autocontenidas, listas claras, y `FAQPage` schema donde exista una sección de preguntas frecuentes. Priorizar afirmaciones verificables sobre relleno genérico.
 - `site` en `astro.config.mjs` y el sitemap deben mantenerse coherentes ante cualquier cambio de dominio.
