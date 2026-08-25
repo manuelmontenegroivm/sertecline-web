@@ -6,15 +6,15 @@ aprobada en EPIC 2). `logo-kit` es material fuente anterior y no se integró
 
 ## Producción
 
-| Contenido                                                           | Ubicación                       |
-| ------------------------------------------------------------------- | ------------------------------- |
-| Logos (SVG + PNG: primary, dark, light, mono, horizontal, monogram) | `public/brand/logo/`            |
-| Favicons (ico, svg, apple-touch-icon, PNG 16/32/48)                 | `public/brand/favicon/`         |
-| Iconos PWA (192, 512, 512 maskable)                                 | `public/brand/pwa/`             |
-| Web app manifest                                                    | `public/brand/site.webmanifest` |
-| Imágenes sociales (OG, Twitter card, WhatsApp preview)              | `public/brand/social/`          |
-| Design tokens — Tailwind v4 `@theme`                                | `src/styles/tokens.css`         |
-| Design tokens — JSON (fuente de verdad, no-CSS)                     | `src/config/design/tokens.json` |
+| Contenido                                                           | Ubicación                             |
+| ------------------------------------------------------------------- | ------------------------------------- |
+| Logos (SVG + PNG: primary, dark, light, mono, horizontal, monogram) | `public/brand/logo/`                  |
+| Favicons (ico, svg, apple-touch-icon, PNG 16/32/48)                 | `public/brand/favicon/`               |
+| Iconos PWA (192, 512, 512 maskable)                                 | `public/brand/pwa/`                   |
+| Web app manifest (generado desde `siteConfig`)                      | `src/pages/brand/site.webmanifest.ts` |
+| Imágenes sociales (OG, Twitter card, WhatsApp preview)              | `public/brand/social/`                |
+| Design tokens — Tailwind v4 `@theme`                                | `src/styles/tokens.css`               |
+| Design tokens — JSON (fuente de verdad, no-CSS)                     | `src/config/design/tokens.json`       |
 
 Ninguno de estos archivos está referenciado todavía desde el `<head>` del
 sitio ni desde componentes: la integración de uso (Layout, `<BrandHead>`,
