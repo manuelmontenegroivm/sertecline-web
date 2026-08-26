@@ -9,8 +9,11 @@ export interface Faq {
 // services.ts), así que no se agrega `featured`/`order` hasta que exista una
 // vista que los necesite (ej. una página /preguntas-frecuentes más extensa).
 // Respuestas deliberadamente conservadoras: nada de marcas, comunas,
-// gratuidad ni tiempos de respuesta sin validar por el negocio. Mismo shape
-// {question, answer} que usará el futuro FAQPage JSON-LD (src/lib/seo/).
+// gratuidad ni tiempos de respuesta sin validar por el negocio. El shape
+// {question, answer} es representable como structured data si algún día un
+// consumidor legítimo lo necesita, pero home no emite FAQPage: se descartó
+// explícitamente (EPIC 4.2 — Checkpoint 4.2.6) y estas preguntas viven solo
+// en el HTML visible de la sección.
 //
 // Alcance (EPIC 4.1 — Checkpoint 4.1.7): a esta lista le corresponde cómo
 // funciona el negocio —tipos de trabajo, equipos, marcas en general, cobertura

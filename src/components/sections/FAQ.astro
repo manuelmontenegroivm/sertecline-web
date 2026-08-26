@@ -1,9 +1,11 @@
 ---
 /**
  * Sección "Preguntas frecuentes" (EPIC 3.9). Vive debajo de "Cobertura" en
- * home. Lista las preguntas de src/data/faqs.ts (única fuente — mismo shape
- * {question, answer} que usará el futuro FAQPage JSON-LD) usando FaqItem
- * (`<details>/<summary>` nativo, sin JS). No confundir con el campo `faqs`
+ * home. Lista las preguntas de src/data/faqs.ts (única fuente) usando FaqItem
+ * (`<details>/<summary>` nativo, sin JS). Esta sección no emite FAQPage
+ * JSON-LD y no está previsto que lo haga (EPIC 4.2 — Checkpoint 4.2.6): el
+ * valor de estas preguntas —texto autocontenido, presente en el DOM inicial—
+ * ya vive en el HTML visible. No confundir con el campo `faqs`
  * de la content collection `services` (content.config.ts): ese es para
  * preguntas específicas de cada ficha de servicio futura, un dataset
  * distinto que esta sección no consulta.

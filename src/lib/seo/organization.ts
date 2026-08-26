@@ -84,9 +84,11 @@ export const SERTECLINE_AREA_SERVED = `${SERTECLINE_LOCATION}, Región Metropoli
  * schema.org no tiene forma de decir "este número atiende por WhatsApp"
  * —`sameAs` identifica entidades, no enlaces de acción con mensaje precargado—.
  *
- * Devuelve un @graph de un solo nodo, no el nodo suelto: el grafo de home va a
- * crecer (WebSite, las preguntas frecuentes que ya se muestran), y entonces
- * será un elemento más del array en vez de un rediseño del bloque.
+ * Devuelve un @graph de un solo nodo, no el nodo suelto: si algún día home
+ * declara otro nodo (WebSite, por ejemplo), será un elemento más del array en
+ * vez de un rediseño del bloque. No incluye un FAQPage por las preguntas
+ * frecuentes que home ya muestra — se descartó explícitamente (EPIC 4.2 —
+ * Checkpoint 4.2.6).
  */
 export function buildOrganizationStructuredData(): string {
   return serializeJsonLdGraph([
