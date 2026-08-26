@@ -55,7 +55,7 @@ npm run format:check
 
 ```
 sertecline/
-├── public/                  # Assets estáticos sin procesar (favicon, robots.txt, fuentes)
+├── public/                  # Assets estáticos sin procesar (favicon, fuentes)
 ├── src/
 │   ├── assets/              # Imágenes e íconos procesados por Astro (astro:assets)
 │   │   └── images/          # brand/ hero/ services/ blog/ og/
