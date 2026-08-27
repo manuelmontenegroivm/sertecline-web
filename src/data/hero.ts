@@ -4,6 +4,12 @@ export interface HeroContent {
   subtitle: string;
   primaryCtaLabel: string;
   secondaryCtaLabel: string;
+  /**
+   * Encabeza la señal de confianza del hero. Los rótulos que le siguen NO se
+   * escriben aquí: se leen de src/data/accreditations.ts#technicianAccreditations,
+   * su única fuente. Ver el comentario de `trustNote` más abajo.
+   */
+  trustNote: string;
 }
 
 // Solo copy. Los destinos de los CTAs no viven aquí: el de WhatsApp se deriva
@@ -30,4 +36,28 @@ export const heroContent: HeroContent = {
   // sugería un formulario que no existe.
   primaryCtaLabel: 'Escríbenos por WhatsApp',
   secondaryCtaLabel: 'Ver servicios',
+  // Señal de confianza above-the-fold (EPIC 5 — Checkpoint 5.2). El audit de
+  // CP 5.1 midió que las acreditaciones —el único respaldo verificable del
+  // negocio— aparecían al 85% del scroll, mientras el primer viewport no tenía
+  // ninguna señal de confianza.
+  //
+  // Por qué el copy vive aquí y los rótulos no: es el mismo reparto que ya
+  // aplican src/data/coverageSection.ts sobre areas.ts y src/data/servicesSection.ts
+  // sobre services.ts —el dato en su catálogo, el encuadre editorial junto al
+  // resto del copy de su superficie—. 'Instalador de gas clase 3' y
+  // 'Instalador eléctrico clase D' se importan de accreditations.ts y no se
+  // repiten en ningún otro archivo.
+  //
+  // Deliberadamente NO reutiliza accreditationsContent.intro: esa frase la
+  // imprime la sección Acreditaciones más abajo en la misma página, y
+  // renderizarla dos veces sería duplicación literal de contenido comercial.
+  // Esta versión es más corta porque encabeza una franja subordinada, no una
+  // sección.
+  //
+  // La atribución es lo único que esta frase no puede perder al acortarse: el
+  // sujeto es el técnico y la acreditación es "personal". Ninguna redacción
+  // futura puede derivar de aquí que Sertecline esté certificada, acreditada o
+  // autorizada — misma regla que documenta accreditations.ts, que además
+  // prohíbe publicar folio, registro, organismo, vigencia o documento.
+  trustNote: 'Técnico con acreditación personal:',
 };

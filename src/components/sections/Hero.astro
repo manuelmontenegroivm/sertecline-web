@@ -1,16 +1,51 @@
 ---
 /**
- * Primera sección visible del sitio. Sin subcomponentes: badge, h1, subtítulo
- * y CTAs no tienen consumidor propio fuera de este archivo (ver EPIC 3.5).
+ * Primera sección visible del sitio. Sin subcomponentes: badge, h1, subtítulo,
+ * CTAs y franja de confianza no tienen consumidor propio fuera de este archivo
+ * (ver EPIC 3.5).
  *
- * CTAs (EPIC 4.1 — Checkpoint 4.1.8): son enlaces reales, no botones. Cubren
- * los dos estados con que se llega a home —listo para escribir, o todavía
- * evaluando—: acción comercial y exploración. Deliberadamente NO reutilizan
- * <ContactActions>: ese componente es el par cerrado WhatsApp + llamada y
- * además asume fondo `paper-2` para su override del botón secundario (ver ese
- * archivo); esta sección es `paper`, donde ese override lo dejaría del mismo
- * color que el fondo. Lo que sí se comparte es la primitiva correcta,
- * <ButtonLink>, y el enlace de WhatsApp derivado del NAP.
+ * COMPOSICIÓN (EPIC 5 — Checkpoint 5.2). Una sola columna en todos los anchos.
+ * Antes eran dos: `grid md:grid-cols-2` con un `<div aria-hidden>` vacío de
+ * proporción 4/3 a la derecha, reservado para una fotografía que no existe. El
+ * audit de CP 5.1 lo midió ocupando entre el 26% y el 48% del primer viewport
+ * según el ancho —el elemento de mayor superficie above-the-fold, sin contenido—
+ * y confirmó que esa grilla causaba el segundo P0: a partir de `md:` se
+ * activaban a la vez las dos columnas y el salto a `text-6xl`, dejando 76px de
+ * titular en una columna de 384px. Resultado medido entre 768 y 1024px: h1 de
+ * siete líneas y CTA primario en y=898 dentro de un viewport de 900.
+ *
+ * Por eso el slot no se sustituye por otro placeholder ni se conserva vacío
+ * "esperando" la foto: el hero no debe depender de un asset que aún no se ha
+ * producido. Cuando exista material fotográfico real, la composición
+ * texto + imagen se reconsidera como un cambio propio, con la foto en la mano.
+ *
+ * TIPOGRAFÍA. El tamaño del h1 responde al ancho real de la ventana y no al
+ * breakpoint: `clamp()` entre --text-3xl y --text-5xl, los dos pasos de la
+ * escala de tokens.css que acotan el rango útil aquí. Se descarta --text-6xl
+ * ("hero display", 76px), que es justo el valor que rompía el pliegue en
+ * tablet. El interpolante está calibrado para pasar por 39px a 375px de ancho
+ * —el mismo tamaño que ya tenía el móvil, que no era el problema— y alcanzar el
+ * máximo cerca de 1440px. `line-height` se declara explícitamente porque un
+ * `text-[…]` arbitrario no arrastra el `--text-*--line-height` del token.
+ *
+ * `max-w-narrow` (45rem) acota la medida del titular: sin él, a 1440px la línea
+ * ocuparía los 1152px del contenedor y el h1 caería a dos líneas larguísimas.
+ * El subtítulo mantiene `max-w-prose` (65ch); ambas medidas quedan a un ancho
+ * casi idéntico, así que el bloque lee como una sola columna alineada.
+ *
+ * CTAs. Son enlaces reales, no botones (EPIC 4.1 — Checkpoint 4.1.8), y cubren
+ * los dos estados con que se llega a home: acción comercial y exploración.
+ * Deliberadamente NO reutilizan <ContactActions>: ese componente es el par
+ * cerrado WhatsApp + llamada y asume fondo `paper-2` para el override de su
+ * botón secundario (ver ese archivo); esta sección es `paper`, donde ese
+ * override lo dejaría del mismo color que el fondo. Lo que sí se comparte es la
+ * primitiva correcta, <ButtonLink>, el enlace de WhatsApp derivado del NAP, y
+ * el patrón `w-full sm:w-auto` con el que ContactActions resuelve el apilado en
+ * pantallas angostas.
+ *
+ * El secundario baja a `size="md"` mientras el primario se queda en `lg`: antes
+ * ambos eran `lg` y competían. La diferencia de escala es la jerarquía, sin
+ * cambiar variante ni color.
  *
  * El href de WhatsApp se calcula en build con buildWhatsappHref(), sin
  * argumentos: el mensaje genérico tiene una sola fuente (lib/utils/contact.ts)
@@ -24,52 +59,95 @@
  * Se usa el fragmento puro y no `/#servicios` (la forma de navigation.ts, que
  * necesita el prefijo porque el header también aparece en las fichas): el hero
  * solo existe en home, así que el salto es dentro del mismo documento.
+ *
+ * CONFIANZA. La franja de acreditaciones cierra el bloque. Los rótulos salen de
+ * technicianAccreditations (src/data/accreditations.ts, única fuente) y no se
+ * escriben aquí; el encuadre sale de heroContent.trustNote, que documenta ese
+ * reparto. Van en <ul> porque son una colección, igual que en la sección
+ * Acreditaciones: la lista es lo que anuncia su cantidad al lector de pantalla.
+ *
+ * Sin íconos, sin escudos, sin sellos y sin <Badge>: el vocabulario de insignia
+ * es justo lo que una acreditación personal debe evitar, y la sección
+ * Acreditaciones ya documenta esa decisión. La distinción la hacen el filete
+ * hairline superior —el primitivo de separación del sistema— y el contraste
+ * entre `ink-2` para el encuadre e `ink` con `font-medium` para los rótulos.
+ * Todo a `text-sm`, subordinado a los CTAs que van encima.
+ *
+ * El filete usa `max-w-narrow` y no `max-w-prose` como el subtítulo: `prose`
+ * son 65ch y `ch` se resuelve contra el tamaño de fuente del propio elemento,
+ * así que sobre un bloque `text-sm` medía ~596px frente a los ~707px del
+ * subtítulo en `text-lg` y la regla quedaba visiblemente corta. `narrow` es un
+ * valor fijo en rem —el mismo que acota el h1—, de modo que la franja cierra el
+ * bloque a su ancho real en vez de a uno derivado del cuerpo de letra.
+ *
+ * Esta franja NO reemplaza a <Accreditations>, que sigue intacta más abajo con
+ * su nota completa de atribución ("no de la empresa"). Es una señal compacta
+ * above-the-fold, no una migración de la sección.
+ *
+ * Sin señal de cobertura aparte: el h1 ya nombra Santiago y el badge ya declara
+ * el modelo de atención a domicilio, así que una tercera mención sería
+ * duplicación. Tampoco hay una fuente de negocio que represente la plaza —el
+ * mismo motivo por el que Footer.astro dejó la cobertura fuera— y publicar un
+ * recuento de comunas derivado del catálogo interno sería un dato comercial
+ * nuevo que la sección Cobertura evita a propósito.
+ *
+ * ESPACIADO. `spacing="md"` en vez de `lg`: al desaparecer la columna de imagen
+ * el bloque es más alto, y 128px de padding superior en tablet empujaban el CTA
+ * contra el pliegue. Es un ajuste local de esta sección, no de la escala.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
 import ButtonLink from '../ui/ButtonLink.astro';
 import VisuallyHidden from '../ui/VisuallyHidden.astro';
 import { heroContent } from '../../data/hero';
+import { technicianAccreditations } from '../../data/accreditations';
 import { buildWhatsappHref } from '../../lib/utils/contact';
 
 const whatsappHref = buildWhatsappHref();
 ---
 
-<Section as="section" background="paper" spacing="lg">
-  <div class="grid gap-10 md:grid-cols-2 md:items-center md:gap-16">
-    <div class="flex flex-col items-start gap-6">
-      <Badge>{heroContent.badge}</Badge>
+<Section as="section" background="paper" spacing="md">
+  <div class="flex flex-col items-start gap-6">
+    <Badge>{heroContent.badge}</Badge>
 
-      <h1 class="text-ink text-3xl font-black tracking-tighter md:text-6xl">
-        {heroContent.title}
-      </h1>
+    <h1
+      class="text-ink max-w-narrow text-[clamp(var(--text-3xl),1.95rem_+_2.05vw,var(--text-5xl))] leading-[1.05] font-black tracking-tighter text-balance"
+    >
+      {heroContent.title}
+    </h1>
 
-      <p class="text-ink-2 max-w-prose text-lg">
-        {heroContent.subtitle}
-      </p>
+    <p class="text-ink-2 max-w-prose text-lg">
+      {heroContent.subtitle}
+    </p>
 
-      <div class="flex flex-wrap items-center gap-4">
-        <ButtonLink
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="primary"
-          size="lg"
-        >
-          {heroContent.primaryCtaLabel}
-          <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
-        </ButtonLink>
-        <ButtonLink href="#servicios" variant="outline" size="lg">
-          {heroContent.secondaryCtaLabel}
-        </ButtonLink>
-      </div>
+    <div
+      class="flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4"
+    >
+      <ButtonLink
+        href={whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="primary"
+        size="lg"
+        class="w-full sm:w-auto"
+      >
+        {heroContent.primaryCtaLabel}
+        <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
+      </ButtonLink>
+      <ButtonLink href="#servicios" variant="outline" size="md">
+        {heroContent.secondaryCtaLabel}
+      </ButtonLink>
     </div>
 
-    <!-- Espacio reservado para fotografía real (futura épica de assets) -->
-    <div
-      class="border-hairline bg-paper-2 aspect-[4/3] w-full rounded-2xl border"
-      aria-hidden="true"
-    >
+    <div class="border-hairline max-w-narrow flex w-full flex-col gap-2 border-t pt-6">
+      <p class="text-ink-2 text-sm">{heroContent.trustNote}</p>
+      <ul class="flex flex-col gap-x-8 gap-y-1 sm:flex-row sm:flex-wrap">
+        {
+          technicianAccreditations.map((accreditation) => (
+            <li class="text-ink text-sm font-medium">{accreditation}</li>
+          ))
+        }
+      </ul>
     </div>
   </div>
 </Section>
