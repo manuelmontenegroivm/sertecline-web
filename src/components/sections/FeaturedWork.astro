@@ -8,29 +8,145 @@
  * `draft`, la sección no se renderiza.
  * `scroll-mt-24` compensa el header sticky al navegar por ancla desde el nav
  * (`/#trabajos`, ver src/data/navigation.ts).
+ *
+ * COMPOSICIÓN (EPIC 5 — Checkpoint 5.3). Antes esta sección delegaba el caso a
+ * FeaturedCase.astro, que traía su propio bloque de encabezado: <Badge> con el
+ * nombre del servicio + <h3> + párrafo, justo debajo del <Badge> + <h2> +
+ * párrafo de la sección. Eran dos encabezados apilados con dos insignias, y el
+ * lector recorría ~9 líneas de texto —dos de ellas redundantes— antes de llegar
+ * a la fotografía, que es lo único que esta sección existe para mostrar. Ese
+ * componente tenía un solo consumidor (este archivo) y su separación no
+ * sostenía ninguna reutilización, así que se absorbió aquí: el caso es la
+ * sección, no un widget dentro de ella.
+ *
+ * La insignia del servicio no se recupera en ninguna forma. Repetía como
+ * etiqueta decorativa un dato que ahora entrega el enlace del final, que además
+ * lleva a alguna parte.
+ *
+ * GRILLA. La fotografía es vertical (ver el bloque PROPORCIÓN más abajo), así
+ * que la composición no puede ser la de una imagen apaisada. A partir de `md:`
+ * el texto ocupa una columna fluida y la imagen una columna acotada a la
+ * derecha, y la imagen abarca las dos filas del texto:
+ *
+ *     +----------------------+----------+
+ *     | eyebrow · h2 · intro |          |
+ *     +----------------------+  figura  |
+ *     | h3 · descripción · > |          |
+ *     +----------------------+----------+
+ *
+ * El orden del DOM es encabezado -> figura -> contexto, que es también el orden
+ * en que se apila en móvil: la fotografía entra inmediatamente después del
+ * intro, no al final de todo el texto. El h3 queda después de la imagen en ese
+ * apilado por la misma razón; encabeza el bloque que explica lo que se acaba de
+ * ver, y nadie llega a la fotografía sin saber qué es, porque su texto
+ * alternativo ya nombra el caso ("<título> — antes/después", lo compone la
+ * island).
+ *
+ * `grid-rows-[auto_1fr]` es lo que evita el hueco: la primera fila se ajusta al
+ * encabezado y la segunda absorbe el alto sobrante de la imagen, de modo que el
+ * espacio libre queda al final de la columna de texto —junto al tramo bajo de
+ * la fotografía— y no repartido entre los dos bloques. El `md:items-center` que
+ * usaba FeaturedCase hacía justo lo contrario: centraba un bloque de texto
+ * corto contra una imagen alta y abría ~200px de vacío por encima y por debajo.
+ *
+ * El h2 sube a `text-4xl` recién en `lg:` y no en `md:` como el de
+ * Services.astro: aquel encabeza una sección a todo el ancho del contenedor y
+ * este comparte fila con la imagen desde 768px, donde 49px de titular en una
+ * columna de ~376px caían en cuatro líneas. Es un ajuste local de esta sección,
+ * no de la escala tipográfica.
+ *
+ * PROPORCIÓN. El comparador ya no recibe `aspectRatio="square"`: usa la
+ * proporción real de la fotografía (`natural`, el valor por defecto del
+ * wrapper). Las dos imágenes del caso son de 720x1280 —9:16, tomadas en
+ * vertical— y encuadran el tambor completo de la lavadora. Forzarlas a 1:1 con
+ * `object-fit: cover` recortaba el 43,75% del alto (21,9% arriba y 21,9%
+ * abajo), y en la foto del "antes" esa banda superior es justo donde está la
+ * suciedad más marcada: el recorte debilitaba el lado de la comparación que
+ * sostiene la evidencia. Con la proporción real el tambor se ve entero y el
+ * divisor parte un mismo círculo en mitad sucia y mitad limpia, que es la
+ * lectura que hace entendible el antes/después de un golpe. Ver CP 5.3 §7: la
+ * imagen real tiene prioridad sobre una proporción estética.
+ *
+ * El ancho de la columna de la imagen (19rem -> 23rem) es lo que mantiene esa
+ * verticalidad dentro de un alto razonable: es un tope de ancho, no un
+ * recorte, así que ninguna decisión de layout cuesta evidencia.
+ *
+ * El `max-w-[24rem]` de la figura cubre el tramo que la grilla no alcanza: por
+ * debajo de `md:` la composición es de una sola columna, y sin tope una
+ * proporción 9:16 crece con el contenedor —a 767px de ventana la fotografía
+ * medía 735x1307px, más de un viewport y medio de alto—. Con el tope se queda
+ * en 384x683 desde los ~384px de contenedor hacia arriba. En móvil real (343px
+ * de contenedor a 375px de ventana) el tope no llega a aplicarse y la
+ * fotografía sigue ocupando el ancho completo. Dentro de la grilla tampoco
+ * hace nada: 19rem y 23rem ya son menores que 24rem.
+ *
+ * ENLACE. Sale del propio caso: `service` de su frontmatter, resuelto contra
+ * las fichas realmente publicadas con getServiceBySlug() —la misma consulta con
+ * la que src/pages/servicios/[slug].astro genera sus rutas— y construido con
+ * buildServicePath(). Por eso no puede apuntar a una página inexistente: si esa
+ * ficha pasa a `draft`, el enlace desaparece en el mismo build. NO se enlaza
+ * /trabajos: esa ruta no existe todavía (el ítem "Trabajos" del nav es el ancla
+ * /#trabajos a esta misma sección, ver src/data/navigation.ts).
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
-import FeaturedCase from '../cases/FeaturedCase.astro';
+import TextLink from '../ui/TextLink.astro';
+import BeforeAfterComparator from '../cases/BeforeAfterComparator.astro';
 import { getPublishedCaseById } from '../../lib/content/cases';
+import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
+import { services } from '../../data/services';
+import { serviceAreas } from '../../data/areas';
 import { featuredWorkContent } from '../../data/featuredWork';
 
 const caseEntry = await getPublishedCaseById(featuredWorkContent.caseId);
+const caseData = caseEntry?.data;
+
+// Rótulo del enlace: el `title` del catálogo, el mismo que imprime la tarjeta
+// de la sección Servicios. El href, en cambio, no se deriva del catálogo sino
+// de la ficha publicada (ver el bloque ENLACE arriba).
+const service = caseData ? services.find((item) => item.id === caseData.service) : undefined;
+const publishedService = caseData ? await getServiceBySlug(caseData.service) : undefined;
+const serviceHref = publishedService ? buildServicePath(publishedService.id) : undefined;
+
+// `area` es opcional en el schema. Si el caso no la declara —o declara un ID
+// que no existe en el catálogo— no se muestra ubicación: no se infiere ni se
+// rellena con una comuna genérica.
+const area = caseData?.area ? serviceAreas.find((item) => item.id === caseData.area) : undefined;
 ---
 
 {
-  caseEntry && (
+  caseData && (
     <Section as="section" id="trabajos" background="paper-2" spacing="lg" class="scroll-mt-24">
-      <div class="flex flex-col gap-12">
-        <div class="max-w-prose">
+      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,19rem)] md:grid-rows-[auto_1fr] md:items-start md:gap-x-10 lg:max-w-[53rem] lg:grid-cols-[minmax(0,26rem)_minmax(0,23rem)] lg:gap-x-16">
+        <div class="max-w-prose md:col-start-1 md:row-start-1">
           <Badge>{featuredWorkContent.eyebrow}</Badge>
-          <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
+          <h2 class="text-ink mt-4 text-3xl font-black tracking-tight lg:text-4xl">
             {featuredWorkContent.heading}
           </h2>
           <p class="text-ink-2 mt-4 text-lg">{featuredWorkContent.intro}</p>
         </div>
 
-        <FeaturedCase case={caseEntry} />
+        <div class="w-full max-w-[24rem] md:col-start-2 md:row-span-2 md:row-start-1">
+          <BeforeAfterComparator pair={caseData.pairs[0]} alt={caseData.title} />
+        </div>
+
+        <div class="flex max-w-prose flex-col items-start gap-3 md:col-start-1 md:row-start-2">
+          <h3 class="text-ink text-xl font-bold tracking-tight">{caseData.title}</h3>
+
+          <p class="text-ink-2">{caseData.shortDescription}</p>
+
+          {area && (
+            <p class="text-ink-3 text-sm">
+              Trabajo realizado en {area.name}, {area.region}.
+            </p>
+          )}
+
+          {serviceHref && service && (
+            <TextLink href={serviceHref} class="mt-1">
+              Ver el servicio: {service.title}
+            </TextLink>
+          )}
+        </div>
       </div>
     </Section>
   )

@@ -162,7 +162,18 @@ export default function BeforeAfterComparatorIsland({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="border-hairline bg-paper-2 relative w-full touch-none overflow-hidden rounded-2xl border select-none"
+        // touch-pan-y y no touch-none: con `none` el navegador cede al componente
+        // TODOS los gestos táctiles sobre la imagen, incluido el desplazamiento
+        // vertical de la página. Con la fotografía en su proporción real (9:16,
+        // ver FeaturedWork.astro) el comparador ocupa 637px de los 844 de un
+        // teléfono —el 75% de la pantalla—, así que un usuario que arrastrara el
+        // dedo hacia arriba sobre la foto no podía seguir bajando por la página:
+        // solo quedaban scrollables los 16px de gutter a cada lado. `pan-y`
+        // devuelve el desplazamiento vertical al navegador y conserva el
+        // horizontal para el arrastre del divisor, que es el único eje que este
+        // componente necesita. Cuando el navegador se queda el gesto emite
+        // pointercancel, que onPointerCancel ya trata como fin de arrastre.
+        className="border-hairline bg-paper-2 relative w-full touch-pan-y overflow-hidden rounded-2xl border select-none"
         style={{
           aspectRatio:
             aspectRatio === 'natural'

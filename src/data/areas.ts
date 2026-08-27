@@ -32,7 +32,7 @@ export interface ServiceArea {
 
 // Las 41 entidades del catálogo están en la misma región; la constante evita
 // repetir la cadena en cada fila sin sacar el campo del tipo, que sí tiene
-// consumidor (ServiceCase.astro y FeaturedCase.astro lo imprimen).
+// consumidor (ServiceCase.astro y FeaturedWork.astro lo imprimen).
 const REGION_METROPOLITANA = 'Región Metropolitana';
 
 /**
