@@ -9,6 +9,22 @@
  * jerarquía de encabezado real para SEO/GEO.
  * Sin `border`/`shadow`/fondo propio (mismo criterio que ServiceCard.astro):
  * la separación la da el `border-t` + el gap de la lista contenedora.
+ *
+ * Reparto de responsabilidades entre los dos elementos (CP 5.5): `<details>`
+ * aporta solo el hairline separador; TODO el padding vertical vive en
+ * `<summary>`, porque `summary` es el único elemento activable. Con el padding
+ * en `<details>` la fila medía 67px pero solo 27px respondían al toque: los
+ * 20px de aire sobre y bajo la pregunta parecían parte del trigger y no lo
+ * eran. Manteniendo `py-5` —ahora dentro de summary— la fila cerrada se ve
+ * idéntica y pasa a ser tappable de extremo a extremo (>=44px sin necesidad de
+ * `min-height`: 20 + línea + 20 ya lo supera).
+ * El cierre inferior del bloque abierto lo pone `pb-5` en el `<p>`, no un
+ * padding en `<details>`: así ese aire existe solo cuando hay respuesta
+ * visible y no vuelve a añadir superficie muerta bajo la pregunta cerrada.
+ * El foco lo aporta la regla global `:focus-visible` de src/styles/brand.css
+ * (mismo criterio que Button/ButtonLink/ServiceCard: no duplicar el token de
+ * foco); ahora dibuja el contorno sobre la fila completa, que es exactamente
+ * el área que responde al clic.
  */
 import { ChevronDown } from '@lucide/astro';
 
@@ -20,10 +36,8 @@ interface Props {
 const { question, answer } = Astro.props as Props;
 ---
 
-<details class="group border-hairline border-t py-5">
-  <summary
-    class="focus-visible:ring-brand-ink flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:ring-2 focus-visible:outline-none"
-  >
+<details class="group border-hairline border-t">
+  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5">
     <h3 class="text-ink text-base font-bold md:text-lg">{question}</h3>
     <ChevronDown
       class="text-ink-2 size-[var(--icon-md)] shrink-0 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
@@ -31,5 +45,5 @@ const { question, answer } = Astro.props as Props;
       aria-hidden="true"
     />
   </summary>
-  <p class="text-ink-2 mt-3 max-w-prose">{answer}</p>
+  <p class="text-ink-2 max-w-prose pb-5">{answer}</p>
 </details>
