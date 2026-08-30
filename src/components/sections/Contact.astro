@@ -13,6 +13,30 @@
  * `whatsappMessage`: usa el mensaje genérico por defecto.
  * `scroll-mt-24` compensa el header sticky al navegar por ancla (`/#contacto`,
  * ver src/data/navigation.ts) — mismo tratamiento que las demás secciones.
+ *
+ * ESPACIADO (EPIC 5 — Checkpoint 5.7). Era `spacing="lg"`, el paso mayor del
+ * sistema y el mismo que usan las cuatro secciones temáticas de home. Medido en
+ * navegador, eso dejaba 96px (móvil) / 128px (desktop) de relleno arriba y
+ * abajo: en desktop, 256px de los 613px de la sección —el 42%— eran padding
+ * alrededor de cuatro líneas de contenido. Dos consecuencias medibles, ninguna
+ * estética:
+ * - El bloque leía como una sexta sección de contenido y no como un cierre, que
+ *   es justo lo que el Checkpoint 5.6 evitó en Acreditaciones bajándola a `sm`.
+ * - Entre el filete inferior de Acreditaciones y el badge de aquí quedaban 99px
+ *   (móvil) / 131px (desktop) de aire sobre UNA MISMA superficie `paper-2`. Ese
+ *   fondo compartido lo eligió el Checkpoint 5.6 para que la franja de
+ *   acreditaciones se leyera como el preámbulo del CTA; el mayor hueco vertical
+ *   del sistema en medio lo contradecía.
+ * `md` (py-16 md:py-24) mantiene el cierre holgado —es el segundo paso de la
+ * escala, el mismo que usa el Hero— y sigue dejando separación amplia con el
+ * footer, que además aporta su propio `border-t` y su cambio de superficie a
+ * `paper`. No se toca `tokens.css` ni el mapa de SPACING_CLASSES de
+ * Section.astro: el cambio es la elección de paso de esta sección.
+ *
+ * La composición se queda alineada a la izquierda y sin caja: el brief de este
+ * checkpoint descarta explícitamente el cierre centrado, la tarjeta grande y el
+ * segundo hero. El vacío a la derecha en desktop es el mismo tratamiento que ya
+ * tienen Acreditaciones y el resto de la página, no un defecto de esta sección.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
@@ -20,7 +44,7 @@ import ContactActions from '../contact/ContactActions.astro';
 import { contactSectionContent } from '../../data/contactSection';
 ---
 
-<Section as="section" id="contacto" background="paper-2" spacing="lg" class="scroll-mt-24">
+<Section as="section" id="contacto" background="paper-2" spacing="md" class="scroll-mt-24">
   <div class="flex flex-col gap-8">
     <div class="max-w-prose">
       <Badge>{contactSectionContent.eyebrow}</Badge>

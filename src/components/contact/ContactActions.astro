@@ -19,10 +19,27 @@
  * consumidor futuro sobre otro fondo debe revisar este supuesto en vez de
  * heredarlo.
  *
- * El CTA de WhatsApp (`primary`, sin borde) lleva `border border-transparent`
- * para reservar el mismo espacio de borde que `secondary` (que sí tiene
- * `border`) — sin esto, en móvil (`flex-col`, sin stretch de altura entre
- * hermanos) el CTA de WhatsApp queda 2px más bajo que el de Llamar.
+ * JERARQUÍA (EPIC 5 — Checkpoint 5.7). Ambas acciones eran `size="lg"`: medidas
+ * en navegador daban 62px de alto y 20px de texto en las dos, con el mismo radio
+ * y la misma clase de ancho. El único diferenciador era el color de fondo, y el
+ * fondo del secundario sobre `paper-2` es un salto de 1.09:1 — es decir, lo que
+ * el usuario percibía primero era que había DOS botones del mismo tamaño, no
+ * cuál era la acción principal. Ahora el teléfono baja a `size="md"` —52px de
+ * alto y 16px de texto, contra 60px y 20px del primario— y WhatsApp se queda en
+ * `lg`: la jerarquía la hace la escala, sin cambiar
+ * variante, ni color, ni ocultar la llamada. Es exactamente la resolución que
+ * Hero.astro ya aplicó a su propio par en el Checkpoint 5.2 —primario `lg`,
+ * secundario `md`—, así que el sitio tiene una sola forma de decir "esta es la
+ * acción principal". El secundario sigue por encima del mínimo táctil de 44px.
+ *
+ * `sm:items-center` NO es alineación decorativa: sin él, este contenedor flex
+ * queda en `align-items: stretch` y a partir de 640px —donde el par pasa a
+ * fila— el navegador estira el botón `md` hasta la altura del `lg`, borrando en
+ * desktop la jerarquía que sí se ve en móvil. Es la misma clase con la que
+ * Hero.astro sostiene su par. Con esto ninguna de las dos alturas se iguala por
+ * accidente, y por eso el CTA de WhatsApp ya no necesita el
+ * `border border-transparent` que antes reservaba el espacio del borde del
+ * secundario para emparejarlos: emparejarlos dejó de ser el objetivo.
  */
 import ButtonLink from '../ui/ButtonLink.astro';
 import VisuallyHidden from '../ui/VisuallyHidden.astro';
@@ -40,13 +57,13 @@ const phoneHref = buildPhoneHref();
 const whatsappHref = buildWhatsappHref(whatsappMessage);
 ---
 
-<div class="flex flex-col gap-3 sm:flex-row">
+<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
   <ButtonLink
     href={whatsappHref}
     target="_blank"
     rel="noopener noreferrer"
     size="lg"
-    class="w-full border border-transparent sm:w-auto"
+    class="w-full sm:w-auto"
   >
     Escríbenos por WhatsApp
     <VisuallyHidden>(abre en una pestaña nueva)</VisuallyHidden>
@@ -55,7 +72,7 @@ const whatsappHref = buildWhatsappHref(whatsappMessage);
   <ButtonLink
     href={phoneHref}
     variant="secondary"
-    size="lg"
+    size="md"
     class="!bg-paper hover:!bg-paper-2 w-full sm:w-auto"
   >
     Llamar al {contactInfo.phone}
