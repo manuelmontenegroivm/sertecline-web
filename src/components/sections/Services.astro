@@ -13,6 +13,32 @@
  * determina qué servicio tiene página. Pide la lista ya resuelta a
  * lib/content/services.ts#getFeaturedServiceCards —que deriva la publicación de
  * la misma consulta con la que la ruta genera sus paths— y solo la recorre.
+ *
+ * GRILLA (EPIC 5 — Checkpoint 5.4). Los cortes de columna no se tocan: 1 · 2 en
+ * `md:` · 3 en `lg:`. Se probó adelantar la segunda columna a `sm:` (640px)
+ * para cerrar el tramo en que la sección se quedaba a una sola columna con el
+ * contenedor ya ancho —a 700px de ventana cada ítem medía 668px—, y el
+ * resultado fue peor: a 640px dos columnas dan 284px, y con la gotera del ícono
+ * descontada quedan ~252px de texto, así que cuatro de los seis títulos se
+ * parten en dos líneas y el sustantivo del equipo —lo único que el lector usa
+ * para elegir— cae a la segunda. Los títulos de esta grilla necesitan ~330px de
+ * columna para caber en una línea, es decir dos columnas recién desde ~730px:
+ * `md:` es el corte correcto y ya lo era.
+ *
+ * Ese tramo ancho de una sola columna, que en la auditoría se leía como filas a
+ * medio llenar, no lo causaba el número de columnas sino la forma del ítem: un
+ * bloque apilado de tres pisos dentro de una fila de 668px. Con la fila de
+ * directorio (ver ServiceCard.astro) el mismo ancho se lee como un índice —
+ * título y flecha en una línea, descripción en otra— y el filete pasa a ser el
+ * separador de una lista en vez del borde de una tarjeta vacía. El problema se
+ * resolvió arreglando el ítem, no moviendo el breakpoint (CP 5.4 §11).
+ *
+ * `gap-y-10` en vez de `gap-y-12`: el ítem pasó de columna apilada a fila de
+ * directorio (ver ServiceCard.astro) y perdió unos 60px de alto, así que la
+ * separación anterior empezaba a pesar más que los propios ítems y rompía la
+ * lectura de la lista como una sola cosa. El `gap-12` entre el encabezado y la
+ * grilla no cambia: es lo que separa el bloque de sección de sus ítems (CP 5.4
+ * §13) y ahora contrasta mejor con el ritmo interno de la lista.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
@@ -33,7 +59,7 @@ const serviceCards = await getFeaturedServiceCards();
       <p class="text-ink-2 mt-4 text-lg">{servicesSectionContent.intro}</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
       {serviceCards.map(({ service, href }) => <ServiceCard service={service} href={href} />)}
     </div>
   </div>
