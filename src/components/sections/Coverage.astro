@@ -8,20 +8,74 @@
  * orden. Este componente no filtra ni ordena — en particular no debe derivar
  * nada de `area.priority`, que es un dato comercial interno (ver areas.ts).
  *
- * Reutiliza Badge.astro por área: son etiquetas de texto no interactivas, así
- * que no se justifica un componente propio todavía. Cuando exista
- * /comunas/[id], este es el único archivo que cambia para envolver cada Badge
- * en un <a href={`/comunas/${area.id}`}>.
+ * LISTADO (EPIC 5 — Checkpoint 5.6). Antes cada comuna era un <Badge
+ * variant="neutral">: catorce cápsulas redondeadas en `flex-wrap`. Medido en
+ * navegador daba 5 filas irregulares de 3·3·3·3·2 a 375px y una tira de 12 más
+ * 2 huérfanas a 1440px — la forma exacta de tag cloud que este checkpoint
+ * prohíbe, y una en la que buscar la comuna propia obliga a leerlas todas
+ * porque el salto de línea no cae donde el ojo lo espera.
+ *
+ * Ahora es un índice a varias columnas: texto plano sobre filete hairline, sin
+ * cápsula, sin color por elemento y sin ícono. `columns-*` y no `grid` porque
+ * el flujo de CSS multicolumna es vertical —llena una columna y pasa a la
+ * siguiente—, que es el recorrido correcto para una lista alfabética; una
+ * grilla la repartiría por filas y obligaría a leer en zigzag. El orden visible
+ * coincide con el orden del DOM en las tres configuraciones, así que lectura
+ * visual y lectura asistida no divergen.
+ *
+ * `max-w-narrow` acota el índice a 720px. Sin ese tope, a 1440px las columnas
+ * medirían 288px para nombres de doce caracteres y la lista volvería a ser una
+ * tira horizontal, con el problema de escaneo intacto.
+ *
+ * Dos configuraciones y no tres: 2 columnas hasta `sm:` (7 filas de 2) y 3 a
+ * partir de ahí (5·5·4). Se probó un tercer salto a 4 columnas en `lg:` y el
+ * reparto de CSS multicolumna dejaba 4·4·4·2 —catorce no se divide en cuatro—,
+ * con una última columna a medias en el borde derecho. La configuración de tres
+ * columnas se sostiene desde 640px hasta 1920px sin cambiar, que es justo lo que
+ * el Checkpoint 5.2 pedía evitar: breakpoints que activan composiciones nuevas
+ * antes de que el ancho las necesite.
+ *
+ * El `border-b` del <ul> cierra el índice. Cada <li> aporta su filete superior,
+ * así que sin él las columnas terminarían abiertas y el bloque leería como una
+ * lista truncada en vez de una tabla completa.
+ *
+ * `role="list"` explícito: la preflight de Tailwind aplica `list-style: none` a
+ * todo <ul>, y con ello Safari/VoiceOver deja de anunciar la colección y su
+ * cantidad. El rol lo restituye sin tocar el estilo base.
+ *
+ * Cuando exista /comunas/[id], este es el único archivo que cambia para
+ * envolver cada nombre en un <a href={`/comunas/${area.id}`}>.
+ *
+ * CTA. El cierre de la sección responde a quien no encontró su comuna, que es
+ * la mayoría: se listan 14 de 41. El destino es el WhatsApp del NAP —la misma
+ * acción y el mismo mensaje genérico que el CTA del hero y la sección
+ * Contacto—, derivado en build con buildWhatsappHref(); aquí no se escribe el
+ * número, ni el dominio wa.me, ni el encoding. Deliberadamente NO se inventa
+ * una ruta /cobertura ni una página por comuna: no existen. <TextLink> aporta
+ * target/rel y el aviso de pestaña nueva al detectar el protocolo, así que este
+ * archivo no los repite.
+ *
+ * El párrafo sube de `text-sm` a `text-base`: dejó de ser una nota al pie y
+ * pasó a ser la respuesta accionable de la sección. Sigue por debajo del intro
+ * (`text-lg`), que mantiene la jerarquía.
+ *
+ * El `py-1.5` del enlace es el mismo que Footer.astro aplica a sus <TextLink>:
+ * lleva el área táctil de 24px a 32px de alto. 24 ya cumple el mínimo de WCAG
+ * 2.5.8, pero el Checkpoint 5.5 acaba de ensanchar los objetivos táctiles del
+ * FAQ y un enlace nuevo no debería estrenarse en el límite.
  *
  * `scroll-mt-24` compensa el header sticky al navegar por ancla (`/#cobertura`,
  * ver src/data/navigation.ts) — mismo tratamiento que FeaturedWork.astro y Services.astro.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
+import TextLink from '../ui/TextLink.astro';
 import { resolveServiceAreas } from '../../data/areas';
 import { coverageSectionContent, featuredAreaIds } from '../../data/coverageSection';
+import { buildWhatsappHref } from '../../lib/utils/contact';
 
 const featuredAreas = resolveServiceAreas(featuredAreaIds);
+const whatsappHref = buildWhatsappHref();
 ---
 
 <Section as="section" id="cobertura" background="paper-2" spacing="lg" class="scroll-mt-24">
@@ -34,16 +88,17 @@ const featuredAreas = resolveServiceAreas(featuredAreaIds);
       <p class="text-ink-2 mt-4 text-lg">{coverageSectionContent.intro}</p>
     </div>
 
-    <ul class="flex flex-wrap gap-3">
+    <ul role="list" class="border-hairline max-w-narrow columns-2 gap-x-8 border-b sm:columns-3">
       {
         featuredAreas.map((area) => (
-          <li>
-            <Badge variant="neutral">{area.name}</Badge>
-          </li>
+          <li class="border-hairline text-ink break-inside-avoid border-t py-2">{area.name}</li>
         ))
       }
     </ul>
 
-    <p class="text-ink-2 text-sm">{coverageSectionContent.note}</p>
+    <p class="text-ink-2 max-w-prose">
+      {coverageSectionContent.note}{' '}
+      <TextLink href={whatsappHref} class="py-1.5">{coverageSectionContent.ctaLabel}</TextLink>
+    </p>
   </div>
 </Section>

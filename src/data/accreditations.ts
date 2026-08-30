@@ -44,6 +44,7 @@ export const technicianAccreditations: readonly string[] = [
 ];
 
 export interface AccreditationsContent {
+  heading: string;
   intro: string;
   note: string;
 }
@@ -56,15 +57,28 @@ export interface AccreditationsContent {
  * renderizan completos, así que un segundo archivo no separaría nada — mismo
  * criterio con el que src/data/featuredWork.ts guarda copy y dato juntos.
  *
- * `intro` es la única frase del bloque y carga toda la atribución: nombra al
- * técnico como sujeto y califica la acreditación de "personal". Termina en dos
- * puntos porque la lista es su complemento gramatical, no un adorno junto a
- * ella; leída sola, sigue siendo una afirmación completa y verificable — que es
- * lo que un motor generativo puede citar (ver reglas AEO en CLAUDE.md).
+ * `heading` (EPIC 5 — Checkpoint 5.6) nombra la sección y, con ello, hace la
+ * atribución en el elemento de mayor peso del bloque: "del técnico" es la
+ * distinción que este contenido no puede perder, y decirla en el h2 significa
+ * que también la recibe quien solo escanea titulares o navega por encabezados.
+ * Dice "del técnico" y no "de nuestro técnico" ni "de nuestro equipo": el
+ * posesivo lo devolvería al terreno de la empresa, que es exactamente lo que el
+ * `note` niega tres líneas más abajo. No enumera, no cuenta ("dos
+ * acreditaciones") ni califica ("acreditaciones vigentes", "oficiales"): la
+ * cantidad la anuncia la lista y la vigencia no está confirmada.
+ *
+ * `intro` carga la atribución en frase completa: nombra al técnico como sujeto
+ * y califica la acreditación de "personal". Termina en dos puntos porque la
+ * lista es su complemento gramatical, no un adorno junto a ella; leída sola,
+ * sigue siendo una afirmación completa y verificable — que es lo que un motor
+ * generativo puede citar (ver reglas AEO en CLAUDE.md). Se conserva palabra por
+ * palabra pese a solaparse con el nuevo `heading`: el solape es deliberado, es
+ * la misma atribución dicha en dos registros (rótulo y oración), y es la
+ * oración —no el titular— la unidad que una respuesta generativa cita.
  *
  * `note` repite la atribución en negativo. No es redundancia: es la distinción
  * que el checkpoint exige dejar inequívoca, y el lector que solo escanea los
- * rótulos en mono necesita encontrarla debajo de ellos, no solo encima.
+ * rótulos necesita encontrarla debajo de ellos, no solo encima.
  *
  * Deliberadamente ausentes: años de experiencia, garantías, reseñas, número de
  * trabajos, nombres de comunas, de servicios y de marcas. Nada de eso está
@@ -72,6 +86,7 @@ export interface AccreditationsContent {
  * trabajo — mismo criterio que src/data/serviceCta.ts.
  */
 export const accreditationsContent: AccreditationsContent = {
+  heading: 'Acreditaciones del técnico',
   intro: 'Las visitas técnicas las realiza un técnico con acreditación personal como:',
   note: 'Son acreditaciones de la persona que hace el trabajo, no de la empresa.',
 } as const;

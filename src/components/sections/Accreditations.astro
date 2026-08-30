@@ -11,18 +11,66 @@
  * del sistema —el mismo primitivo con que Header y ServiceLayout separan— y
  * evita que el corte quede solo en el aire entre dos paddings del mismo color.
  *
- * `as="div"` y no `as="section"`: el bloque no tiene heading propio, y un
- * <section> sin nombre accesible no se expone como landmark (HTML-AAM), así que
- * declararlo sería anunciar una región que el lector de pantalla nunca listará.
- * Tampoco se le inventa un h2 ni un <Badge> de eyebrow: ese es el patrón de las
- * cinco secciones temáticas de home, y aplicarlo aquí inflaría dos rótulos al
- * peso visual de "Nuestros servicios" o "Cobertura".
+ * HEADING (EPIC 5 — Checkpoint 5.6). El bloque era un <div> sin encabezado. La
+ * intención era no inflarlo al peso de "Nuestros servicios", pero el efecto fue
+ * el contrario del buscado: sin heading no aparecía en el esquema del documento
+ * —quien navega por encabezados saltaba de "Preguntas frecuentes" a "¿Necesitas
+ * ayuda con tu equipo?" sin pasar por aquí— y visualmente el bloque empezaba en
+ * `ink-2`, es decir, el contenido que más confianza carga entraba en color
+ * secundario. Ahora tiene h2, y con él vuelve a la navegación por encabezados.
+ *
+ * NOMBRE ACCESIBLE. El h2 por sí solo NO nombra al <section>: un heading
+ * descendiente arregla la navegación por encabezados, pero HTML-AAM expone
+ * <section> como landmark `region` únicamente si tiene accessible name, y ese
+ * nombre solo llega por `aria-labelledby` o `aria-label`. Sin él, `as="section"`
+ * seguiría siendo una región anónima que ningún lector de pantalla lista — el
+ * problema que el <div> original evitaba declarando menos. Por eso el h2 lleva
+ * `id` y la sección lo referencia con `aria-labelledby`: el nombre queda atado
+ * al texto visible, se traduce con él y no puede desincronizarse de una copia.
+ * Se descarta `aria-label`: duplicaría a mano el mismo texto que ya está en
+ * pantalla. Se descarta `role="region"` explícito: es el rol implícito que el
+ * <section> ya obtiene al tener nombre, y escribirlo sería redundante.
+ *
+ * El `id` es local y descriptivo (`accreditations-heading`), no una ruta: no lo
+ * consume src/data/navigation.ts ni existe un ancla `/#acreditaciones`. Su único
+ * lector es el `aria-labelledby` de tres líneas más abajo.
+ *
+ * El h2 se queda en `text-2xl` —el paso "h2" de tokens.css— mientras las cinco
+ * secciones temáticas de home usan `text-3xl md:text-4xl`. Es la misma jerarquía
+ * que se quería preservar, resuelta con la escala tipográfica en vez de con la
+ * ausencia de encabezado: el bloque es encontrable sin pasar a ser una sexta
+ * sección. Tampoco lleva <Badge> de eyebrow por el mismo motivo — ese rótulo sí
+ * es exclusivo del patrón de las secciones temáticas.
+ *
+ * El h2 hace la atribución antes que nada: nombra al técnico como titular, y el
+ * `intro` la repite en frase completa. El orden del bloque es atribución →
+ * rótulos → atribución en negativo, de modo que ningún recorrido —leerlo entero,
+ * escanear solo el titular, o saltar directo a los rótulos— deja al lector con
+ * la idea de que la acreditada es la empresa.
+ *
+ * COMPOSICIÓN. El hero ya muestra una señal compacta con estos mismos datos: un
+ * filete superior, un encuadre en `text-sm` y los dos rótulos en fila. Repetir
+ * esa forma más grande habría sido la misma tarjeta dos veces. Aquí los rótulos
+ * se apilan siempre —una fila por acreditación, con filete superior propio— y
+ * leen como un registro, no como una tira. Apilar también resuelve el desktop:
+ * antes los dos rótulos se agrupaban al extremo izquierdo de un contenedor de
+ * 1152px y dejaban media sección vacía a la derecha; `max-w-narrow` acota el
+ * registro a 720px y le da un ancho propio en vez de dos cajas o un vacío. El
+ * `border-b` del <ul> lo cierra: cada fila aporta su filete superior, y sin el
+ * de cierre la última quedaría abierta. Los filetes usan `hairline-strong`
+ * ("guías / divisores marcados" en tokens.css) y no el `hairline` del índice de
+ * cobertura: son dos filas, no catorce, y con el filete suave el registro se
+ * perdía contra el fondo.
+ *
+ * Sin íconos —ni escudos, ni sellos, ni checks, ni la llama de
+ * src/data/services.ts#reparacion-cocinas—: el vocabulario de insignias es justo
+ * lo que esta franja debe evitar, y un ícono prestado del catálogo de servicios
+ * mezclaría dos vocabularios distintos. Sin <Badge> por lo mismo.
  *
  * Los rótulos van en <ul>: son una colección, y la lista es lo que anuncia su
- * cantidad al lector de pantalla. Sin íconos —ni escudos, ni sellos, ni checks,
- * ni la llama de src/data/services.ts#reparacion-cocinas—: el vocabulario de
- * insignias es justo lo que esta franja debe evitar, y un ícono prestado del
- * catálogo de servicios mezclaría dos vocabularios distintos.
+ * cantidad al lector de pantalla. `role="list"` explícito porque la preflight de
+ * Tailwind aplica `list-style: none` a todo <ul> y Safari/VoiceOver dejan de
+ * anunciarla — mismo tratamiento que el índice de Coverage.astro.
  *
  * La distinción la hacen el tamaño y el peso dentro de la familia de texto del
  * sitio. `text-lg` es el "cuerpo grande" de tokens.css —el mismo paso de escala
@@ -50,21 +98,25 @@ import Section from '../layout/Section.astro';
 import { technicianAccreditations, accreditationsContent } from '../../data/accreditations';
 ---
 
-<Section as="div" background="paper-2" spacing="sm" class="border-hairline border-b">
-  <div class="flex flex-col gap-6">
-    <p class="text-ink-2 max-w-prose">{accreditationsContent.intro}</p>
+<Section
+  as="section"
+  background="paper-2"
+  spacing="sm"
+  class="border-hairline border-b"
+  aria-labelledby="accreditations-heading"
+>
+  <div class="max-w-narrow flex flex-col gap-6">
+    <div>
+      <h2 id="accreditations-heading" class="text-ink text-2xl font-black tracking-tight">
+        {accreditationsContent.heading}
+      </h2>
+      <p class="text-ink-2 mt-3">{accreditationsContent.intro}</p>
+    </div>
 
-    {
-      /* Columna en móvil y fila a partir de sm: los dos rótulos no caben lado a
-         lado en pantallas angostas sin partirse, y `flex-wrap` los devuelve a
-         dos filas si el ancho disponible no alcanza. El filete izquierdo usa
-         hairline-strong ("guías / divisores marcados" en tokens.css) y da
-         estructura de listado técnico sin encerrar el texto en una cápsula. */
-    }
-    <ul class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-10">
+    <ul role="list" class="border-hairline-strong flex flex-col border-b">
       {
         technicianAccreditations.map((accreditation) => (
-          <li class="border-hairline-strong text-ink border-l pl-4 text-lg font-medium">
+          <li class="border-hairline-strong text-ink border-t py-3 text-lg font-medium">
             {accreditation}
           </li>
         ))
