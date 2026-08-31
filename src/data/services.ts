@@ -65,8 +65,34 @@ export interface Service {
  * Deuda registrada: `slug` no tiene ningún consumidor (las rutas usan el `id`
  * de colección — ver src/lib/content/services.ts#buildServicePath). Su
  * eliminación es una limpieza de modelo aparte de esta realineación.
+ *
+ * TIPADO (EPIC 6 — Checkpoint 6.4). El array literal se declara aquí con
+ * `as const satisfies readonly Service[]` y se exporta abajo como
+ * `readonly Service[]`. `satisfies` sigue validando cada entrada contra
+ * `Service` —un campo mal escrito o faltante rompe el build igual que antes—,
+ * pero a diferencia de una anotación no ensancha los literales a `string`, así
+ * que los `id` reales sobreviven al tipo y `ServiceId` puede derivarse de ellos.
+ * `as const` es lo que los preserva: con `satisfies` a secas el tipo contextual
+ * `Service['id']` es `string` y el ensanchamiento ocurre igual — comprobado con
+ * el compilador del proyecto antes de elegir esta forma.
+ *
+ * Por qué la constante literal es local y la exportada lleva anotación: si se
+ * exportara el array const tal cual, cada entrada sería su propio tipo literal y
+ * `.find()` devolvería la unión de las doce. Los consumidores que leen un campo
+ * opcional dejarían de compilar —`catalogEntry?.seoTitle` en [slug].astro falla
+ * contra la entrada de refrigeradores, que no lo declara—, y el tipado se
+ * cobraría en superficies que este checkpoint no debe tocar. Con la anotación
+ * `readonly Service[]` el contrato público del catálogo queda como estaba: doce
+ * `Service` uniformes, con sus opcionales declarados. La información literal se
+ * usa solo para derivar `ServiceId`, que es lo único que se necesitaba.
+ *
+ * `readonly` y no `Service[]`: es lo correcto para una fuente única y nadie lo
+ * muta hoy. Los dos `.sort()` del repositorio (Footer.astro y
+ * lib/content/services.ts) operan sobre el array nuevo que devuelve `.filter()`,
+ * como sus propios comentarios ya documentan, así que ninguno ordenaba este
+ * array.
  */
-export const services: Service[] = [
+const serviceCatalog = [
   {
     id: 'reparacion-lavadoras',
     slug: 'reparacion-lavadoras',
@@ -197,4 +223,21 @@ export const services: Service[] = [
     featured: false,
     order: 12,
   },
-];
+] as const satisfies readonly Service[];
+
+/**
+ * Unión de los `id` realmente presentes en el catálogo, derivada del propio
+ * array (EPIC 6 — Checkpoint 6.4). No es una segunda lista: si arriba se agrega,
+ * renombra o elimina un servicio, este tipo cambia con él en el mismo commit,
+ * porque no hay nada que mantener sincronizado a mano.
+ *
+ * Existe porque un mapping editorial que referencia servicios por `id` —hoy
+ * src/data/accreditations.ts#servicesWithAccreditations— necesita que un `id`
+ * inexistente sea un error de compilación y no un bloque que simplemente deja
+ * de renderizarse en silencio. `content.config.ts` ya hacía la comprobación
+ * equivalente en tiempo de ejecución para el frontmatter de las colecciones
+ * (`z.enum(serviceIds)`); esto es la misma garantía para el código TypeScript.
+ */
+export type ServiceId = (typeof serviceCatalog)[number]['id'];
+
+export const services: readonly Service[] = serviceCatalog;

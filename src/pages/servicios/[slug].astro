@@ -4,6 +4,7 @@ import ServiceLayout from '../../layouts/ServiceLayout.astro';
 import { getPublishedServices, getServiceBySlug } from '../../lib/content/services';
 import { getRelatedCases } from '../../lib/content/cases';
 import { services as serviceCatalog } from '../../data/services';
+import { servicesWithAccreditations } from '../../data/accreditations';
 
 export async function getStaticPaths() {
   const services = await getPublishedServices();
@@ -36,6 +37,18 @@ const { Content } = await render(service);
 // catálogo y a los que se agreguen. Hoy se pide 1; el layout no asume esa
 // cantidad.
 const relatedCases = await getRelatedCases(service.id, 1);
+
+// Misma división que `relatedCases` y `faqs`: la ruta resuelve el dato, el
+// layout compone. La pertinencia por servicio se decide en un único lugar
+// auditable (src/data/accreditations.ts#servicesWithAccreditations) y no con
+// un condicional por slug repartido entre componentes.
+//
+// `.some()` y no `.includes()`: la lista está tipada como `readonly ServiceId[]`
+// (unión de literales derivada del catálogo), así que `.includes()` exigiría un
+// `ServiceId` como argumento y `service.id` —el id de la entrada de colección—
+// es `string`. Comparar con `===` no necesita ese estrechamiento y no cuesta un
+// `as`: un cast aquí silenciaría justamente la validación que este tipo aporta.
+const showAccreditations = servicesWithAccreditations.some((id) => id === service.id);
 ---
 
 <ServiceLayout
@@ -45,6 +58,7 @@ const relatedCases = await getRelatedCases(service.id, 1);
   metaDescription={metaDescription}
   faqs={faqs}
   relatedCases={relatedCases}
+  showAccreditations={showAccreditations}
 >
   <Content />
 </ServiceLayout>

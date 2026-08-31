@@ -30,9 +30,29 @@ interface Props {
 
 const { pair, alt, beforeLabel, afterLabel, aspectRatio } = Astro.props as Props;
 
+// Ancho objetivo del comparador en su uso más ancho. Se pide acotado al ancho
+// real del original (EPIC 6 — Checkpoint 6.4): Sharp nunca amplía —ante un
+// original más angosto devuelve el original—, pero getImage() sí construye sus
+// `attributes` con el ancho PEDIDO. Con las fotografías de 720x1280 del caso
+// publicado eso hacía que el archivo emitido midiera 720x1280 y el DOM
+// declarara 960x1707: las dimensiones que el navegador usa para reservar el
+// espacio no eran las de la imagen que recibía. Math.min() las vuelve a
+// coincidir sin tocar el archivo generado (mismos bytes, mismo pixel) y sin
+// introducir srcset ni una pipeline nueva. Un original más ancho que 960 sigue
+// reduciéndose a 960 como antes.
+const TARGET_WIDTH = 960;
+
 const [beforeImage, afterImage] = await Promise.all([
-  getImage({ src: pair.before, width: 960, format: 'webp' }),
-  getImage({ src: pair.after, width: 960, format: 'webp' }),
+  getImage({
+    src: pair.before,
+    width: Math.min(TARGET_WIDTH, pair.before.width),
+    format: 'webp',
+  }),
+  getImage({
+    src: pair.after,
+    width: Math.min(TARGET_WIDTH, pair.after.width),
+    format: 'webp',
+  }),
 ]);
 ---
 

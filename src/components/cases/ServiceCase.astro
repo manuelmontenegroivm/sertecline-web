@@ -15,6 +15,36 @@
  *
  * `pairs[0]` es seguro sin comprobación: el schema declara `pairs` con
  * `.min(1)` (ver src/content.config.ts).
+ *
+ * PROPORCIÓN (EPIC 6 — Checkpoint 6.4). El comparador ya no recibe
+ * `aspectRatio="fourThree"`: usa la proporción real de la fotografía
+ * (`natural`, el valor por defecto del wrapper). Las dos imágenes del único
+ * caso publicado son de 720x1280 —9:16, tomadas en vertical—. Forzar ese
+ * original a un contenedor 4:3 con `object-fit: cover` dejaba visible el 42,2%
+ * del alto y recortaba el 57,8% restante (28,9% arriba y 28,9% abajo) en TODOS
+ * los anchos, porque el recorte no depende del viewport sino de la razón entre
+ * las dos proporciones. Era el recorte más agresivo posible sobre la única
+ * evidencia real que el sitio publica: se perdía más de la mitad de la
+ * fotografía que esta sección existe para mostrar. Home ya había llegado a la
+ * misma conclusión sobre las mismas dos imágenes en CP 5.3 (ver
+ * FeaturedWork.astro, bloque PROPORCIÓN), donde el 1:1 costaba un 43,75%.
+ *
+ * El tope de ancho es lo que mantiene esa verticalidad dentro de un alto
+ * razonable, y es el mismo recurso —no un componente copiado— con que
+ * FeaturedWork acota su figura: `max-w-[24rem]` es un límite de ancho, no un
+ * recorte, así que ninguna decisión de layout cuesta evidencia. Sin él, una
+ * proporción 9:16 crece con el contenedor: dentro de <Container size="narrow">
+ * la fotografía mediría 672x1195px a partir de 768px de ventana, más de un
+ * viewport de alto. Con el tope se queda en 384x683 desde los ~384px de
+ * contenedor hacia arriba; por debajo (móvil real) no llega a aplicarse y la
+ * fotografía ocupa el ancho completo, como en home.
+ *
+ * No se adopta la grilla de dos columnas de FeaturedWork: allí el texto convive
+ * con la figura dentro de <Container size="content"> (1200px). Aquí el
+ * contenedor es `narrow` (720px), y descontar la columna de la imagen dejaría
+ * el h3 —`text-xl`, 25px— en ~248px. La composición de una sola columna que
+ * este componente ya tenía sigue siendo la correcta; lo que cambia es la
+ * proporción de la fotografía, no la composición.
  */
 import type { CollectionEntry } from 'astro:content';
 import BeforeAfterComparator from './BeforeAfterComparator.astro';
@@ -48,5 +78,7 @@ const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefine
     }
   </div>
 
-  <BeforeAfterComparator pair={pairs[0]} alt={title} aspectRatio="fourThree" />
+  <div class="w-full max-w-[24rem]">
+    <BeforeAfterComparator pair={pairs[0]} alt={title} />
+  </div>
 </article>

@@ -61,6 +61,58 @@
  * compone). El bloque se recorre como lista y no asume una cantidad, aunque hoy
  * la ruta pida uno solo. Va fuera del contenedor `.service-content` porque las
  * reglas `:global()` de ese contenedor están pensadas para prosa MDX.
+ *
+ * ACREDITACIONES (EPIC 6 — Checkpoint 6.4). Bloque condicional: solo aparece en
+ * las fichas que la ruta marca con `showAccreditations`, resuelto contra
+ * src/data/accreditations.ts#servicesWithAccreditations. Ese archivo documenta
+ * por qué hoy es una sola ficha y por qué calefones y cocinas quedan fuera; la
+ * regla, en una línea, es que la credencial no puede declarar un alcance de
+ * servicio que el contenido de la ficha no declara por sí mismo.
+ *
+ * Se compone aquí y no en un componente propio, igual que el caso y las FAQ:
+ * los tres son bloques de esta página con un solo consumidor, y el patrón ya
+ * establecido en este archivo es componerlos con <Container> + <section>. Lo
+ * que sí se reutiliza es lo que de verdad es compartido: los rótulos
+ * (`technicianAccreditations`) y el copy (`accreditationsContent`), importados
+ * de la misma fuente única que consumen el Hero y la sección de home. No se
+ * escribe una sola palabra nueva sobre las acreditaciones en este archivo.
+ *
+ * NO se reutiliza components/sections/Accreditations.astro. Está acoplado a su
+ * lugar en home en cuatro puntos, y los cuatro chocan aquí: envuelve en
+ * <Section>, que impone <Container size="content"> (1200px) mientras esta
+ * página alinea todo a `narrow` (720px) —el desfase de borde izquierdo que
+ * CP 6.2 corrigió a propósito—; fija `background="paper-2"`, que en home forma
+ * una sola superficie con la sección Contacto que va debajo y aquí sería un
+ * bloque de color suelto entre secciones `paper`; cierra con `border-b`,
+ * mientras aquí las secciones se separan con `border-t`; y usa `spacing="sm"`
+ * contra el `py-12 md:py-16` de esta página. Reutilizarlo obligaría a
+ * parametrizar contenedor, fondo, borde y espaciado —es decir, a convertirlo en
+ * otro componente— para ahorrar cinco líneas de marcado cuyas clases ya son
+ * tokens. Tampoco se extrae una primitive de lista: sería un archivo nuevo con
+ * dos consumidores que no comparten envoltorio, y obligaría a tocar una sección
+ * de home que este checkpoint no necesita cambiar.
+ *
+ * POSICIÓN: después de las FAQ y antes de <ServiceCta>. Es la misma posición
+ * del journey que ya ocupa en home —entre "Preguntas frecuentes" y "Contacto"—
+ * y por la misma razón que documenta Accreditations.astro: quién entra a tu
+ * casa es la última objeción antes de escribir, así que se resuelve pegada a la
+ * decisión y no arriba compitiendo con el hero. El hero de la ficha ya resolvió
+ * la conversión temprana en CP 6.2 y no debe saturarse.
+ *
+ * NOMBRE ACCESIBLE: mismo aprendizaje de CP 5.6 que aplica el resto de esta
+ * página. Un <section> no obtiene accessible name por contener un h2; el h2
+ * lleva `id` y la sección lo referencia con `aria-labelledby`, como ya hacen
+ * los bloques de caso y de FAQ. Sin `aria-label` duplicando texto visible y sin
+ * `role="region"` explícito, que es el rol implícito que el <section> obtiene
+ * al tener nombre.
+ *
+ * El h2 se queda en `text-2xl` sin el salto a `md:text-3xl` de los h2 de caso y
+ * FAQ: es la misma jerarquía por escala tipográfica con que home subordina este
+ * bloque a sus secciones temáticas, y deja la confianza como señal secundaria
+ * al contenido sin sacarla del esquema de encabezados. Sin íconos, sellos,
+ * escudos, checks ni <Badge>, por lo mismo que documenta la sección de home:
+ * el vocabulario de insignia es justo lo que una acreditación personal debe
+ * evitar. Sin JS, sin island y sin datos estructurados nuevos.
  */
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
@@ -70,6 +122,7 @@ import ServiceCase from '../components/cases/ServiceCase.astro';
 import ServiceCta from '../components/services/ServiceCta.astro';
 import ContactActions from '../components/contact/ContactActions.astro';
 import { serviceCasesContent } from '../data/serviceCases';
+import { technicianAccreditations, accreditationsContent } from '../data/accreditations';
 import { serviceCtaContent } from '../data/serviceCta';
 import {
   buildServiceSeoTitle,
@@ -91,9 +144,19 @@ interface Props {
   faqs?: readonly ServiceFaq[];
   /** Casos ya filtrados y ordenados — ver src/lib/content/cases.ts#getRelatedCases. */
   relatedCases?: readonly CollectionEntry<'cases'>[];
+  /** Pertinencia ya resuelta — ver src/data/accreditations.ts#servicesWithAccreditations. */
+  showAccreditations?: boolean;
 }
 
-const { title, seoTitle, intro, metaDescription, faqs = [], relatedCases = [] } = Astro.props;
+const {
+  title,
+  seoTitle,
+  intro,
+  metaDescription,
+  faqs = [],
+  relatedCases = [],
+  showAccreditations = false,
+} = Astro.props;
 
 // Resuelto una sola vez: el <h1>, el <title>, el nombre del Service y el
 // último tramo del rastro son la misma denominación, no cuatro decisiones
@@ -238,6 +301,37 @@ const structuredData = buildServiceStructuredData({
               {faqs.map((faq) => (
                 <FaqItem question={faq.question} answer={faq.answer} />
               ))}
+            </div>
+          </Container>
+        </section>
+      )
+    }
+
+    {
+      showAccreditations && (
+        <section aria-labelledby="acreditaciones" class="border-hairline border-t">
+          <Container size="narrow" class="py-12 md:py-16">
+            <div class="flex flex-col gap-6">
+              <div>
+                <h2 id="acreditaciones" class="text-ink text-2xl font-bold tracking-tight">
+                  {accreditationsContent.heading}
+                </h2>
+                <p class="text-ink-2 mt-4 text-lg">{accreditationsContent.intro}</p>
+              </div>
+
+              {/* role="list" explícito: la preflight de Tailwind aplica
+                  `list-style: none` a todo <ul> y Safari/VoiceOver dejan de
+                  anunciarla — mismo tratamiento que Coverage.astro y la sección
+                  de acreditaciones de home. */}
+              <ul role="list" class="border-hairline-strong flex flex-col border-b">
+                {technicianAccreditations.map((accreditation) => (
+                  <li class="border-hairline-strong text-ink border-t py-3 text-lg font-medium">
+                    {accreditation}
+                  </li>
+                ))}
+              </ul>
+
+              <p class="text-ink-2 max-w-prose text-sm">{accreditationsContent.note}</p>
             </div>
           </Container>
         </section>

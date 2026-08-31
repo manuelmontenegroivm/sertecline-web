@@ -1,3 +1,5 @@
+import type { ServiceId } from './services';
+
 /**
  * Acreditaciones publicables del técnico (EPIC 4.1 — Checkpoint 4.1.15).
  *
@@ -42,6 +44,70 @@ export const technicianAccreditations: readonly string[] = [
   'Instalador de gas clase 3',
   'Instalador eléctrico clase D',
 ];
+
+/**
+ * Fichas de servicio que muestran las acreditaciones (EPIC 6 — Checkpoint 6.4).
+ *
+ * Este es el `id` prometido más arriba: la relación con src/data/services.ts no
+ * se declara "por si acaso" sino ahora, junto a su único consumidor
+ * (src/pages/servicios/[slug].astro, que resuelve el dato y lo pasa al layout).
+ * Existe para que la decisión viva en UN lugar auditable y no como
+ * `if (slug === '…')` repartido por componentes.
+ *
+ * CRITERIO — y es de veracidad, no de diseño: una acreditación aparece en una
+ * ficha solo si el contenido YA PUBLICADO de esa ficha declara el contexto al
+ * que la acreditación pertenece. No al revés. Usar la credencial para sugerir
+ * que un servicio cubre una categoría de equipo que su contenido no declara
+ * sería exactamente la inferencia que el bloque de arriba prohíbe ("ninguna
+ * superficie debe inferir de ellos qué servicios puede prestar el negocio").
+ *
+ * Por qué solo `reparacion-secadoras` hoy:
+ *
+ * - reparacion-secadoras — ÚNICA ficha cuyo contenido declara literalmente las
+ *   dos categorías: "Secadoras a gas y secadoras eléctricas · El técnico
+ *   trabaja con ambos tipos" (encabezado propio, FAQ y lista de datos para
+ *   coordinar la visita). El contexto de gas y el eléctrico son afirmaciones
+ *   del propio servicio, anteriores a esta lista y validadas en CP 6.3, así que
+ *   mostrar las acreditaciones no agrega alcance: agrega quién ejecuta.
+ *
+ * - reparacion-cocinas — EXCLUIDA. Su contenido habla de "olor u otro indicio
+ *   de posible fuga" y de "válvulas y manguera de alimentación", pero en
+ *   ningún punto declara si la ficha cubre cocinas a gas, eléctricas o ambas
+ *   —CP 6.3 dejó ese alcance sin validar deliberadamente—. Publicar
+ *   "Instalador de gas clase 3" ahí haría el trabajo que el texto no hace:
+ *   el lector completaría la categoría faltante desde la credencial. Es el
+ *   caso límite del checkpoint y se resuelve en contra de publicar.
+ *
+ * - reparacion-calefones — EXCLUIDA. Su contenido no menciona gas ni
+ *   electricidad en ninguna forma; habla de encendido, agua caliente, membrana
+ *   e interruptor. Que un calefón sea habitualmente a gas es conocimiento
+ *   externo al repositorio, y este proyecto no publica lo que el negocio no
+ *   confirmó (mismo criterio con que src/data/contact.ts omite email y
+ *   horarios). Si el negocio confirma el alcance, se agrega el id aquí.
+ *
+ * - reparacion-lavadoras, limpieza-lavadoras y reparacion-lavavajillas —
+ *   EXCLUIDAS. Ningún contexto de gas ni de instalación eléctrica en su
+ *   contenido. Que todo electrodoméstico se enchufe no convierte una
+ *   acreditación de instalador eléctrico en pertinente: la credencial nombra
+ *   una categoría de instalación, no la reparación del equipo.
+ *
+ * Modelo: una lista de IDs y no un mapa id → acreditaciones. Hoy la única
+ * ficha incluida es pertinente a las dos, así que un mapa no distinguiría nada
+ * y sería un campo sin lector —la deuda que este archivo ya registra sobre
+ * `Service.slug`—. Además la lista se muestra completa a propósito: son las
+ * acreditaciones de una persona, no una ficha técnica del servicio, y
+ * recortarlas por página las convertiría en lo segundo.
+ *
+ * Validado contra el catálogo en tiempo de compilación: el tipo del elemento es
+ * `ServiceId`, derivado del propio src/data/services.ts. Un id mal escrito ya no
+ * compila. Antes era `readonly string[]`, y un typo habría pasado el build para
+ * después no coincidir nunca con ningún `service.id` en tiempo de ejecución: el
+ * bloque simplemente dejaría de renderizarse, sin error y sin señal. Es la misma
+ * garantía que content.config.ts ya daba al frontmatter con `z.enum(serviceIds)`,
+ * trasladada al código. No introduce una segunda lista de IDs: `ServiceId` se
+ * deriva del catálogo, no se transcribe.
+ */
+export const servicesWithAccreditations: readonly ServiceId[] = ['reparacion-secadoras'];
 
 export interface AccreditationsContent {
   heading: string;
