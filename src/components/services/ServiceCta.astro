@@ -16,6 +16,18 @@
  *
  * El h2 usa la escala de los h2 de la ficha (los del MDX y el de "Preguntas
  * frecuentes"), no la de las secciones de home, que es mayor.
+ *
+ * DOS ACCIONES POR FICHA (EPIC 6 — Checkpoint 6.2). Desde que el hero de
+ * ServiceLayout ofrece contacto temprano, esta sección dejó de ser la única
+ * salida y pasó a ser la de cierre: mismo par de acciones, pero con rótulo, h2
+ * e intro que enmarcan el final del contenido. Esa diferencia de composición
+ * —y no un segundo componente— es lo que las distingue.
+ *
+ * Por lo mismo este componente ya no interpola el mensaje de WhatsApp: lo
+ * recibe hecho. Con dos consumidores, construirlo aquí y otra vez en el layout
+ * permitiría que el mensaje del hero y el del cierre divergieran al editar uno
+ * solo. `whatsappMessageTemplate` sigue viviendo en el mismo archivo de copy
+ * que el resto de este bloque; quien lo interpola ahora es ServiceLayout.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
@@ -23,16 +35,11 @@ import ContactActions from '../contact/ContactActions.astro';
 import { serviceCtaContent } from '../../data/serviceCta';
 
 interface Props {
-  /** Denominación ya resuelta del servicio — ver lib/seo/services.ts#resolveServiceName. */
-  serviceName: string;
+  /** Mensaje ya interpolado — ver ServiceLayout.astro, bloque CONTACTO TEMPRANO. */
+  whatsappMessage: string;
 }
 
-const { serviceName } = Astro.props as Props;
-
-const whatsappMessage = serviceCtaContent.whatsappMessageTemplate.replace(
-  '{servicio}',
-  serviceName
-);
+const { whatsappMessage } = Astro.props as Props;
 ---
 
 <Section

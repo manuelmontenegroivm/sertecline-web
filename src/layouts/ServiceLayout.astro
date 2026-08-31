@@ -30,8 +30,31 @@
  * CTA (Checkpoint 12): <ServiceCta> cierra el <article> después de las FAQs.
  * Al ser este el único punto compartido por todas las fichas, toda ficha —
  * presente o futura — termina con una salida de contacto sin repetir nada en
- * el MDX. Recibe el mismo `serviceName` ya resuelto que usan el <h1>, el
- * <title> y el rastro; no aporta datos estructurados propios.
+ * el MDX. No aporta datos estructurados propios.
+ *
+ * CONTACTO TEMPRANO (EPIC 6 — Checkpoint 6.2). El audit de CP 6.1 midió que la
+ * primera acción de contacto de la página estaba entre 2.833px y 3.277px en un
+ * móvil de 390px —entre 3,4 y 3,9 pantallas de scroll—, porque <ServiceCta> era
+ * la única salida y cierra el artículo. Quien llega desde una búsqueda ya
+ * decidido no tenía dónde escribir sin recorrer la ficha entera.
+ *
+ * El hero incorpora ahora <ContactActions>, el mismo par WhatsApp + teléfono
+ * que usan la sección Contacto de home y el CTA de cierre. No es una segunda
+ * primitiva ni un CTA duplicado: aquí va **sin encabezado ni copy propio**,
+ * como afordancia del encabezado de página («ya sé qué necesito»), mientras
+ * <ServiceCta> conserva su rótulo, su h2 y su intro como cierre del contenido
+ * («leíste todo, hablemos»). Son dos funciones distintas del journey y se
+ * distinguen por composición, no por dos bloques iguales repetidos.
+ * <ContactActions> documenta que asume fondo `paper-2` para el override de su
+ * botón secundario: este <header> ya lo tiene, así que ese componente no
+ * cambia.
+ *
+ * El mensaje precargado de WhatsApp se construye **una sola vez aquí** y se
+ * pasa a las dos acciones. Antes lo interpolaba <ServiceCta> con el
+ * `serviceName` recibido; con dos consumidores, hacerlo dos veces habilitaría
+ * que el mensaje del hero y el del cierre divergieran al editar uno solo. Es el
+ * mismo criterio con el que `serviceName`, `breadcrumbs` y `canonical` se
+ * resuelven una vez en este archivo y se comparten.
  *
  * Caso relacionado (Checkpoint 13): `relatedCases` llega ya resuelto y ordenado
  * desde la ruta (mismo criterio que `faqs`: la ruta resuelve datos, el layout
@@ -45,7 +68,9 @@ import Container from '../components/layout/Container.astro';
 import FaqItem from '../components/faq/FaqItem.astro';
 import ServiceCase from '../components/cases/ServiceCase.astro';
 import ServiceCta from '../components/services/ServiceCta.astro';
+import ContactActions from '../components/contact/ContactActions.astro';
 import { serviceCasesContent } from '../data/serviceCases';
+import { serviceCtaContent } from '../data/serviceCta';
 import {
   buildServiceSeoTitle,
   buildServiceMetaDescription,
@@ -76,6 +101,14 @@ const { title, seoTitle, intro, metaDescription, faqs = [], relatedCases = [] } 
 // ServiceCard); una ficha completa no tiene esa restricción de espacio.
 const serviceName = resolveServiceName(title, seoTitle);
 
+// Un único mensaje contextual para las dos acciones de contacto de la ficha
+// (hero y cierre) — ver el bloque CONTACTO TEMPRANO arriba. La plantilla vive
+// en src/data/serviceCta.ts junto al resto del copy de contacto de la ficha.
+const whatsappMessage = serviceCtaContent.whatsappMessageTemplate.replace(
+  '{servicio}',
+  serviceName
+);
+
 const pageTitle = buildServiceSeoTitle(title, seoTitle);
 const pageDescription = buildServiceMetaDescription(metaDescription);
 const canonical = buildServiceCanonicalUrl(Astro.url.pathname, Astro.site);
@@ -94,7 +127,17 @@ const structuredData = buildServiceStructuredData({
   <script type="application/ld+json" slot="head" is:inline set:html={structuredData} />
   <article>
     <header class="border-hairline bg-paper-2 border-b">
-      <Container size="content" class="py-16 md:py-24">
+      {
+        /* `narrow` y no `content`: el h1 y el intro ya se acotaban a
+          max-w-narrow dentro de un contenedor de 1200px, así que su medida no
+          cambia, pero su borde izquierdo pasa a coincidir con el del cuerpo
+          MDX, el caso, las FAQ y el CTA —todos `narrow`—. Medido en CP 6.1: a
+          1440px el hero arrancaba en x=137 y todo lo demás en x=377, 240px de
+          desfase. Con la acción de contacto ahora dentro del hero ese desfase
+          dejaba de ser un detalle de composición: los botones quedaban
+          colgando a la izquierda de la columna a la que pertenecen. */
+      }
+      <Container size="narrow" class="py-16 md:py-24">
         {
           /* Separador dentro del <li> y no como item propio: un <li> decorativo
             alteraría el conteo de elementos que anuncia el lector de pantalla. */
@@ -126,12 +169,22 @@ const structuredData = buildServiceStructuredData({
             }
           </ol>
         </nav>
-        <h1 class="text-ink max-w-narrow text-3xl font-black tracking-tight md:text-4xl">
+        <h1 class="text-ink text-3xl font-black tracking-tight md:text-4xl">
           {serviceName}
         </h1>
-        <p class="text-ink-2 max-w-narrow mt-4 text-lg leading-relaxed md:mt-6">
+        <p class="text-ink-2 mt-4 text-lg leading-relaxed md:mt-6">
           {intro}
         </p>
+        {
+          /* Sin encabezado ni copy propio: los rótulos de los dos enlaces ya
+            dicen qué hacen, y añadir un titular aquí crearía un segundo bloque
+            de CTA compitiendo con el cierre. La separación (mt-8/mt-10, contra
+            los mt-4/mt-6 del intro) es lo que lo despega del párrafo y evita
+            que se lea como una tercera línea de texto. */
+        }
+        <div class="mt-8 md:mt-10">
+          <ContactActions whatsappMessage={whatsappMessage} />
+        </div>
       </Container>
     </header>
 
@@ -191,7 +244,7 @@ const structuredData = buildServiceStructuredData({
       )
     }
 
-    <ServiceCta serviceName={serviceName} />
+    <ServiceCta whatsappMessage={whatsappMessage} />
   </article>
 </BaseLayout>
 

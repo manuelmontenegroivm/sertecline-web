@@ -4,7 +4,9 @@ export interface ServiceCtaContent {
   intro: string;
   /**
    * Plantilla del mensaje precargado de WhatsApp. `{servicio}` se reemplaza con
-   * el nombre resuelto del servicio (resolveServiceName) en ServiceCta.astro.
+   * el nombre resuelto del servicio (resolveServiceName) en ServiceLayout.astro,
+   * que la interpola una sola vez para las dos acciones de contacto de la ficha
+   * —la temprana del hero y la de cierre— y así no pueden divergir.
    */
   whatsappMessageTemplate: string;
 }
