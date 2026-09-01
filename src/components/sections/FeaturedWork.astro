@@ -55,6 +55,14 @@
  * columna de ~376px caían en cuatro líneas. Es un ajuste local de esta sección,
  * no de la escala tipográfica.
  *
+ * EVIDENCIA (EPIC 7 — Checkpoint 7.2). La figura ya no invoca el comparador
+ * directamente: pasa por CaseEvidence, que decide entre comparador interactivo
+ * y fotografía estática según exista o no `evidence.before`. Esta sección no
+ * conoce esa distinción. Nota editorial: `featuredWorkContent.intro` describe
+ * hoy un antes/después y dice cómo usar el control, así que apunta a un caso
+ * CON `before`; si algún día `caseId` seleccionara un caso de sola fotografía
+ * de resultado, ese copy es lo que habría que revisar — no este componente.
+ *
  * PROPORCIÓN. El comparador ya no recibe `aspectRatio="square"`: usa la
  * proporción real de la fotografía (`natural`, el valor por defecto del
  * wrapper). Las dos imágenes del caso son de 720x1280 —9:16, tomadas en
@@ -91,11 +99,11 @@
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
 import TextLink from '../ui/TextLink.astro';
-import BeforeAfterComparator from '../cases/BeforeAfterComparator.astro';
+import CaseEvidence from '../cases/CaseEvidence.astro';
 import { getPublishedCaseById } from '../../lib/content/cases';
 import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
 import { services } from '../../data/services';
-import { serviceAreas } from '../../data/areas';
+import { getPlaceById } from '../../data/places';
 import { featuredWorkContent } from '../../data/featuredWork';
 
 const caseEntry = await getPublishedCaseById(featuredWorkContent.caseId);
@@ -108,10 +116,13 @@ const service = caseData ? services.find((item) => item.id === caseData.service)
 const publishedService = caseData ? await getServiceBySlug(caseData.service) : undefined;
 const serviceHref = publishedService ? buildServicePath(publishedService.id) : undefined;
 
-// `area` es opcional en el schema. Si el caso no la declara —o declara un ID
-// que no existe en el catálogo— no se muestra ubicación: no se infiere ni se
-// rellena con una comuna genérica.
-const area = caseData?.area ? serviceAreas.find((item) => item.id === caseData.area) : undefined;
+// `area` es opcional en el schema. Si el caso no la declara no se muestra
+// ubicación: no se infiere ni se rellena con una comuna genérica. Se resuelve
+// contra el vocabulario geográfico (src/data/places.ts) y no contra el catálogo
+// de cobertura: dónde ocurrió el trabajo es un hecho del caso, no una
+// afirmación de dónde atiende el negocio. Un ID inexistente ya no llega hasta
+// aquí — el enum del schema falla el build (ver src/content.config.ts#area).
+const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
 ---
 
 {
@@ -127,7 +138,7 @@ const area = caseData?.area ? serviceAreas.find((item) => item.id === caseData.a
         </div>
 
         <div class="w-full max-w-[24rem] md:col-start-2 md:row-span-2 md:row-start-1">
-          <BeforeAfterComparator pair={caseData.pairs[0]} alt={caseData.title} />
+          <CaseEvidence evidence={caseData.evidence} title={caseData.title} />
         </div>
 
         <div class="flex max-w-prose flex-col items-start gap-3 md:col-start-1 md:row-start-2">

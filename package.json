@@ -7,12 +7,13 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "npm run validate:case-images && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "validate:case-images": "node scripts/validate-case-images.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.1",

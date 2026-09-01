@@ -21,14 +21,24 @@ export interface ComparatorPair {
 
 interface Props {
   pair: ComparatorPair;
+  /** Base del texto alternativo: se compone "<alt> — antes" / "<alt> — después". */
   alt: string;
+  /**
+   * Texto alternativo completo de cada imagen, cuando el caso declara uno
+   * propio (ver `evidence.beforeAlt` / `evidence.resultAlt` en
+   * src/content.config.ts). Sin ellos se mantiene el texto compuesto desde
+   * `alt`, que es el comportamiento de todos los checkpoints anteriores.
+   */
+  beforeAlt?: string;
+  afterAlt?: string;
   beforeLabel?: string;
   afterLabel?: string;
   /** Proporción del contenedor. @default 'natural' (proporción real de la imagen "after") */
   aspectRatio?: AspectRatio;
 }
 
-const { pair, alt, beforeLabel, afterLabel, aspectRatio } = Astro.props as Props;
+const { pair, alt, beforeAlt, afterAlt, beforeLabel, afterLabel, aspectRatio } =
+  Astro.props as Props;
 
 // Ancho objetivo del comparador en su uso más ancho. Se pide acotado al ancho
 // real del original (EPIC 6 — Checkpoint 6.4): Sharp nunca amplía —ante un
@@ -69,6 +79,8 @@ const [beforeImage, afterImage] = await Promise.all([
     height: afterImage.attributes.height,
   }}
   alt={alt}
+  beforeAlt={beforeAlt}
+  afterAlt={afterAlt}
   beforeLabel={beforeLabel}
   afterLabel={afterLabel}
   caption={pair.caption}

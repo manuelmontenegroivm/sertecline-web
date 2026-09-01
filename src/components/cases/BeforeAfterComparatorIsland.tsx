@@ -39,7 +39,17 @@ const ASPECT_RATIO_CSS: Record<Exclude<AspectRatio, 'natural'>, string> = {
 interface Props {
   before: ComparatorImage;
   after: ComparatorImage;
+  /** Base del texto alternativo cuando `beforeAlt`/`afterAlt` no se declaran. */
   alt: string;
+  /**
+   * Texto alternativo completo de cada imagen. Opcionales: sin ellos se
+   * conserva el compuesto histórico "<alt> — <etiqueta en minúscula>". Existen
+   * porque un caso puede declarar el suyo (`evidence.beforeAlt` /
+   * `evidence.resultAlt`), y no se derivan de `beforeLabel`/`afterLabel`:
+   * aquellas son las insignias visibles del comparador, no una descripción.
+   */
+  beforeAlt?: string;
+  afterAlt?: string;
   beforeLabel?: string;
   afterLabel?: string;
   caption?: string;
@@ -59,6 +69,8 @@ export default function BeforeAfterComparatorIsland({
   before,
   after,
   alt,
+  beforeAlt,
+  afterAlt,
   beforeLabel = 'Antes',
   afterLabel = 'Después',
   caption,
@@ -185,7 +197,7 @@ export default function BeforeAfterComparatorIsland({
           src={after.src}
           width={after.width}
           height={after.height}
-          alt={`${alt} — ${afterLabel.toLowerCase()}`}
+          alt={afterAlt ?? `${alt} — ${afterLabel.toLowerCase()}`}
           className="pointer-events-none absolute inset-0 size-full object-cover"
           loading="lazy"
           decoding="async"
@@ -197,7 +209,7 @@ export default function BeforeAfterComparatorIsland({
             src={before.src}
             width={before.width}
             height={before.height}
-            alt={`${alt} — ${beforeLabel.toLowerCase()}`}
+            alt={beforeAlt ?? `${alt} — ${beforeLabel.toLowerCase()}`}
             className="absolute inset-0 size-full object-cover"
             loading="lazy"
             decoding="async"

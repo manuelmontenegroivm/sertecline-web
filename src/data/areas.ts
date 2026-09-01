@@ -1,4 +1,11 @@
-export type ServiceAreaKind = 'comuna' | 'sector';
+import { resolvePlace, type Place, type PlaceKind } from './places';
+
+/**
+ * Reexportado desde ./places: la identidad de un lugar (incluido su tipo) ya no
+ * vive en este archivo. Se conserva el nombre porque es el que usan los
+ * consumidores de cobertura y renombrarlo no aportaría nada.
+ */
+export type ServiceAreaKind = PlaceKind;
 
 /**
  * Prioridad comercial interna: dato de planificación —qué zonas atiende el
@@ -16,27 +23,26 @@ export type ServiceAreaKind = 'comuna' | 'sector';
  */
 export type ServiceAreaPriority = 'focus' | 'standard';
 
-export interface ServiceArea {
-  id: string;
-  name: string;
-  kind: ServiceAreaKind;
-  /**
-   * `id` de la comuna que contiene al sector. Presente solo cuando `kind` es
-   * 'sector': un sector no es una unidad administrativa y modelarlo como
-   * comuna declararía una división que no existe.
-   */
-  parentId?: string;
-  region: string;
+/**
+ * Un lugar del vocabulario geográfico + lo que el negocio decidió sobre él.
+ *
+ * La forma pública no cambia respecto de checkpoints anteriores (id, name,
+ * kind, parentId, region, priority): lo que cambia es de dónde viene cada
+ * campo. Los cinco primeros los aporta `Place` (src/data/places.ts) y `priority`
+ * es el único dato que pertenece a este dominio.
+ */
+export interface ServiceArea extends Place {
   priority: ServiceAreaPriority;
 }
 
-// Las 41 entidades del catálogo están en la misma región; la constante evita
-// repetir la cadena en cada fila sin sacar el campo del tipo, que sí tiene
-// consumidor (ServiceCase.astro y FeaturedWork.astro lo imprimen).
-const REGION_METROPOLITANA = 'Región Metropolitana';
+interface CoverageDecision {
+  placeId: string;
+  priority: ServiceAreaPriority;
+}
 
 /**
- * Catálogo de cobertura de Sertecline (EPIC 4.1 — Checkpoint 4.1.4).
+ * Catálogo de cobertura de Sertecline (EPIC 4.1 — Checkpoint 4.1.4; separado de
+ * la identidad geográfica en EPIC 7 — Checkpoint 7.2).
  *
  * Alcance confirmado con el negocio: las 32 comunas de la Provincia de
  * Santiago —conjunto administrativo, enumerable y estable, que es lo que el
@@ -52,310 +58,82 @@ const REGION_METROPOLITANA = 'Región Metropolitana';
  * Alhué, Melipilla o Tiltil, donde no hay cobertura. La provincia sirvió para
  * derivar el conjunto y no se guarda como campo, porque nadie la lee.
  *
- * Estar en este array *es* estar cubierto: no hay ni debe haber un campo
- * `covered`, igual que la ausencia de `href` es el estado "sin página" en
- * src/lib/content/services.ts#ServiceCardModel.
+ * Esta tabla declara **solo decisiones comerciales**: qué lugares del
+ * vocabulario están cubiertos y con qué prioridad. Nombre, tipo, comuna madre y
+ * región se resuelven contra src/data/places.ts, así que no existen dos copias
+ * que puedan desincronizarse.
  *
- * Orden: ASCII ascendente por `id`. Determinista entre máquinas de build (no
- * localeCompare — ver src/lib/content/cases.ts#compareCases) y neutral: el
- * orden físico no comunica prioridad, y la home no depende de él.
+ * Estar en esta tabla *es* estar cubierto: no hay ni debe haber un campo
+ * `covered`, igual que la ausencia de `href` es el estado "sin página" en
+ * src/lib/content/services.ts#ServiceCardModel. La enumeración es explícita a
+ * propósito: agregar un lugar al vocabulario geográfico NO debe publicar
+ * cobertura nueva por efecto colateral — esa es una afirmación de negocio y
+ * necesita esta línea.
+ *
+ * Orden: el mismo del vocabulario (ASCII ascendente por `id`), determinista
+ * entre máquinas de build y neutral: el orden físico no comunica prioridad, y
+ * la home no depende de él.
  *
  * Este catálogo NO alimenta hoy ningún JSON-LD. El único `areaServed` que el
  * sitio emite es la constante de texto de src/lib/seo/services.ts, que no
  * importa este archivo. Cuando exista un nodo LocalBusiness, este catálogo
  * será su origen.
  */
-export const serviceAreas: ServiceArea[] = [
-  {
-    id: 'calera-de-tango',
-    name: 'Calera de Tango',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'cerrillos',
-    name: 'Cerrillos',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'cerro-navia',
-    name: 'Cerro Navia',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'chicureo',
-    name: 'Chicureo',
-    kind: 'sector',
-    parentId: 'colina',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'colina',
-    name: 'Colina',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'conchali',
-    name: 'Conchalí',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'el-bosque',
-    name: 'El Bosque',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'estacion-central',
-    name: 'Estación Central',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'huechuraba',
-    name: 'Huechuraba',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'independencia',
-    name: 'Independencia',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'la-cisterna',
-    name: 'La Cisterna',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'la-dehesa',
-    name: 'La Dehesa',
-    kind: 'sector',
-    parentId: 'lo-barnechea',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'la-florida',
-    name: 'La Florida',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'la-granja',
-    name: 'La Granja',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'la-pintana',
-    name: 'La Pintana',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'la-reina',
-    name: 'La Reina',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'las-condes',
-    name: 'Las Condes',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'lo-barnechea',
-    name: 'Lo Barnechea',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'lo-espejo',
-    name: 'Lo Espejo',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'lo-prado',
-    name: 'Lo Prado',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'macul',
-    name: 'Macul',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'maipu',
-    name: 'Maipú',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'nunoa',
-    name: 'Ñuñoa',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'padre-hurtado',
-    name: 'Padre Hurtado',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'pedro-aguirre-cerda',
-    name: 'Pedro Aguirre Cerda',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'penaflor',
-    name: 'Peñaflor',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'penalolen',
-    name: 'Peñalolén',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'providencia',
-    name: 'Providencia',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
-  {
-    id: 'pudahuel',
-    name: 'Pudahuel',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'puente-alto',
-    name: 'Puente Alto',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'quilicura',
-    name: 'Quilicura',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'quinta-normal',
-    name: 'Quinta Normal',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'recoleta',
-    name: 'Recoleta',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'renca',
-    name: 'Renca',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'san-bernardo',
-    name: 'San Bernardo',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'san-joaquin',
-    name: 'San Joaquín',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'san-miguel',
-    name: 'San Miguel',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'san-ramon',
-    name: 'San Ramón',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'santiago',
-    name: 'Santiago',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'talagante',
-    name: 'Talagante',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'standard',
-  },
-  {
-    id: 'vitacura',
-    name: 'Vitacura',
-    kind: 'comuna',
-    region: REGION_METROPOLITANA,
-    priority: 'focus',
-  },
+const coverage: readonly CoverageDecision[] = [
+  { placeId: 'calera-de-tango', priority: 'standard' },
+  { placeId: 'cerrillos', priority: 'standard' },
+  { placeId: 'cerro-navia', priority: 'standard' },
+  { placeId: 'chicureo', priority: 'focus' },
+  { placeId: 'colina', priority: 'focus' },
+  { placeId: 'conchali', priority: 'standard' },
+  { placeId: 'el-bosque', priority: 'standard' },
+  { placeId: 'estacion-central', priority: 'standard' },
+  { placeId: 'huechuraba', priority: 'standard' },
+  { placeId: 'independencia', priority: 'standard' },
+  { placeId: 'la-cisterna', priority: 'standard' },
+  { placeId: 'la-dehesa', priority: 'focus' },
+  { placeId: 'la-florida', priority: 'standard' },
+  { placeId: 'la-granja', priority: 'standard' },
+  { placeId: 'la-pintana', priority: 'standard' },
+  { placeId: 'la-reina', priority: 'focus' },
+  { placeId: 'las-condes', priority: 'focus' },
+  { placeId: 'lo-barnechea', priority: 'focus' },
+  { placeId: 'lo-espejo', priority: 'standard' },
+  { placeId: 'lo-prado', priority: 'standard' },
+  { placeId: 'macul', priority: 'standard' },
+  { placeId: 'maipu', priority: 'standard' },
+  { placeId: 'nunoa', priority: 'focus' },
+  { placeId: 'padre-hurtado', priority: 'standard' },
+  { placeId: 'pedro-aguirre-cerda', priority: 'standard' },
+  { placeId: 'penaflor', priority: 'standard' },
+  { placeId: 'penalolen', priority: 'standard' },
+  { placeId: 'providencia', priority: 'focus' },
+  { placeId: 'pudahuel', priority: 'standard' },
+  { placeId: 'puente-alto', priority: 'standard' },
+  { placeId: 'quilicura', priority: 'standard' },
+  { placeId: 'quinta-normal', priority: 'standard' },
+  { placeId: 'recoleta', priority: 'standard' },
+  { placeId: 'renca', priority: 'standard' },
+  { placeId: 'san-bernardo', priority: 'standard' },
+  { placeId: 'san-joaquin', priority: 'standard' },
+  { placeId: 'san-miguel', priority: 'standard' },
+  { placeId: 'san-ramon', priority: 'standard' },
+  { placeId: 'santiago', priority: 'standard' },
+  { placeId: 'talagante', priority: 'standard' },
+  { placeId: 'vitacura', priority: 'focus' },
 ];
+
+/**
+ * Cobertura publicable: identidad del lugar + prioridad comercial.
+ *
+ * `resolvePlace()` lanza ante un ID que no exista en el vocabulario, así que
+ * una decisión de cobertura sobre un lugar inexistente falla el build en vez de
+ * producir una entrada a medias.
+ */
+export const serviceAreas: ServiceArea[] = coverage.map((decision) => ({
+  ...resolvePlace(decision.placeId),
+  priority: decision.priority,
+}));
 
 // Índice por `id`. Map y no `.find()` por llamada: el catálogo ya tiene 41
 // entradas y quien resuelve una selección editorial consulta una vez por ID.
@@ -372,9 +150,12 @@ const serviceAreasById = new Map(serviceAreas.map((area) => [area.id, area]));
  * es una decisión editorial y el orden ASCII de este archivo es un criterio
  * interno de determinismo, no de presentación.
  *
- * Lanza ante un ID desconocido en vez de omitirlo. El sitio es estático, así
- * que el build es la validación: una comuna que desaparece en silencio de la
- * cobertura publicada es un error de negocio invisible. Mismo criterio que
+ * Lanza ante un ID desconocido en vez de omitirlo. Aquí "desconocido" significa
+ * *no cubierto*: un lugar puede existir en el vocabulario geográfico y aun así
+ * no estar en este catálogo, y esa distinción es justamente la que el
+ * checkpoint 7.2 vino a preservar. El sitio es estático, así que el build es la
+ * validación: una comuna que desaparece en silencio de la cobertura publicada
+ * es un error de negocio invisible. Mismo criterio que
  * src/pages/servicios/[slug].astro ante una ficha inexistente.
  */
 export function resolveServiceAreas(ids: readonly string[]): ServiceArea[] {

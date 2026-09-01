@@ -13,8 +13,11 @@
  * No decide qué caso mostrar ni consulta astro:content: recibe la entrada ya
  * seleccionada por la ruta (ver src/lib/content/cases.ts#getRelatedCases).
  *
- * `pairs[0]` es seguro sin comprobación: el schema declara `pairs` con
- * `.min(1)` (ver src/content.config.ts).
+ * No conoce la forma de la evidencia: delega en CaseEvidence, que decide entre
+ * comparador interactivo y fotografía estática según exista o no
+ * `evidence.before` (EPIC 7 — Checkpoint 7.2). Antes leía `pairs[0]`
+ * directamente, apoyado en el `.min(1)` del schema; ese supuesto ya no existe
+ * porque un caso puede tener solo la fotografía del resultado.
  *
  * PROPORCIÓN (EPIC 6 — Checkpoint 6.4). El comparador ya no recibe
  * `aspectRatio="fourThree"`: usa la proporción real de la fotografía
@@ -47,20 +50,23 @@
  * proporción de la fotografía, no la composición.
  */
 import type { CollectionEntry } from 'astro:content';
-import BeforeAfterComparator from './BeforeAfterComparator.astro';
-import { serviceAreas } from '../../data/areas';
+import CaseEvidence from './CaseEvidence.astro';
+import { getPlaceById } from '../../data/places';
 
 interface Props {
   case: CollectionEntry<'cases'>;
 }
 
 const { case: caseEntry } = Astro.props as Props;
-const { title, shortDescription, area: areaId, pairs } = caseEntry.data;
+const { title, shortDescription, area: areaId, evidence } = caseEntry.data;
 
-// `area` es opcional en el schema. Si el caso no la declara —o declara un ID
-// que no existe en el catálogo— no se muestra ubicación: no se infiere ni se
-// rellena con una comuna genérica.
-const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefined;
+// `area` es opcional en el schema. Si el caso no la declara no se muestra
+// ubicación: no se infiere ni se rellena con una comuna genérica. Se resuelve
+// contra el vocabulario geográfico (src/data/places.ts) y no contra el catálogo
+// de cobertura: dónde ocurrió el trabajo es un hecho del caso, no una
+// afirmación de dónde atiende el negocio. Un ID inexistente ya no llega hasta
+// aquí — el enum del schema falla el build (ver src/content.config.ts#area).
+const area = areaId ? getPlaceById(areaId) : undefined;
 ---
 
 <article class="flex flex-col gap-6">
@@ -79,6 +85,6 @@ const area = areaId ? serviceAreas.find((item) => item.id === areaId) : undefine
   </div>
 
   <div class="w-full max-w-[24rem]">
-    <BeforeAfterComparator pair={pairs[0]} alt={title} />
+    <CaseEvidence evidence={evidence} title={title} />
   </div>
 </article>

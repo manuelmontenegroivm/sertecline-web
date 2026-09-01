@@ -1,0 +1,94 @@
+---
+/**
+ * Presenta la evidencia fotográfica de un Case (EPIC 7 — Checkpoint 7.2).
+ *
+ * Existe para que ningún consumidor tenga que conocer la forma del modelo de
+ * evidencia. Antes, las tres superficies que muestran un caso —FeaturedWork,
+ * ServiceCase y la página de QA— repetían la misma línea `pairs[0]` y el mismo
+ * supuesto: que todo caso tiene un "antes". Con `evidence` ese supuesto deja de
+ * ser cierto (`before` es opcional), así que la decisión de cómo mostrarlo se
+ * toma UNA vez, aquí:
+ *
+ *     before presente  → BeforeAfterComparator (island existente)
+ *     before ausente   → fotografía estática, sin island
+ *
+ * La rama se resuelve en build, antes de llegar al Island: un caso con sola
+ * fotografía de resultado no monta React ni Framer Motion, no hidrata nada y no
+ * agrega JavaScript a la página. No es una optimización condicional dentro del
+ * componente cliente —eso ya habría costado el bundle— sino que el componente
+ * cliente ni siquiera se referencia.
+ *
+ * NO es un sistema de componentes genérico ni una galería: recibe la evidencia
+ * de un caso y la muestra. El schema admite exactamente 1 `result` y 0..1
+ * `before` (ver src/content.config.ts), y este componente cubre esos dos casos
+ * y ningún otro.
+ *
+ * COMPOSICIÓN. Deliberadamente sin ancho propio, márgenes ni encabezados: el
+ * contenedor lo pone quien compone la página (FeaturedWork acota su columna,
+ * ServiceCase su bloque), que es como ya funcionaba el comparador. Este
+ * componente solo decide QUÉ se muestra, no cuánto mide.
+ *
+ * TEXTO ALTERNATIVO. Se compone desde el título del caso —"<título> — antes" /
+ * "<título> — después"— salvo que el propio caso declare `beforeAlt` o
+ * `resultAlt`. Ese es el mismo texto que la island venía generando, así que el
+ * caso ya publicado no cambia una letra; la diferencia es que ahora un caso
+ * puede describir una fotografía que el título no describe.
+ *
+ * PROPORCIÓN. La fotografía estática usa la proporción real del original
+ * (`width`/`height` del archivo, sin `aspect-ratio` forzado ni `object-fit`),
+ * por la misma razón documentada en FeaturedWork.astro y ServiceCase.astro: en
+ * este sitio el recorte cuesta evidencia. El borde y el radio replican los del
+ * contenedor del comparador para que las dos formas de evidencia se lean como
+ * el mismo elemento.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BeforeAfterComparator from './BeforeAfterComparator.astro';
+
+export interface CaseEvidenceData {
+  result: ImageMetadata;
+  before?: ImageMetadata;
+  caption?: string;
+  resultAlt?: string;
+  beforeAlt?: string;
+}
+
+interface Props {
+  evidence: CaseEvidenceData;
+  /** Título del caso: base del texto alternativo cuando la evidencia no lo declara. */
+  title: string;
+}
+
+const { evidence, title } = Astro.props as Props;
+
+// Mismo ancho objetivo y misma razón que BeforeAfterComparator.astro: se pide
+// acotado al ancho real del original para que las dimensiones declaradas en el
+// DOM coincidan con las del archivo emitido (Sharp nunca amplía). Sin `widths`
+// ni `densities`: una sola densidad en formato moderno, sin srcset.
+const TARGET_WIDTH = 960;
+---
+
+{
+  evidence.before ? (
+    <BeforeAfterComparator
+      pair={{ before: evidence.before, after: evidence.result, caption: evidence.caption }}
+      alt={title}
+      beforeAlt={evidence.beforeAlt}
+      afterAlt={evidence.resultAlt}
+    />
+  ) : (
+    <figure class="flex flex-col gap-3">
+      <Image
+        src={evidence.result}
+        width={Math.min(TARGET_WIDTH, evidence.result.width)}
+        format="webp"
+        alt={evidence.resultAlt ?? `${title} — resultado`}
+        loading="lazy"
+        decoding="async"
+        class="border-hairline bg-paper-2 w-full rounded-2xl border"
+      />
+
+      {evidence.caption && <figcaption class="text-ink-2 text-sm">{evidence.caption}</figcaption>}
+    </figure>
+  )
+}

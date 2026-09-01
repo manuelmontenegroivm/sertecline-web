@@ -19,11 +19,15 @@ export async function getPublishedCaseById(
 // último usa la locale del sistema, así que el mismo contenido podría ordenarse
 // distinto en dos máquinas. Los IDs son slugs ASCII, donde el orden de código
 // es el orden alfabético esperado.
+// Ya no participa `featured`: esa bandera desapareció del schema en EPIC 7 —
+// Checkpoint 7.2. Convivía con `featuredWorkContent.caseId` (src/data/
+// featuredWork.ts) con un significado distinto —una era una propiedad del caso,
+// el otro una selección editorial de home— y ninguna superficie usaba la
+// bandera para seleccionar: solo desempataba este orden. El criterio ahora es
+// exclusivamente factual (fecha real del trabajo, luego ID), así que ordenar no
+// puede colarse como una forma implícita de destacar. La portada la sigue
+// eligiendo una persona, por ID.
 function compareCases(a: CollectionEntry<'cases'>, b: CollectionEntry<'cases'>): number {
-  if (a.data.featured !== b.data.featured) {
-    return a.data.featured ? -1 : 1;
-  }
-
   // completedAt es opcional en el schema (casos históricos sin fecha confirmada
   // la omiten en vez de inventarla): los que no la declaran van al final.
   const aTime = a.data.completedAt?.getTime();
@@ -49,9 +53,12 @@ function compareCases(a: CollectionEntry<'cases'>, b: CollectionEntry<'cases'>):
  * `limit` se aplica después de filtrar y ordenar, para que recortar no altere
  * qué caso queda primero.
  *
- * Invariante del schema: `pairs` está declarado con `.min(1)`, así que todo
- * caso devuelto tiene `pairs[0]`. Por eso no se filtra por ausencia de par ni
- * se inventa una imagen de reemplazo.
+ * Invariante del schema: `evidence.result` es obligatorio (ver
+ * src/content.config.ts), así que todo caso devuelto tiene al menos la
+ * fotografía del resultado. Por eso no se filtra por ausencia de evidencia ni
+ * se inventa una imagen de reemplazo. Lo que sí puede faltar es
+ * `evidence.before`, y esa rama la resuelve la capa de presentación
+ * (src/components/cases/CaseEvidence.astro), no esta consulta.
  */
 export async function getRelatedCases(
   serviceId: string,
