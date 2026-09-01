@@ -85,7 +85,16 @@ const whatsappHref = buildWhatsappHref();
       <h2 class="text-ink mt-4 text-3xl font-black tracking-tight md:text-4xl">
         {coverageSectionContent.heading}
       </h2>
-      <p class="text-ink-2 mt-4 text-lg">{coverageSectionContent.intro}</p>
+      {
+        /* Dos campos en un mismo párrafo, sin cambio en el texto renderizado:
+           `intro` es la afirmación de cobertura que esta sección comparte con
+           el bloque "Dónde atendemos" de las fichas de servicio, y `listLead`
+           es la frase que presenta el listado de abajo, que solo existe aquí
+           (EPIC 6 — Checkpoint 6.5, ver src/data/coverageSection.ts). */
+      }
+      <p class="text-ink-2 mt-4 text-lg">
+        {coverageSectionContent.intro}{' '}{coverageSectionContent.listLead}
+      </p>
     </div>
 
     <ul role="list" class="border-hairline max-w-narrow columns-2 gap-x-8 border-b sm:columns-3">

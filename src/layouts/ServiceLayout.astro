@@ -62,6 +62,49 @@
  * la ruta pida uno solo. Va fuera del contenedor `.service-content` porque las
  * reglas `:global()` de ese contenedor están pensadas para prosa MDX.
  *
+ * COBERTURA (EPIC 6 — Checkpoint 6.5). El audit de CP 6.1 midió que "Santiago"
+ * aparecía 7 veces en el <head> de cada ficha y 0 veces en su cuerpo visible, y
+ * "comuna" ninguna: quien aterrizaba desde una búsqueda no tenía en la página
+ * una sola confirmación de dónde se presta el servicio, ni forma de resolver
+ * "¿atienden donde estoy?" sin salir a buscarla por el menú.
+ *
+ * El bloque "Dónde atendemos" responde eso con lo mínimo útil: la afirmación de
+ * cobertura, un enlace al listado de comunas y qué hacer si la comuna propia no
+ * aparece en él. NO se repite "Santiago" en el h1, en cada h2 ni en cada
+ * párrafo —eso es densidad artificial, no información— ni se listan las 14
+ * comunas de home en las seis fichas, que sería duplicar un listado y
+ * convertirlo en ruido.
+ *
+ * SSOT: el párrafo de cobertura es `coverageSectionContent.intro`, exactamente
+ * el mismo string que imprime la sección Cobertura de home. No hay una segunda
+ * redacción del dato de negocio en este archivo ni en los seis MDX. Lo propio
+ * del bloque —rótulo, enlace y nota— vive en `serviceCoverageContent`, en ese
+ * mismo archivo de copy.
+ *
+ * ENLACE: `/#cobertura`, la sección de home donde el listado está publicado.
+ * Es el único enlace interno que este checkpoint agrega. No es un duplicado del
+ * ítem "Cobertura" del Header/Footer: aquel es un destino del menú, y este es
+ * la respuesta a una pregunta que el párrafo inmediatamente anterior acaba de
+ * plantear —"¿en cuáles?"—. No se agregan enlaces a /#servicios ni a otras
+ * fichas: el Footer ya lista las seis con página publicada en todas las
+ * páginas, y repetirlos en el cuerpo resolvería una métrica, no un journey. Sin
+ * enlace redundante al caso relacionado, que esta misma página ya muestra
+ * completo unas líneas más arriba.
+ *
+ * POSICIÓN: después del caso y antes de las FAQ. Abre la secuencia de cierre
+ * —dónde atendemos → dudas puntuales → quién hace el trabajo → hablemos—, así
+ * que llega antes de que termine la decisión y no compite con el hero, que ya
+ * resolvió la conversión temprana en CP 6.2. No se mezcla con las
+ * acreditaciones aunque queden en la misma mitad de la página: "¿atienden donde
+ * estoy?" y "¿quién entra a mi casa?" son dos preguntas distintas y las FAQ las
+ * separan.
+ *
+ * Sin datos estructurados nuevos: el `areaServed` del nodo Service ya declara
+ * "Santiago, Región Metropolitana, Chile" (lib/seo/organization.ts) y este
+ * bloque es justamente su contraparte visible, que hasta ahora faltaba. No se
+ * emite LocalBusiness, PostalAddress, GeoCoordinates ni un areaServed por
+ * comuna. Sin island, sin JS y sin dependencias.
+ *
  * ACREDITACIONES (EPIC 6 — Checkpoint 6.4). Bloque condicional: solo aparece en
  * las fichas que la ruta marca con `showAccreditations`, resuelto contra
  * src/data/accreditations.ts#servicesWithAccreditations. Ese archivo documenta
@@ -121,6 +164,8 @@ import FaqItem from '../components/faq/FaqItem.astro';
 import ServiceCase from '../components/cases/ServiceCase.astro';
 import ServiceCta from '../components/services/ServiceCta.astro';
 import ContactActions from '../components/contact/ContactActions.astro';
+import TextLink from '../components/ui/TextLink.astro';
+import { coverageSectionContent, serviceCoverageContent } from '../data/coverageSection';
 import { serviceCasesContent } from '../data/serviceCases';
 import { technicianAccreditations, accreditationsContent } from '../data/accreditations';
 import { serviceCtaContent } from '../data/serviceCta';
@@ -282,6 +327,34 @@ const structuredData = buildServiceStructuredData({
         </section>
       )
     }
+
+    {
+      /* Contexto local (EPIC 6 — Checkpoint 6.5). Ver el bloque COBERTURA
+         arriba. Sin condición: la cobertura es un dato del negocio, igual para
+         las seis fichas y para las que se publiquen. */
+    }
+    <section aria-labelledby="cobertura-servicio" class="border-hairline border-t">
+      <Container size="narrow" class="py-12 md:py-16">
+        <h2 id="cobertura-servicio" class="text-ink text-2xl font-bold tracking-tight">
+          {serviceCoverageContent.heading}
+        </h2>
+        <p class="text-ink-2 mt-4 max-w-prose text-lg">{coverageSectionContent.intro}</p>
+        {
+          /* El enlace va en su propia línea y antes del `note`: es la acción
+             del bloque —y en móvil, una fila táctil propia en vez de un tramo
+             subrayado dentro de un párrafo—, mientras que el `note` explica
+             qué se encuentra al otro lado y qué hacer si la comuna no está.
+             `py-1.5` lleva el objetivo táctil de 24px a 32px, el mismo que
+             aplican Coverage.astro y Footer.astro a sus <TextLink>. */
+        }
+        <p class="mt-4">
+          <TextLink href={serviceCoverageContent.href} class="py-1.5">
+            {serviceCoverageContent.linkLabel}
+          </TextLink>
+        </p>
+        <p class="text-ink-2 mt-4 max-w-prose">{serviceCoverageContent.note}</p>
+      </Container>
+    </section>
 
     {
       /* Mismo nivel que los h2 del MDX: el h1 es el hero y FaqItem aporta el
