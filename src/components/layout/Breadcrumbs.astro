@@ -1,0 +1,60 @@
+---
+/**
+ * Rastro de navegación visible (EPIC 7 — Checkpoint 7.3).
+ *
+ * Extraído sin cambios desde ServiceLayout.astro, donde este `<ol>` vivía
+ * inline mientras las fichas de servicio eran la única superficie con
+ * jerarquía. La página de detalle de un trabajo (/trabajos/[slug]) tiene la
+ * misma necesidad y con tres niveles en vez de dos, así que el marcado pasa a
+ * tener dos consumidores reales: copiarlo habría dejado dos rastros que pueden
+ * divergir en accesibilidad —el `aria-current`, el separador `aria-hidden`, el
+ * anillo de foco— sin que nadie lo note.
+ *
+ * No decide qué contiene el rastro: recibe el array ya armado por la página.
+ * Ese mismo array es el que alimenta el BreadcrumbList JSON-LD donde existe
+ * (fichas de servicio, ver lib/seo/services.ts), de modo que lo estructurado no
+ * puede declarar una jerarquía distinta de la visible. La página de detalle de
+ * un trabajo no emite datos estructurados en este checkpoint.
+ *
+ * El separador va dentro del `<li>` y no como item propio: un `<li>` decorativo
+ * alteraría el conteo de elementos que anuncia el lector de pantalla.
+ *
+ * El último tramo es texto con `aria-current="page"` y no un enlace a sí mismo
+ * — lo declara la ausencia de `href` en el item (ver src/types/breadcrumb.ts).
+ */
+import type { Breadcrumb } from '../../types/breadcrumb';
+
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  items: readonly Breadcrumb[];
+}
+
+const { items, class: className, ...rest } = Astro.props as Props;
+---
+
+<nav aria-label="Breadcrumb" class={className} {...rest}>
+  <ol class="text-ink-2 flex flex-wrap items-center gap-2 text-sm">
+    {
+      items.map((crumb, index) => (
+        <li class="flex items-center gap-2">
+          {index > 0 && (
+            <span aria-hidden="true" class="text-ink-3">
+              /
+            </span>
+          )}
+          {crumb.href ? (
+            <a
+              href={crumb.href}
+              class="hover:text-ink focus-visible:ring-brand-ink rounded-sm underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            >
+              {crumb.name}
+            </a>
+          ) : (
+            <span aria-current="page" class="text-ink font-medium">
+              {crumb.name}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

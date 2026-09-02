@@ -32,7 +32,10 @@
  * "<título> — después"— salvo que el propio caso declare `beforeAlt` o
  * `resultAlt`. Ese es el mismo texto que la island venía generando, así que el
  * caso ya publicado no cambia una letra; la diferencia es que ahora un caso
- * puede describir una fotografía que el título no describe.
+ * puede describir una fotografía que el título no describe. La composición del
+ * alternativo del resultado la aplica <CaseResultImage> (EPIC 7 —
+ * Checkpoint 7.3), que es la misma imagen que muestra la tarjeta del índice de
+ * trabajos: la regla se escribe una vez para las dos superficies.
  *
  * PROPORCIÓN. La fotografía estática usa la proporción real del original
  * (`width`/`height` del archivo, sin `aspect-ratio` forzado ni `object-fit`),
@@ -41,9 +44,9 @@
  * contenedor del comparador para que las dos formas de evidencia se lean como
  * el mismo elemento.
  */
-import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import BeforeAfterComparator from './BeforeAfterComparator.astro';
+import CaseResultImage from './CaseResultImage.astro';
 
 export interface CaseEvidenceData {
   result: ImageMetadata;
@@ -61,10 +64,11 @@ interface Props {
 
 const { evidence, title } = Astro.props as Props;
 
-// Mismo ancho objetivo y misma razón que BeforeAfterComparator.astro: se pide
-// acotado al ancho real del original para que las dimensiones declaradas en el
-// DOM coincidan con las del archivo emitido (Sharp nunca amplía). Sin `widths`
-// ni `densities`: una sola densidad en formato moderno, sin srcset.
+// Mismo ancho objetivo y misma razón que BeforeAfterComparator.astro: la
+// fotografía estática ocupa el mismo lugar que ocuparía el comparador, así que
+// pide el mismo ancho. El tope contra el ancho real del original y la
+// composición del texto alternativo los aplica <CaseResultImage>, que es la
+// misma imagen que muestra la tarjeta del índice de trabajos.
 const TARGET_WIDTH = 960;
 ---
 
@@ -78,13 +82,11 @@ const TARGET_WIDTH = 960;
     />
   ) : (
     <figure class="flex flex-col gap-3">
-      <Image
-        src={evidence.result}
-        width={Math.min(TARGET_WIDTH, evidence.result.width)}
-        format="webp"
-        alt={evidence.resultAlt ?? `${title} — resultado`}
-        loading="lazy"
-        decoding="async"
+      <CaseResultImage
+        result={evidence.result}
+        title={title}
+        resultAlt={evidence.resultAlt}
+        width={TARGET_WIDTH}
         class="border-hairline bg-paper-2 w-full rounded-2xl border"
       />
 

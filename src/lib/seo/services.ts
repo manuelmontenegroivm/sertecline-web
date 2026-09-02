@@ -12,7 +12,7 @@ import {
   serializeJsonLdGraph,
   type JsonLdNode,
 } from './schema';
-import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
+import type { Breadcrumb } from '../../types/breadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
 
 // Denominación del servicio como entidad. `catalogTitle` es el nombre corto
@@ -67,7 +67,7 @@ export function buildServiceCanonicalUrl(pathname: string, site?: URL): string {
  * la denominación completa del servicio, no el título corto de UI, y esa regla
  * ya vive en un solo lugar.
  */
-export function buildServiceBreadcrumbs(serviceName: string): ServiceBreadcrumb[] {
+export function buildServiceBreadcrumbs(serviceName: string): Breadcrumb[] {
   return [{ name: 'Inicio', href: '/' }, { name: serviceName }];
 }
 
@@ -87,7 +87,7 @@ export interface ServiceStructuredDataInput {
    * Exactamente el mismo array que ServiceLayout renderiza en el `<nav>` de
    * breadcrumbs — ver buildServiceBreadcrumbs().
    */
-  breadcrumbs?: readonly ServiceBreadcrumb[];
+  breadcrumbs?: readonly Breadcrumb[];
 }
 
 /**

@@ -6,8 +6,11 @@
  * getPublishedCaseById() — única fuente de consulta a la collection `cases`
  * (regla de dependencia, ver CLAUDE.md). Si el caso no existe o está en
  * `draft`, la sección no se renderiza.
- * `scroll-mt-24` compensa el header sticky al navegar por ancla desde el nav
- * (`/#trabajos`, ver src/data/navigation.ts).
+ * El `id="trabajos"` y su `scroll-mt-24` se conservan tras EPIC 7 —
+ * Checkpoint 7.3, aunque el ítem "Trabajos" del menú ya no apunte a este ancla
+ * sino a la página /trabajos (ver src/data/navigation.ts): la sección sigue
+ * siendo un destino válido dentro de home y `/#trabajos` puede estar enlazado
+ * desde fuera del sitio. Quitar el id rompería esos enlaces sin ganar nada.
  *
  * COMPOSICIÓN (EPIC 5 — Checkpoint 5.3). Antes esta sección delegaba el caso a
  * FeaturedCase.astro, que traía su propio bloque de encabezado: <Badge> con el
@@ -92,15 +95,34 @@
  * las fichas realmente publicadas con getServiceBySlug() —la misma consulta con
  * la que src/pages/servicios/[slug].astro genera sus rutas— y construido con
  * buildServicePath(). Por eso no puede apuntar a una página inexistente: si esa
- * ficha pasa a `draft`, el enlace desaparece en el mismo build. NO se enlaza
- * /trabajos: esa ruta no existe todavía (el ítem "Trabajos" del nav es el ancla
- * /#trabajos a esta misma sección, ver src/data/navigation.ts).
+ * ficha pasa a `draft`, el enlace desaparece en el mismo build.
+ *
+ * SALIDAS (EPIC 7 — Checkpoint 7.3). Desde que cada trabajo publicado tiene URL
+ * propia, esta sección deja de ser el final del camino y pasa a ser su entrada:
+ *
+ *   1. El h3 —el título del caso— es ahora el enlace a su ficha. Va en el
+ *      encabezado y no como una cuarta línea de texto porque el nombre del
+ *      trabajo ya es la afordancia más descriptiva posible: un lector de
+ *      pantalla que recorre los enlaces de home escucha el trabajo, no "ver
+ *      más". La sección no gana una sola línea de alto por esto.
+ *   2. Un enlace al índice /trabajos, para quien quiera ver el resto.
+ *
+ * Los tres destinos —ficha del trabajo, ficha del servicio e índice— son
+ * distintos y ninguno reemplaza a otro; el criterio para no sobrecargar la
+ * sección fue no agregar bloques ni botones: dos enlaces de texto bajo el
+ * párrafo y el título, que ya estaba, convertido en enlace.
+ *
+ * La selección del caso NO cambia: sigue siendo editorial y explícita
+ * (`featuredWorkContent.caseId`), nunca "el último caso publicado". Si ese caso
+ * pasa a `draft` o desaparece, getPublishedCaseById() devuelve undefined y la
+ * sección entera no se renderiza — sin enlaces rotos y sin caer a otro caso
+ * automáticamente.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
 import TextLink from '../ui/TextLink.astro';
 import CaseEvidence from '../cases/CaseEvidence.astro';
-import { getPublishedCaseById } from '../../lib/content/cases';
+import { buildCasePath, getPublishedCaseById } from '../../lib/content/cases';
 import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
 import { services } from '../../data/services';
 import { getPlaceById } from '../../data/places';
@@ -126,7 +148,10 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
 ---
 
 {
-  caseData && (
+  /* El guard nombra las dos referencias que el bloque usa —la entrada, para su
+     ruta, y sus datos— porque comprobar solo `caseData` no le dice a TypeScript
+     que `caseEntry` exista. */
+  caseEntry && caseData && (
     <Section as="section" id="trabajos" background="paper-2" spacing="lg" class="scroll-mt-24">
       <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,19rem)] md:grid-rows-[auto_1fr] md:items-start md:gap-x-10 lg:max-w-[53rem] lg:grid-cols-[minmax(0,26rem)_minmax(0,23rem)] lg:gap-x-16">
         <div class="max-w-prose md:col-start-1 md:row-start-1">
@@ -142,12 +167,24 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
         </div>
 
         <div class="flex max-w-prose flex-col items-start gap-3 md:col-start-1 md:row-start-2">
-          <h3 class="text-ink text-xl font-bold tracking-tight">{caseData.title}</h3>
+          <h3 class="text-ink text-xl font-bold tracking-tight">
+            <a
+              href={buildCasePath(caseEntry.id)}
+              class="hover:text-brand-ink underline-offset-4 transition-colors [transition-duration:var(--duration-fast)] hover:underline"
+            >
+              {caseData.title}
+            </a>
+          </h3>
 
           <p class="text-ink-2">{caseData.shortDescription}</p>
 
+          {/* `ink-2` y no `ink-3`, misma razón y misma corrección que
+              ServiceCase.astro (EPIC 7 — Checkpoint 7.3): sobre `paper-2` el
+              tono decorativo mide 3.60:1 y falla el mínimo AA para texto, contra
+              los 7.48:1 de `ink-2` en esa misma superficie. La línea no se ve hoy
+              porque el caso destacado no declara `area`. */}
           {area && (
-            <p class="text-ink-3 text-sm">
+            <p class="text-ink-2 text-sm">
               Trabajo realizado en {area.name}, {area.region}.
             </p>
           )}
@@ -157,6 +194,8 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
               Ver el servicio: {service.title}
             </TextLink>
           )}
+
+          <TextLink href="/trabajos">Ver todos los trabajos realizados</TextLink>
         </div>
       </div>
     </Section>

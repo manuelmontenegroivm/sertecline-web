@@ -13,6 +13,13 @@
  * No decide qué caso mostrar ni consulta astro:content: recibe la entrada ya
  * seleccionada por la ruta (ver src/lib/content/cases.ts#getRelatedCases).
  *
+ * ENLACE A LA FICHA DEL TRABAJO (EPIC 7 — Checkpoint 7.3). Desde que cada caso
+ * publicado tiene URL propia, este bloque deja de ser un final de camino: la
+ * evidencia se sigue mostrando aquí completa y el enlace lleva al registro del
+ * trabajo, donde viven la fecha, la comuna y los hechos técnicos cuando existen.
+ * Es la arista Service → Case del grafo interno; la inversa la publica la propia
+ * ficha del trabajo.
+ *
  * No conoce la forma de la evidencia: delega en CaseEvidence, que decide entre
  * comparador interactivo y fotografía estática según exista o no
  * `evidence.before` (EPIC 7 — Checkpoint 7.2). Antes leía `pairs[0]`
@@ -51,6 +58,8 @@
  */
 import type { CollectionEntry } from 'astro:content';
 import CaseEvidence from './CaseEvidence.astro';
+import TextLink from '../ui/TextLink.astro';
+import { buildCasePath } from '../../lib/content/cases';
 import { getPlaceById } from '../../data/places';
 
 interface Props {
@@ -76,8 +85,16 @@ const area = areaId ? getPlaceById(areaId) : undefined;
     <p class="text-ink-2 max-w-prose">{shortDescription}</p>
 
     {
+      /* `ink-2` (6.87:1 sobre papel, AA) y no `ink-3` (3.31:1): dónde se hizo el
+        trabajo es un hecho del caso, no un adorno, y el tono que el sistema
+        reserva para elementos decorativos no alcanza el contraste mínimo para
+        texto. Corregido en EPIC 7 — Checkpoint 7.3 tras medirlo con un fixture:
+        el único caso publicado no declara `area`, así que la línea no llegaba a
+        renderizarse y la falla estaba oculta. El contrato de captura exige
+        comuna para todo trabajo nuevo, de modo que el primer caso con ubicación
+        la habría hecho visible en producción. */
       area && (
-        <p class="text-ink-3 text-sm">
+        <p class="text-ink-2 text-sm">
           Trabajo realizado en {area.name}, {area.region}.
         </p>
       )
@@ -87,4 +104,19 @@ const area = areaId ? getPlaceById(areaId) : undefined;
   <div class="w-full max-w-[24rem]">
     <CaseEvidence evidence={evidence} title={title} />
   </div>
+
+  {
+    /* Salida a la ficha del trabajo (EPIC 7 — Checkpoint 7.3). El rótulo nombra
+      el trabajo y no repite "ver más": el h3 de arriba no es enlace —la ficha
+      de servicio ya tiene su propia jerarquía de encabezados— así que este es
+      el único destino del bloque, y su texto debe decir a dónde lleva incluso
+      leído fuera de contexto por un lector de pantalla. La ruta la construye
+      buildCasePath() desde el ID de la entrada, el mismo que genera la página,
+      de modo que no puede apuntar a una URL inexistente. */
+  }
+  <p>
+    <TextLink href={buildCasePath(caseEntry.id)} class="py-1.5">
+      Ver el trabajo: {title}
+    </TextLink>
+  </p>
 </article>

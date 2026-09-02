@@ -1,0 +1,137 @@
+---
+/**
+ * Un trabajo real dentro del índice /trabajos (EPIC 7 — Checkpoint 7.3).
+ *
+ * Representación resumida y enlazable de un Case. No decide qué casos se
+ * muestran ni consulta astro:content: recibe la entrada que la página ya
+ * resolvió por la capa de acceso (ver src/lib/content/cases.ts).
+ *
+ * EVIDENCIA ESTÁTICA, SIEMPRE. La tarjeta muestra la fotografía del resultado
+ * aunque el caso tenga "antes", y por eso NO pasa por <CaseEvidence>: ese
+ * componente monta el comparador cuando existe `evidence.before`, y un índice
+ * con veinte casos montaría veinte islands de React para que el lector viera
+ * veinte miniaturas. El índice se queda en cero JavaScript y la evidencia
+ * completa —comparador incluido— vive donde corresponde, en la ficha del
+ * trabajo. Lo que sí se reutiliza es el pipeline: <CaseResultImage> aplica el
+ * mismo tope de ancho y la misma composición de texto alternativo que usa la
+ * fotografía estática de <CaseEvidence>.
+ *
+ * CAMPOS AUSENTES. Comuna y fecha son opcionales en el schema y hay un caso
+ * publicado que no los tiene (ver docs/cases/README.md). Un campo que no existe
+ * no se renderiza: no hay "Sin información", ni "N/A", ni una fila vacía
+ * esperando el dato. La tarjeta del caso histórico es por lo tanto más corta
+ * que la de un trabajo capturado con el contrato actual, y eso es correcto.
+ *
+ * COMPOSICIÓN. Fila con miniatura a la izquierda y texto a la derecha, en vez
+ * de tarjeta apilada con la imagen arriba. Las dos fotografías del único caso
+ * publicado son 9:16 (720x1280, tomadas en vertical) y ninguna proporción puede
+ * asumirse: una imagen a todo el ancho de la tarjeta mediría 570px de alto en
+ * una columna de 320px, así que dos trabajos no cabrían juntos en pantalla.
+ * Acotar el ANCHO de la miniatura —y no forzar un `aspect-ratio` con
+ * `object-fit: cover`— resuelve el alto sin recortar un solo píxel de la
+ * evidencia, que es la regla que este sitio ya aplica en home y en las fichas
+ * de servicio. Una fotografía apaisada entra en la misma fila sin ajuste.
+ *
+ * CONTRASTE. El servicio y la línea de lugar/fecha van en `ink-2` (6.87:1 sobre
+ * papel, AA a cualquier tamaño) y no en `ink-3` (3.31:1). Los dos son
+ * información del trabajo —qué servicio fue, dónde y cuándo—, no adorno, así
+ * que no pueden apoyarse en el tono que el sistema reserva para elementos
+ * decorativos. La jerarquía entre título y metadatos la da el tamaño
+ * (`text-lg font-bold` contra `text-sm`), no un gris que no se lee. Medido con
+ * Lighthouse sobre el build: con `ink-3` la auditoría de contraste fallaba.
+ *
+ * ENLACE ÚNICO. Solo el título es enlace, y se extiende sobre la tarjeta con un
+ * pseudo-elemento (`after:inset-0`): toda la superficie es clickeable pero el
+ * nombre accesible del enlace es el título del trabajo, no el título más la
+ * descripción más la comuna. Es el mismo recurso de ServiceCard.astro. El
+ * servicio se imprime como texto y NO como segundo enlace: dos destinos dentro
+ * de una tarjeta que además es clickeable entera es justo lo que ese patrón no
+ * admite, y la ficha del trabajo enlaza el servicio a un clic de distancia.
+ */
+import type { CollectionEntry } from 'astro:content';
+import CaseResultImage from './CaseResultImage.astro';
+import { buildCasePath } from '../../lib/content/cases';
+import { getServiceById } from '../../data/services';
+import { getPlaceById } from '../../data/places';
+import { formatMonthYear } from '../../lib/utils/date';
+
+interface Props {
+  case: CollectionEntry<'cases'>;
+}
+
+const { case: caseEntry } = Astro.props as Props;
+const {
+  title,
+  shortDescription,
+  service: serviceId,
+  area: areaId,
+  completedAt,
+  evidence,
+} = caseEntry.data;
+
+// El rótulo es `title` y no `seoTitle`: el catálogo reserva el primero para UI
+// compacta —Badge, ServiceCard, y esta tarjeta— y el segundo para h1, <title>
+// y breadcrumb (ver src/data/services.ts#seoTitle).
+const service = getServiceById(serviceId);
+
+// `area` es opcional en el schema. Si el caso no la declara no se muestra
+// ubicación: no se infiere desde el servicio, ni desde la cobertura comercial,
+// ni desde una comuna genérica. Se resuelve contra el vocabulario geográfico
+// (src/data/places.ts) y no contra el catálogo de cobertura (src/data/areas.ts):
+// dónde ocurrió un trabajo es un hecho del caso, no una afirmación de dónde
+// atiende el negocio.
+const area = areaId ? getPlaceById(areaId) : undefined;
+
+// Lugar y fecha en una sola línea de metadatos, con los que falten simplemente
+// ausentes. El predicado de tipo es lo que le dice a TypeScript que después del
+// filtro no quedan `undefined`; `.filter(Boolean)` no lo estrecha.
+const meta = [
+  area ? `${area.name}, ${area.region}` : undefined,
+  completedAt ? formatMonthYear(completedAt) : undefined,
+].filter((part): part is string => part !== undefined);
+
+// Miniatura: 96px de ancho en móvil y 112px desde `sm:`. Se pide más del doble
+// para que la imagen siga siendo nítida en pantallas de alta densidad sin
+// introducir srcset, que este pipeline no usa en ninguna superficie.
+const THUMBNAIL_WIDTH = 256;
+---
+
+<article
+  class="group border-hairline hover:border-hairline-strong focus-within:border-hairline-strong relative flex items-start gap-4 border-t pt-6 transition-colors [transition-duration:var(--duration-fast)] sm:gap-6"
+>
+  <CaseResultImage
+    result={evidence.result}
+    title={title}
+    resultAlt={evidence.resultAlt}
+    width={THUMBNAIL_WIDTH}
+    class="border-hairline bg-paper-2 h-auto w-24 shrink-0 rounded-lg border sm:w-28"
+  />
+
+  {
+    /* min-w-0: sin él la columna de texto no puede encogerse por debajo de su
+      contenido más ancho y una descripción larga desborda la fila en móvil. */
+  }
+  <div class="flex min-w-0 flex-col gap-2">
+    {service && <p class="text-ink-2 text-sm">{service.title}</p>}
+
+    {
+      /* h2 y no h3: la tarjeta cuelga directamente del h1 de /trabajos, sin un
+        encabezado de sección intermedio, así que un h3 saltaría un nivel del
+        esquema de encabezados. Su único consumidor es ese índice — si algún día
+        se compone bajo una sección con h2 propio, el nivel se revisa entonces y
+        no antes. */
+    }
+    <h2 class="text-ink text-lg font-bold tracking-tight">
+      <a
+        href={buildCasePath(caseEntry.id)}
+        class="group-hover:text-brand-ink underline-offset-4 transition-colors [transition-duration:var(--duration-fast)] group-hover:underline after:absolute after:inset-0"
+      >
+        {title}
+      </a>
+    </h2>
+
+    <p class="text-ink-2 text-sm">{shortDescription}</p>
+
+    {meta.length > 0 && <p class="text-ink-2 text-sm">{meta.join(' · ')}</p>}
+  </div>
+</article>

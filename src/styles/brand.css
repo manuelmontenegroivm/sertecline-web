@@ -9,7 +9,7 @@ html {
   color-scheme: light;
 }
 
-/* Scroll suave en navegación por ancla (ej. nav "Trabajos" → /#trabajos).
+/* Scroll suave en navegación por ancla (ej. nav "Servicios" → /#servicios).
    Gateado por prefers-reduced-motion: no-preference, sin JS. */
 @media (prefers-reduced-motion: no-preference) {
   html {

@@ -1,0 +1,326 @@
+---
+/**
+ * Ficha de un trabajo realizado (EPIC 7 — Checkpoint 7.3).
+ *
+ * Una URL por caso publicado, derivada del ID de la entrada de colección —es
+ * decir, del nombre del archivo en src/content/cases/—. El slug NO se declara
+ * en el frontmatter: sería una segunda fuente de verdad para el mismo dato.
+ * getStaticPaths() recorre exactamente getPublishedCases(), así que un caso en
+ * `draft` no genera ruta, no entra al sitemap y no es alcanzable; un slug que
+ * no salga de ahí simplemente no existe como página, sin routing dinámico ni
+ * runtime (el sitio es 100% estático).
+ *
+ * QUÉ ES ESTA PÁGINA. El registro de un trabajo concreto que Sertecline
+ * realizó. No es una ficha de servicio, no es una landing por comuna y no es un
+ * artículo: responde qué trabajo fue, a qué servicio corresponde, dónde y
+ * cuándo se hizo —cuando esos datos están confirmados—, qué se encontró, qué se
+ * hizo, cómo quedó y qué evidencia existe.
+ *
+ * LO QUE NO EXISTE NO SE RENDERIZA. Comuna, fecha, marca y los cuatro campos
+ * factuales son opcionales en el schema, y el único caso publicado hoy no tiene
+ * ninguno de ellos (ver docs/cases/README.md, «Compatibilidad histórica»). Cada
+ * bloque de esta página está condicionado a que su dato exista: no se imprime
+ * "Sin información", no se genera un encabezado vacío y no se rellena con prosa
+ * genérica. La ficha de un trabajo histórico es más corta que la de un trabajo
+ * capturado con el contrato actual, y el diseño no finge lo contrario.
+ *
+ * GEOGRAFÍA. `area` se resuelve contra el vocabulario geográfico
+ * (src/data/places.ts) y describe dónde ocurrió un trabajo. No es —ni genera—
+ * cobertura comercial: eso lo declara exclusivamente src/data/areas.ts, y por
+ * eso esta página no dice "servicio técnico en <comuna>" ni existe una ruta por
+ * comuna. Un trabajo realizado en un lugar no convierte ese lugar en plaza
+ * declarada.
+ *
+ * DATOS ESTRUCTURADOS: ninguno. La política del proyecto sobre schema.org es
+ * conservadora y este checkpoint publica páginas y contenido, no tipos nuevos.
+ * En particular no se emite LocalBusiness, Article, ImageObject ni `areaServed`
+ * derivado de casos. El rastro de navegación se publica solo en HTML visible.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/layout/Container.astro';
+import Breadcrumbs from '../../components/layout/Breadcrumbs.astro';
+import CaseEvidence from '../../components/cases/CaseEvidence.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import { getPublishedCaseById, getPublishedCases } from '../../lib/content/cases';
+import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
+import { getServiceById } from '../../data/services';
+import { getPlaceById } from '../../data/places';
+import { brands } from '../../data/brands';
+import { formatMonthYear } from '../../lib/utils/date';
+import type { Breadcrumb } from '../../types/breadcrumb';
+
+export async function getStaticPaths() {
+  const cases = await getPublishedCases();
+
+  return cases.map((caseEntry) => ({
+    params: { slug: caseEntry.id },
+  }));
+}
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  throw new Error('Missing case slug');
+}
+
+// Misma división que src/pages/servicios/[slug].astro: getStaticPaths() declara
+// las rutas y el cuerpo resuelve la entrada por la capa de acceso. Un caso que
+// dejara de estar publicado entre ambas llamadas rompe el build en vez de
+// publicar una página vacía.
+const caseEntry = await getPublishedCaseById(slug);
+
+if (!caseEntry) {
+  throw new Error(`Published case not found for slug: ${slug}`);
+}
+
+const {
+  title,
+  shortDescription,
+  service: serviceId,
+  brand: brandId,
+  area: areaId,
+  completedAt,
+  evidence,
+  reportedIssue,
+  technicalFinding,
+  workPerformed,
+  outcome,
+} = caseEntry.data;
+
+// El nombre del servicio sale del catálogo (src/data/services.ts) y el enlace,
+// de la ficha realmente publicada —la misma consulta con la que
+// src/pages/servicios/[slug].astro genera sus rutas—, así que este enlace no
+// puede apuntar a una página inexistente: si esa ficha pasa a `draft`,
+// desaparece en el mismo build y el nombre del servicio se sigue mostrando.
+// Mismo criterio que FeaturedWork.astro.
+const service = getServiceById(serviceId);
+const publishedService = await getServiceBySlug(serviceId);
+const serviceHref = publishedService ? buildServicePath(publishedService.id) : undefined;
+
+// `area` es opcional. Si el caso no la declara, esta ficha no imprime ubicación
+// alguna: no se infiere desde el servicio, ni desde la cobertura comercial, ni
+// desde el texto. Se resuelve contra el vocabulario geográfico y no contra el
+// catálogo de cobertura — ver el bloque GEOGRAFÍA arriba.
+const area = areaId ? getPlaceById(areaId) : undefined;
+
+// El frontmatter guarda el ID de la marca (`samsung`), no su denominación: lo
+// que se publica es el `name` del catálogo (`Samsung`). El `.find()` va aquí y
+// no en un helper de src/data/brands.ts porque esta es la única superficie que
+// lo necesita. El ID ya viene validado contra ese catálogo por el enum del
+// schema, así que `undefined` solo puede significar que el caso no declara
+// marca — y entonces no se imprime ninguna.
+const brand = brandId ? brands.find((entry) => entry.id === brandId) : undefined;
+
+/**
+ * Hechos del trabajo, para el bloque de metadatos del encabezado. Un `<dl>` y
+ * no prosa: rótulo y valor quedan explícitos y separados, que es lo que permite
+ * a un lector —y a un motor— extraer "servicio", "lugar" o "fecha" sin
+ * interpretar una frase. Solo entran los campos que el caso declara; la marca
+ * se valida contra src/data/brands.ts en el schema, así que aquí solo se
+ * presenta.
+ *
+ * El rótulo va en `ink-2` (6.87:1, AA) y no en `ink-3` (3.31:1): un `<dt>` es
+ * la mitad del dato —sin "Lugar" el nombre de una comuna no dice nada— y debe
+ * leerse igual que su valor. La diferencia entre rótulo y valor la marca el
+ * peso tipográfico, no el contraste.
+ */
+const facts = [
+  service ? { label: 'Servicio', value: service.title } : undefined,
+  area ? { label: 'Lugar', value: `${area.name}, ${area.region}` } : undefined,
+  completedAt ? { label: 'Fecha', value: formatMonthYear(completedAt) } : undefined,
+  brand ? { label: 'Marca', value: brand.name } : undefined,
+].filter((fact): fact is { label: string; value: string } => fact !== undefined);
+
+/**
+ * Cuerpo factual del trabajo. Cada encabezado existe solo si su campo existe:
+ * los cuatro son opcionales y ninguno se sustituye por texto genérico. El orden
+ * es el del trabajo real —qué reportó el cliente, qué se encontró, qué se hizo,
+ * cómo quedó—, no una plantilla que haya que completar.
+ */
+const factualSections = [
+  { heading: 'Problema reportado', body: reportedIssue },
+  { heading: 'Hallazgo técnico', body: technicalFinding },
+  { heading: 'Trabajo realizado', body: workPerformed },
+  { heading: 'Resultado', body: outcome },
+].filter((section): section is { heading: string; body: string } => section.body !== undefined);
+
+// El cuerpo MDX es opcional (ver docs/cases/README.md): un caso sin prosa es
+// válido y no debe producir un bloque vacío. `body` es el contenido crudo de la
+// entrada, así que un archivo con solo frontmatter no renderiza sección alguna.
+const { Content } = await render(caseEntry);
+const hasBody = Boolean(caseEntry.body?.trim());
+
+// El rótulo del tramo intermedio es el h1 de /trabajos, escrito aquí como
+// literal y no importado desde esa página: son dos decisiones distintas —una
+// titula el índice, la otra nombra un destino dentro de un rastro— y el
+// proyecto ya resuelve así el caso equivalente (ver el `href` de
+// serviceCoverageContent en src/data/coverageSection.ts). El rastro usa la
+// denominación completa y no el rótulo corto del menú ("Trabajos"), igual que
+// el de una ficha de servicio usa el nombre completo del servicio.
+const breadcrumbs: Breadcrumb[] = [
+  { name: 'Inicio', href: '/' },
+  { name: 'Trabajos realizados', href: '/trabajos' },
+  { name: title },
+];
+---
+
+<BaseLayout title={title} description={shortDescription}>
+  <article>
+    <header class="border-hairline bg-paper-2 border-b">
+      <Container size="narrow" class="py-16 md:py-24">
+        <Breadcrumbs items={breadcrumbs} class="mb-6" />
+        <h1 class="text-ink text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
+        <p class="text-ink-2 mt-4 max-w-prose text-lg leading-relaxed md:mt-6">
+          {shortDescription}
+        </p>
+
+        {
+          facts.length > 0 && (
+            <dl class="mt-8 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm md:mt-10">
+              {facts.map((fact) => (
+                <>
+                  <dt class="text-ink-2">{fact.label}</dt>
+                  <dd class="text-ink font-medium">{fact.value}</dd>
+                </>
+              ))}
+            </dl>
+          )
+        }
+      </Container>
+    </header>
+
+    {
+      /* La evidencia va inmediatamente después del encabezado: es el contenido
+         que esta página existe para publicar. <CaseEvidence> decide entre
+         comparador interactivo (cuando hay fotografía previa) y fotografía
+         estática, así que un caso de solo resultado no monta ninguna island.
+         El tope de ancho es el mismo que aplican home y las fichas de servicio
+         a las fotografías verticales del caso publicado: es un límite de ancho,
+         no un recorte, así que ninguna decisión de layout cuesta evidencia. */
+    }
+    <Container size="narrow" class="py-12 md:py-16">
+      <div class="w-full max-w-[24rem]">
+        <CaseEvidence evidence={evidence} title={title} />
+      </div>
+    </Container>
+
+    {
+      factualSections.length > 0 && (
+        <section class="border-hairline border-t">
+          <Container size="narrow" class="py-12 md:py-16">
+            <div class="flex flex-col gap-8">
+              {factualSections.map((section) => (
+                <div>
+                  <h2 class="text-ink text-2xl font-bold tracking-tight">{section.heading}</h2>
+                  <p class="text-ink-2 mt-3 max-w-prose text-lg">{section.body}</p>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )
+    }
+
+    {
+      hasBody && (
+        <section class="border-hairline border-t">
+          <Container size="narrow" class="case-content py-12 md:py-16">
+            <Content />
+          </Container>
+        </section>
+      )
+    }
+
+    {
+      /* Salidas de la ficha: el servicio al que corresponde el trabajo y el
+         índice del que vino. Los dos rótulos nombran su destino —nada de "ver
+         más" ni "haz clic aquí"—. `py-1.5` lleva el objetivo táctil a 32px,
+         igual que los enlaces de texto de las fichas de servicio y del footer. */
+    }
+    <section class="border-hairline border-t">
+      <Container size="narrow" class="py-12 md:py-16">
+        <div class="flex flex-col items-start gap-3">
+          {
+            serviceHref && service && (
+              <TextLink href={serviceHref} class="py-1.5">
+                Ver el servicio: {service.title}
+              </TextLink>
+            )
+          }
+          <TextLink href="/trabajos" class="py-1.5"> Ver todos los trabajos realizados </TextLink>
+        </div>
+      </Container>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  /* Cuerpo MDX del caso: no hereda el scope de esta página, por eso :global().
+     Cubre el conjunto de elementos que una nota sobre un trabajo puede usar.
+     Deliberadamente NO se comparte con `.service-content` de ServiceLayout: esa
+     hoja se envía hoy solo en las páginas que la usan, y moverla a global.css
+     para compartirla la cargaría en TODAS las páginas del sitio —home
+     incluida— por un cuerpo que hoy está vacío. Los encabezados arrancan en h2
+     porque el h1 lo ocupa el título del trabajo. */
+  .case-content :global(> *:first-child) {
+    margin-top: 0;
+  }
+
+  .case-content :global(h2) {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+  }
+
+  .case-content :global(h3) {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+  }
+
+  .case-content :global(p) {
+    margin-bottom: 1.5rem;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    color: var(--color-ink-2);
+  }
+
+  .case-content :global(ul),
+  .case-content :global(ol) {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+    color: var(--color-ink-2);
+  }
+
+  .case-content :global(ul) {
+    list-style-type: disc;
+  }
+
+  .case-content :global(ol) {
+    list-style-type: decimal;
+  }
+
+  .case-content :global(li + li) {
+    margin-top: 0.5rem;
+  }
+
+  .case-content :global(a) {
+    color: var(--color-brand-ink);
+    text-underline-offset: 2px;
+    text-decoration: underline;
+  }
+
+  .case-content :global(strong) {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink);
+  }
+</style>

@@ -1,0 +1,115 @@
+---
+/**
+ * Índice de trabajos realizados (EPIC 7 — Checkpoint 7.3).
+ *
+ * Superficie pública de la colección `cases`: todo trabajo publicado aparece
+ * aquí, con enlace a su ficha propia. Es lo que garantiza el invariante del
+ * checkpoint —ningún caso publicado queda huérfano— sin que ninguna ruta tenga
+ * que acordarse de enlazarlo.
+ *
+ * DATOS. Una sola llamada a getPublishedCases() (src/lib/content/cases.ts), que
+ * ya excluye borradores y aplica el orden determinista del dominio: fecha real
+ * del trabajo descendente y, a igualdad, ID ascendente. Esta página no filtra,
+ * no reordena y no recorta. Publicar un archivo en src/content/cases/ lo hace
+ * aparecer en este listado sin tocar una constante, una lista de rutas ni este
+ * archivo.
+ *
+ * SIN AGRUPACIÓN POR SERVICIO. Con un caso publicado, agrupar produciría un
+ * encabezado de sección por cada grupo de un elemento; con cincuenta seguiría
+ * siendo una decisión editorial que hoy nadie puede tomar con datos. El
+ * servicio se lee en cada tarjeta, que es donde el dato distingue una de otra.
+ * Si el volumen algún día lo justifica, la agrupación se resuelve aquí sin
+ * tocar el modelo ni la capa de acceso.
+ *
+ * SIN FILTROS, BUSCADOR NI PAGINACIÓN. Una lista estática es la forma correcta
+ * para este volumen y sigue siéndolo con decenas de trabajos; cualquiera de
+ * esos controles exigiría estado en cliente y convertiría un índice indexable
+ * en una aplicación. Cero islands y cero JavaScript propio en esta ruta.
+ *
+ * ANCHO. <Container size="narrow"> y una sola columna: la lista se lee como un
+ * directorio y la medida de lectura se mantiene igual que en las fichas de
+ * servicio. Una grilla de tarjetas a 1200px obligaría a la miniatura a competir
+ * con el texto por el ancho, que es justo lo que la composición de fila evita
+ * (ver CaseCard.astro).
+ *
+ * METADATA. Título y descripción propios, canónica derivada por BaseLayout
+ * desde Astro.url + `site`, indexable y en el sitemap por defecto. Sin datos
+ * estructurados nuevos: la política del proyecto sobre schema.org es
+ * conservadora y este checkpoint publica páginas y contenido, no tipos nuevos
+ * (ver CLAUDE.md).
+ *
+ * COPY. Vive en este archivo y no en src/data/: es el texto de una sola página
+ * y ningún otro componente lo consume. Un archivo de datos para copy de un solo
+ * consumidor no crea una fuente única —ya lo era— sino una indirección que hay
+ * que abrir para leer la página. Las constantes de src/data/ existen porque su
+ * contenido se comparte (el catálogo de servicios, el vocabulario geográfico) o
+ * porque dos superficies imprimen literalmente el mismo dato de negocio
+ * (`coverageSectionContent.intro`); no es el caso de estas cuatro frases.
+ *
+ * VERACIDAD. Ninguna afirma nada que el repositorio no pueda demostrar: sin
+ * cifras de trabajos, años de experiencia, porcentajes de satisfacción ni
+ * garantías. El único claim del intro —que cada trabajo publicado tiene la
+ * fotografía de su resultado— lo garantiza el schema, donde `evidence.result`
+ * es obligatorio. Tampoco declara que estos sean *todos* los trabajos
+ * realizados: son los publicados, que es otra cosa. "Trabajos realizados" y no
+ * "Casos de éxito" ni "Nuestros proyectos": nombra un hecho pasado y
+ * verificable, y es el vocabulario que ya usan la sección de home y el menú.
+ *
+ * `EMPTY` existe porque el índice debe seguir siendo una página correcta con
+ * cero casos publicados —una grilla vacía no es un estado, es un error—, no
+ * porque hoy haga falta. Una frase, sin placeholders ni promesas de contenido
+ * futuro.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/layout/Container.astro';
+import Breadcrumbs from '../../components/layout/Breadcrumbs.astro';
+import CaseCard from '../../components/cases/CaseCard.astro';
+import { getPublishedCases } from '../../lib/content/cases';
+import type { Breadcrumb } from '../../types/breadcrumb';
+
+// El h1 de esta página. Constante local y no literal repetido: dentro de este
+// archivo lo imprimen el <title>, el <h1> y el último tramo del rastro, y son
+// la misma denominación, no tres decisiones.
+const HEADING = 'Trabajos realizados';
+
+const INTRO =
+  'Trabajos que Sertecline realizó a domicilio, cada uno con la fotografía de su resultado y el servicio al que corresponde.';
+
+const META_DESCRIPTION =
+  'Trabajos realizados por Sertecline a domicilio en Santiago, con fotografías reales y el servicio técnico al que corresponde cada uno.';
+
+const EMPTY = 'Todavía no hay trabajos publicados en esta página.';
+
+const cases = await getPublishedCases();
+
+// Dos niveles, igual que una ficha de servicio: la home y esta página. El
+// último tramo no lleva href — es la página actual (ver src/types/breadcrumb.ts).
+const breadcrumbs: Breadcrumb[] = [{ name: 'Inicio', href: '/' }, { name: HEADING }];
+---
+
+<BaseLayout title={HEADING} description={META_DESCRIPTION}>
+  <header class="border-hairline bg-paper-2 border-b">
+    <Container size="narrow" class="py-16 md:py-24">
+      <Breadcrumbs items={breadcrumbs} class="mb-6" />
+      <h1 class="text-ink text-3xl font-black tracking-tight md:text-4xl">{HEADING}</h1>
+      <p class="text-ink-2 mt-4 max-w-prose text-lg leading-relaxed md:mt-6">{INTRO}</p>
+    </Container>
+  </header>
+
+  <Container size="narrow" class="py-12 md:py-16">
+    {
+      /* Estado editorial y no una grilla vacía: con cero casos publicados la
+         página sigue siendo correcta, sin placeholders ni contenido inventado
+         para llenarla. */
+      cases.length > 0 ? (
+        <div class="flex flex-col gap-8">
+          {cases.map((caseEntry) => (
+            <CaseCard case={caseEntry} />
+          ))}
+        </div>
+      ) : (
+        <p class="text-ink-2 max-w-prose text-lg">{EMPTY}</p>
+      )
+    }
+  </Container>
+</BaseLayout>

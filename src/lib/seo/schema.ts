@@ -6,7 +6,7 @@
  * organización, qué área, qué canónica) vive en src/lib/seo/organization.ts
  * y src/lib/seo/services.ts.
  */
-import type { ServiceBreadcrumb } from '../../types/serviceBreadcrumb';
+import type { Breadcrumb } from '../../types/breadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
 
 /** Nodo JSON-LD ya construido, listo para entrar en un @graph. */
@@ -157,7 +157,7 @@ export function buildFaqPageSchema({ url, faqs, aboutId }: FaqPageSchemaInput): 
 
 export interface BreadcrumbListSchemaInput {
   /** Exactamente el array que la página renderiza — no una copia editada. */
-  items: readonly ServiceBreadcrumb[];
+  items: readonly Breadcrumb[];
   /** Canónica de la página, para el @id. */
   url: string;
   /** Base sobre la que se absolutizan los `href` relativos de los items. */

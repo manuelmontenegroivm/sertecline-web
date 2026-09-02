@@ -241,3 +241,27 @@ const serviceCatalog = [
 export type ServiceId = (typeof serviceCatalog)[number]['id'];
 
 export const services: readonly Service[] = serviceCatalog;
+
+/**
+ * Resuelve un `id` contra el catálogo, o `undefined` si no existe
+ * (EPIC 7 — Checkpoint 7.3).
+ *
+ * Para superficies que solo necesitan el rótulo del servicio al que pertenece
+ * otro contenido —una tarjeta de trabajo, la ficha de un trabajo—: ahí el `id`
+ * llega desde el frontmatter de un Case, ya validado contra este mismo catálogo
+ * por el enum de src/content.config.ts, así que un ID inexistente falla el build
+ * mucho antes de llegar a un componente.
+ *
+ * Devolver el `Service` completo y no su `title` deja que cada superficie elija
+ * el campo que le corresponde (`title` para UI compacta, `seoTitle` para
+ * denominaciones extensas — ver #seoTitle arriba) sin multiplicar funciones de
+ * lectura.
+ *
+ * Mismo criterio y misma forma que getPlaceById() en src/data/places.ts. NO
+ * resuelve la ruta de la ficha: que un servicio exista en el catálogo no
+ * significa que tenga página publicada, y esa pregunta la responde
+ * src/lib/content/services.ts contra la colección.
+ */
+export function getServiceById(id: string): Service | undefined {
+  return services.find((service) => service.id === id);
+}

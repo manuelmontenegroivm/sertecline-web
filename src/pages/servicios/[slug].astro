@@ -33,10 +33,16 @@ const { intro, metaDescription, faqs } = service.data;
 const { Content } = await render(service);
 
 // Sin condicionales por slug: la relación la declara cada caso en su propio
-// frontmatter (`service`), así que esta línea sirve igual a los 8 servicios del
-// catálogo y a los que se agreguen. Hoy se pide 1; el layout no asume esa
-// cantidad.
-const relatedCases = await getRelatedCases(service.id, 1);
+// frontmatter (`service`), así que esta línea sirve igual a los servicios del
+// catálogo y a los que se agreguen.
+//
+// Se piden TODOS los casos publicados del servicio y ya no uno solo (EPIC 7 —
+// Checkpoint 7.3). El `limit: 1` anterior descartaba en silencio cualquier otro
+// trabajo real publicado de ese servicio: la consulta decidía qué quedaba
+// invisible. Ahora la ruta entrega la colección completa y el layout decide qué
+// muestra completo y qué enlaza — una decisión de presentación, tomada donde se
+// ve y auditable.
+const relatedCases = await getRelatedCases(service.id);
 
 // Misma división que `relatedCases` y `faqs`: la ruta resuelve el dato, el
 // layout compone. La pertinencia por servicio se decide en un único lugar
