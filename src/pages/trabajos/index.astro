@@ -32,11 +32,19 @@
  * con el texto por el ancho, que es justo lo que la composición de fila evita
  * (ver CaseCard.astro).
  *
- * METADATA. Título y descripción propios, canónica derivada por BaseLayout
- * desde Astro.url + `site`, indexable y en el sitemap por defecto. Sin datos
- * estructurados nuevos: la política del proyecto sobre schema.org es
- * conservadora y este checkpoint publica páginas y contenido, no tipos nuevos
- * (ver CLAUDE.md).
+ * METADATA. Título y descripción propios, indexable y en el sitemap por
+ * defecto. La canónica se calcula una vez en este archivo y se comparte con
+ * BaseLayout y con el @id del JSON-LD, para que no puedan divergir.
+ *
+ * DATOS ESTRUCTURADOS: solo BreadcrumbList (EPIC 8 — Checkpoint 8.2). Es el
+ * mismo tipo que las fichas de servicio ya emiten y el mismo builder, no un
+ * tipo nuevo en el sistema: esta página muestra un rastro de navegación
+ * visible y hasta ahora no lo declaraba. Del mismo array salen el `<ol>` y el
+ * @graph, así que lo estructurado no puede describir una jerarquía distinta de
+ * la visible — y son exactamente los dos niveles que se ven, sin un
+ * "Servicios" ni un "Trabajos" intermedios inventados. No se emite
+ * CollectionPage, ItemList, Article ni LocalBusiness: la política del proyecto
+ * sobre schema.org sigue siendo conservadora (ver CLAUDE.md).
  *
  * COPY. Vive en este archivo y no en src/data/: es el texto de una sola página
  * y ningún otro componente lo consume. Un archivo de datos para copy de un solo
@@ -65,6 +73,7 @@ import Container from '../../components/layout/Container.astro';
 import Breadcrumbs from '../../components/layout/Breadcrumbs.astro';
 import CaseCard from '../../components/cases/CaseCard.astro';
 import { getPublishedCases } from '../../lib/content/cases';
+import { buildBreadcrumbStructuredData, buildCanonicalUrl } from '../../lib/seo/page';
 import type { Breadcrumb } from '../../types/breadcrumb';
 
 // El h1 de esta página. Constante local y no literal repetido: dentro de este
@@ -85,9 +94,20 @@ const cases = await getPublishedCases();
 // Dos niveles, igual que una ficha de servicio: la home y esta página. El
 // último tramo no lleva href — es la página actual (ver src/types/breadcrumb.ts).
 const breadcrumbs: Breadcrumb[] = [{ name: 'Inicio', href: '/' }, { name: HEADING }];
+
+// Mismo array que el <ol> de <Breadcrumbs>, mismo builder que las fichas de
+// servicio — ver lib/seo/page.ts.
+const canonical = buildCanonicalUrl(Astro.url.pathname, Astro.site);
+const structuredData = buildBreadcrumbStructuredData(breadcrumbs, canonical);
 ---
 
-<BaseLayout title={HEADING} description={META_DESCRIPTION}>
+<BaseLayout title={HEADING} description={META_DESCRIPTION} canonical={canonical}>
+  {
+    /* is:inline explícito: JSON-LD es datos, no un script a procesar/bundlear. */
+    structuredData && (
+      <script type="application/ld+json" slot="head" is:inline set:html={structuredData} />
+    )
+  }
   <header class="border-hairline bg-paper-2 border-b">
     <Container size="narrow" class="py-16 md:py-24">
       <Breadcrumbs items={breadcrumbs} class="mb-6" />

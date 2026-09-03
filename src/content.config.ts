@@ -8,10 +8,46 @@ import { services as serviceCatalog } from './data/services';
 const serviceIds = serviceCatalog.map((service) => service.id) as [string, ...string[]];
 const brandIds = brandCatalog.map((brand) => brand.id) as [string, ...string[]];
 
+/**
+ * POLÍTICA DE CLAVES DESCONOCIDAS (EPIC 8 — Checkpoint 8.2).
+ *
+ * Todo objeto de frontmatter de este archivo se declara con `z.strictObject()`
+ * y no con `z.object()`. Sin eso, Zod aplica su comportamiento por defecto
+ * —`strip`—: una clave que el schema no declara se elimina en silencio y el
+ * build termina en verde.
+ *
+ * Eso no es tolerancia, es pérdida de contenido sin señal. Los casos concretos
+ * que lo hacían visible: `evidence.gallery` y `evidence.additionalImages`
+ * —evidencia fotográfica que el autor creía haber publicado y que ninguna
+ * superficie muestra—, `pairs` —el contrato anterior de evidencia, retirado en
+ * CP 7.2— y cualquier error tipográfico en el nombre de un campo opcional
+ * (`comletedAt`, `brnad`), que desaparecía junto con el dato que traía.
+ *
+ * El schema ya rechazaba un VALOR que el sitio no puede representar: un
+ * `service` fuera del catálogo, una `brand` inexistente, un marcador de relleno
+ * en un campo factual. Aceptar en cambio una CLAVE que el sitio no representa
+ * contradecía ese mismo criterio — el contenido publicado dejaba de coincidir
+ * con el contenido escrito y nadie se enteraba. Ahora una clave desconocida es
+ * un error de contenido y falla el build, que es donde un error de contenido
+ * debe aparecer.
+ *
+ * `z.strictObject()` y no `z.object().strict()`: son equivalentes, y el primero
+ * deja la strictness en la declaración del objeto en vez de encadenada tras su
+ * cierre, a doscientas líneas de distancia de donde se lee qué acepta.
+ *
+ * La política se aplica al objeto de frontmatter del autor y a los objetos
+ * anidados que él escribe (`evidence`, cada FAQ). Zod no la hereda hacia
+ * adentro, así que se declara en cada uno. NO alcanza a lo que Astro agrega
+ * alrededor: `id`, `filePath`, `body`, `collection` y `rendered` son
+ * propiedades de la ENTRADA, no del objeto que el loader entrega al schema, de
+ * modo que la strictness no toca internals del framework — comprobado contra el
+ * build real de las seis fichas de servicio y del caso publicado.
+ */
+
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       title: z.string(),
       description: z.string(),
       pubDate: z.coerce.date(),
@@ -29,7 +65,7 @@ const services = defineCollection({
   // y siguen viviendo exclusivamente en src/data/services.ts (fuente única).
   // Esta colección solo aporta el contenido editorial largo por servicio.
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       metaDescription: z.string(),
       intro: z.string(),
       heroImage: image().optional(),
@@ -40,7 +76,7 @@ const services = defineCollection({
       relatedBrands: z.array(z.enum(brandIds)).default([]),
       faqs: z
         .array(
-          z.object({
+          z.strictObject({
             question: z.string(),
             answer: z.string(),
           })
@@ -52,7 +88,7 @@ const services = defineCollection({
 
 const testimonials = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/testimonials' }),
-  schema: z.object({
+  schema: z.strictObject({
     customerName: z.string(),
     location: z.string(),
     service: reference('services'),
@@ -90,7 +126,7 @@ const factualText = z
 const cases = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/cases' }),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       title: z.string(),
       shortDescription: z.string(),
       // No usa reference('services'): eso validaría contra la content collection
@@ -153,8 +189,15 @@ const cases = defineCollection({
        * La presencia de `before` es lo único que decide el modo de
        * presentación (comparador interactivo vs. fotografía estática) — ver
        * src/components/cases/CaseEvidence.astro.
+       *
+       * `strictObject` aquí y no solo en la raíz: la evidencia es justamente
+       * donde una clave inventada cuesta contenido publicado. `gallery`,
+       * `additionalImages` o un `after` heredado del contrato anterior nombran
+       * fotografías que existen en el repositorio y que ninguna superficie
+       * muestra; con el `strip` por defecto el build las borraba del dato y
+       * terminaba en verde.
        */
-      evidence: z.object({
+      evidence: z.strictObject({
         result: image(),
         before: image().optional(),
         caption: z.string().optional(),

@@ -15,24 +15,13 @@ export default defineConfig({
   integrations: [
     react(),
     mdx(),
-    sitemap({
-      /**
-       * /preview-comparador/ publica <meta name="robots" content="noindex, nofollow">
-       * (ver src/pages/preview-comparador.astro). Anunciarla en el sitemap emite la
-       * señal contraria — el sitemap propone para indexación lo que la propia página
-       * prohíbe — así que se excluye de la lista de URLs.
-       *
-       * La exclusión vive aquí y no en robots.txt de forma deliberada: el crawler
-       * necesita poder solicitar la página para leer su noindex (ver el comentario
-       * de política en src/pages/robots.txt.ts). Las tres señales quedan coherentes:
-       * crawl permitido, noindex en la página, URL fuera del sitemap.
-       *
-       * `filter` recibe la URL absoluta ya resuelta contra `site`, de modo que se
-       * compara sobre el pathname y no sobre el string completo; el `replace` final
-       * hace la comparación indiferente al trailing slash.
-       */
-      filter: (page) => new URL(page).pathname.replace(/\/$/, '') !== '/preview-comparador',
-    }),
+    /**
+     * Sin `filter`: todas las rutas HTML que el build genera son públicas e
+     * indexables. El único `filter` que existió excluía /preview-comparador,
+     * la ruta de QA visual eliminada en EPIC 8 — Checkpoint 8.2; conservarlo
+     * dejaría una regla que nombra una página inexistente.
+     */
+    sitemap(),
   ],
   vite: {
     plugins: [tailwindcss()],

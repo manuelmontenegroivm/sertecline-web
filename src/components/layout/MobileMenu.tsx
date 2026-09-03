@@ -5,6 +5,16 @@
  * seleccionar un link, y devuelve el foco al trigger al cerrar con Escape.
  * Hidratación client:load: es navegación primaria above-the-fold (ver
  * CLAUDE.md, regla de hidratación — excepción explícita para lo crítico).
+ *
+ * PÁGINA ACTUAL (EPIC 8 — Checkpoint 8.2). Este panel representa los mismos
+ * destinos que el nav desktop y hasta ahora no comunicaba cuál era la página
+ * actual: <NavLink> emitía `aria-current="page"` y aquí no había equivalente,
+ * así que la misma navegación decía dos cosas distintas según el ancho de la
+ * pantalla. `currentHref` llega ya resuelto desde Astro (ver Navbar.astro) y
+ * este componente solo compara y renderiza — sin `window.location`, sin router
+ * de cliente y sin lógica de rutas en el bundle. El estilo de página actual es
+ * el mismo `aria-[current=page]:text-brand-ink` del nav desktop, derivado del
+ * atributo y no de una segunda condición.
  */
 import { useEffect, useId, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -12,9 +22,15 @@ import type { NavItem } from '../../data/navigation';
 
 interface Props {
   items: NavItem[];
+  /**
+   * `href` del ítem que representa la página actual, o `undefined` si ninguno
+   * lo es. Resuelto en build por Navbar.astro con la misma regla que usa
+   * <NavLink> — ver src/lib/utils/navigation.ts.
+   */
+  currentHref?: string;
 }
 
-export default function MobileMenu({ items }: Props) {
+export default function MobileMenu({ items, currentHref }: Props) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -85,8 +101,9 @@ export default function MobileMenu({ items }: Props) {
                 <a
                   key={item.href}
                   href={item.href}
+                  aria-current={item.href === currentHref ? 'page' : undefined}
                   onClick={() => setOpen(false)}
-                  className="text-ink-2 hover:bg-paper-2 hover:text-ink rounded-md px-3 py-2 text-base font-medium transition-colors [transition-duration:var(--duration-fast)]"
+                  className="text-ink-2 hover:bg-paper-2 hover:text-ink aria-[current=page]:text-brand-ink rounded-md px-3 py-2 text-base font-medium transition-colors [transition-duration:var(--duration-fast)]"
                 >
                   {item.label}
                 </a>

@@ -31,10 +31,18 @@
  * comuna. Un trabajo realizado en un lugar no convierte ese lugar en plaza
  * declarada.
  *
- * DATOS ESTRUCTURADOS: ninguno. La política del proyecto sobre schema.org es
- * conservadora y este checkpoint publica páginas y contenido, no tipos nuevos.
- * En particular no se emite LocalBusiness, Article, ImageObject ni `areaServed`
- * derivado de casos. El rastro de navegación se publica solo en HTML visible.
+ * DATOS ESTRUCTURADOS: solo BreadcrumbList (EPIC 8 — Checkpoint 8.2). Es el
+ * mismo tipo que las fichas de servicio ya emiten y el mismo builder, no un
+ * tipo nuevo en el sistema: esta página muestra un rastro de tres niveles
+ * visible y hasta ahora no lo declaraba. Del mismo array salen el `<ol>` y el
+ * @graph, de modo que lo estructurado no puede describir una jerarquía
+ * distinta de la visible.
+ *
+ * Lo que sigue sin emitirse: Article, BlogPosting, ImageObject, Review,
+ * Product, LocalBusiness, un tipo propio de caso y cualquier `areaServed`
+ * derivado de un trabajo. El registro de un trabajo no es un artículo, la
+ * fotografía de un resultado no necesita un nodo para ser evidencia, y dónde
+ * ocurrió un trabajo no declara cobertura — ver el bloque GEOGRAFÍA arriba.
  */
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -48,6 +56,7 @@ import { getServiceById } from '../../data/services';
 import { getPlaceById } from '../../data/places';
 import { brands } from '../../data/brands';
 import { formatMonthYear } from '../../lib/utils/date';
+import { buildBreadcrumbStructuredData, buildCanonicalUrl } from '../../lib/seo/page';
 import type { Breadcrumb } from '../../types/breadcrumb';
 
 export async function getStaticPaths() {
@@ -163,9 +172,21 @@ const breadcrumbs: Breadcrumb[] = [
   { name: 'Trabajos realizados', href: '/trabajos' },
   { name: title },
 ];
+
+// Mismo array que el <ol> de <Breadcrumbs>, mismo builder que las fichas de
+// servicio — ver lib/seo/page.ts. La canónica se calcula una vez y se comparte
+// con BaseLayout y con el @id del JSON-LD.
+const canonical = buildCanonicalUrl(Astro.url.pathname, Astro.site);
+const structuredData = buildBreadcrumbStructuredData(breadcrumbs, canonical);
 ---
 
-<BaseLayout title={title} description={shortDescription}>
+<BaseLayout title={title} description={shortDescription} canonical={canonical}>
+  {
+    /* is:inline explícito: JSON-LD es datos, no un script a procesar/bundlear. */
+    structuredData && (
+      <script type="application/ld+json" slot="head" is:inline set:html={structuredData} />
+    )
+  }
   <article>
     <header class="border-hairline bg-paper-2 border-b">
       <Container size="narrow" class="py-16 md:py-24">

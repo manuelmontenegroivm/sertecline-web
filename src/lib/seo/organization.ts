@@ -14,8 +14,10 @@
  * cambiar el @type manteniendo el mismo @id: las fichas de servicio no se
  * enteran.
  *
- * No se consumen siteConfig.legalName ni contactInfo.legalName: ambos son un
- * placeholder sin confirmar.
+ * El grafo no declara razón social. No existe una confirmada, y los dos
+ * placeholders que la simulaban en la configuración —siteConfig.legalName y
+ * contactInfo.legalName, que este módulo ya omitía— se eliminaron en EPIC 8 —
+ * Checkpoint 8.2, así que hoy no hay siquiera de dónde tomarla por descuido.
  */
 import { siteConfig } from '../../config/site';
 import { contactInfo } from '../../data/contact';

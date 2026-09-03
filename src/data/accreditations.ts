@@ -29,8 +29,9 @@ import type { ServiceId } from './services';
  * declarada con src/data/services.ts, ni ruta derivada de estos valores — el
  * orden del array es el orden de despliegue, como en src/data/faqs.ts. Si algún
  * día una ficha de servicio necesita referenciar una acreditación concreta, ese
- * checkpoint agrega la clave junto con su consumidor, no antes (ver la deuda ya
- * registrada de `Service.slug` en src/data/services.ts, un campo sin lector).
+ * checkpoint agrega la clave junto con su consumidor, no antes — que es la
+ * regla con la que EPIC 8 — Checkpoint 8.2 eliminó `Service.slug` de
+ * src/data/services.ts, un campo declarado durante épicas sin un solo lector.
  *
  * Son dos, no tres: el negocio mencionó además una acreditación asociada a la
  * Superintendencia de Electricidad y Combustibles, pero su denominación formal
@@ -93,8 +94,8 @@ export const technicianAccreditations: readonly string[] = [
  *
  * Modelo: una lista de IDs y no un mapa id → acreditaciones. Hoy la única
  * ficha incluida es pertinente a las dos, así que un mapa no distinguiría nada
- * y sería un campo sin lector —la deuda que este archivo ya registra sobre
- * `Service.slug`—. Además la lista se muestra completa a propósito: son las
+ * y sería un campo sin lector —lo que fue `Service.slug` hasta que CP 8.2 lo
+ * eliminó—. Además la lista se muestra completa a propósito: son las
  * acreditaciones de una persona, no una ficha técnica del servicio, y
  * recortarlas por página las convertiría en lo segundo.
  *

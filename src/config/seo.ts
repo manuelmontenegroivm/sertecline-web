@@ -5,7 +5,6 @@ export interface SeoDefaults {
   defaultTitle: string;
   defaultDescription: string;
   defaultImage: string;
-  twitterHandle: string;
   locale: string;
 }
 
@@ -18,6 +17,11 @@ export const seoDefaults: SeoDefaults = {
   defaultTitle: 'Servicio técnico de línea blanca y calefones en Santiago | Sertecline',
   defaultDescription: siteConfig.description,
   defaultImage: siteConfig.logo.og,
-  twitterHandle: '@TODO_usuario', // TODO: confirmar si aplica o eliminar
+  // Sin `twitterHandle` (EPIC 8 — Checkpoint 8.2). Valía '@TODO_usuario' y no
+  // lo leía nadie: BaseLayout emite twitter:card, :title, :description e
+  // :image, y ninguna de esas etiquetas lleva un handle —`twitter:site` y
+  // `twitter:creator` no se emiten—. El negocio no tiene cuenta confirmada, así
+  // que no había valor real que poner ni etiqueta que alimentar. Si algún día
+  // existe la cuenta, se agrega el campo junto con la etiqueta que lo publica.
   locale: siteConfig.defaultLocale,
 };

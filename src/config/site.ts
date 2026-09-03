@@ -1,6 +1,5 @@
 export interface SiteConfig {
   name: string;
-  legalName: string;
   description: string;
   /** Debe coincidir con `site` en astro.config.mjs */
   url: string;
@@ -14,10 +13,16 @@ export interface SiteConfig {
   };
 }
 
-// TODO: confirmar razón social exacta con el cliente
+// Sin `legalName` (EPIC 8 — Checkpoint 8.2). Declaraba 'Sertecline SpA', una
+// razón social que el negocio nunca confirmó, con un TODO de meses y cero
+// consumidores: ni el Footer, ni el JSON-LD, ni ninguna otra superficie lo leía
+// —lib/seo/organization.ts documenta explícitamente que lo omite—. Un
+// placeholder inventado esperando en la configuración solo puede terminar de
+// una forma: publicado por quien lo encuentre y lo dé por confirmado. Cuando
+// exista la razón social real, la agrega el checkpoint que la publique, junto
+// con su consumidor.
 export const siteConfig: SiteConfig = {
   name: 'Sertecline',
-  legalName: 'Sertecline SpA', // TODO: confirmar razón social real
   // Descripción por defecto del sitio: la sirve BaseLayout como meta
   // description, og:description y twitter:description de cualquier página sin
   // descripción propia — hoy, la home. Solo afirma lo verificado; "según el

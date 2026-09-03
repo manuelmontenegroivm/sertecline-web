@@ -1,6 +1,5 @@
 export interface Service {
   id: string;
-  slug: string;
   title: string;
   /**
    * Denominación editorial del servicio para superficies extensas — h1, <title>,
@@ -62,9 +61,14 @@ export interface Service {
  * acondicionado, que es una capacidad real pero no es línea blanca y no debe
  * diluir el foco temático del catálogo.
  *
- * Deuda registrada: `slug` no tiene ningún consumidor (las rutas usan el `id`
- * de colección — ver src/lib/content/services.ts#buildServicePath). Su
- * eliminación es una limpieza de modelo aparte de esta realineación.
+ * Sin `slug` (EPIC 8 — Checkpoint 8.2). Cada entrada declaraba uno idéntico a
+ * su `id` y ningún lector lo consultaba: las rutas, los enlaces y la validación
+ * de contenido usan el `id` de la entrada de colección (ver
+ * src/lib/content/services.ts#buildServicePath). Era una segunda identidad para
+ * el mismo servicio, capaz de divergir del `id` sin que nada fallara y sin que
+ * ninguna superficie cambiara — exactamente el tipo de doble fuente de verdad
+ * que el invariante de catálogo de este checkpoint cierra por el otro extremo.
+ * El propio archivo la tenía registrada como deuda desde EPIC 6.
  *
  * TIPADO (EPIC 6 — Checkpoint 6.4). El array literal se declara aquí con
  * `as const satisfies readonly Service[]` y se exporta abajo como
@@ -95,7 +99,6 @@ export interface Service {
 const serviceCatalog = [
   {
     id: 'reparacion-lavadoras',
-    slug: 'reparacion-lavadoras',
     title: 'Reparación de Lavadoras',
     seoTitle: 'Reparación de lavadoras',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en lavadoras.',
@@ -105,7 +108,6 @@ const serviceCatalog = [
   },
   {
     id: 'limpieza-lavadoras',
-    slug: 'limpieza-lavadoras',
     // Único `title` de la grilla que no nombraba el equipo. No toca la ficha
     // publicada: su h1 y su <title> salen de `seoTitle`, que no cambia.
     title: 'Mantención y Limpieza de Lavadoras',
@@ -118,7 +120,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-calefones',
-    slug: 'reparacion-calefones',
     title: 'Reparación de Calefones',
     seoTitle: 'Reparación de calefones',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en calefones.',
@@ -128,7 +129,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-secadoras',
-    slug: 'reparacion-secadoras',
     title: 'Reparación de Secadoras',
     seoTitle: 'Reparación de secadoras',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en secadoras.',
@@ -138,7 +138,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-lavavajillas',
-    slug: 'reparacion-lavavajillas',
     title: 'Reparación de Lavavajillas',
     seoTitle: 'Reparación de lavavajillas',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en lavavajillas.',
@@ -148,7 +147,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-cocinas',
-    slug: 'reparacion-cocinas',
     title: 'Reparación de Cocinas',
     seoTitle: 'Reparación de cocinas',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en cocinas.',
@@ -163,7 +161,6 @@ const serviceCatalog = [
   // `seoTitle` que las delimite.
   {
     id: 'mantencion-calefones',
-    slug: 'mantencion-calefones',
     title: 'Mantención de Calefones',
     seoTitle: 'Mantención de calefones',
     shortDescription: 'Mantención preventiva de calefones con visita técnica agendada.',
@@ -173,7 +170,6 @@ const serviceCatalog = [
   },
   {
     id: 'instalacion-calefones',
-    slug: 'instalacion-calefones',
     title: 'Instalación de Calefones',
     seoTitle: 'Instalación de calefones',
     shortDescription: 'Instalación de calefones con visita técnica agendada.',
@@ -183,7 +179,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-encimeras',
-    slug: 'reparacion-encimeras',
     title: 'Reparación de Encimeras',
     seoTitle: 'Reparación de encimeras',
     shortDescription: 'Diagnóstico y reparación de encimeras eléctricas y a gas.',
@@ -193,7 +188,6 @@ const serviceCatalog = [
   },
   {
     id: 'reparacion-hornos',
-    slug: 'reparacion-hornos',
     title: 'Reparación de Hornos',
     seoTitle: 'Reparación de hornos',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en hornos.',
@@ -203,7 +197,6 @@ const serviceCatalog = [
   },
   {
     id: 'instalacion-linea-blanca',
-    slug: 'instalacion-linea-blanca',
     title: 'Instalación y Revisión',
     seoTitle: 'Instalación de línea blanca',
     shortDescription: 'Instalación y revisión general de equipos de línea blanca.',
@@ -216,7 +209,6 @@ const serviceCatalog = [
   // capacidad sigue siendo real y este archivo es donde se registra.
   {
     id: 'reparacion-refrigeradores',
-    slug: 'reparacion-refrigeradores',
     title: 'Reparación de Refrigeradores',
     shortDescription: 'Diagnóstico y reparación de fallas comunes en refrigeradores.',
     icon: 'refrigerator',

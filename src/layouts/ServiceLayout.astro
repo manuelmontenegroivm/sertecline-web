@@ -182,10 +182,10 @@ import {
   buildServiceSeoTitle,
   buildServiceMetaDescription,
   buildServiceBreadcrumbs,
-  buildServiceCanonicalUrl,
   buildServiceStructuredData,
   resolveServiceName,
 } from '../lib/seo/services';
+import { buildCanonicalUrl } from '../lib/seo/page';
 import type { ServiceFaq } from '../types/serviceFaq';
 
 interface Props {
@@ -245,7 +245,7 @@ const whatsappMessage = serviceCtaContent.whatsappMessageTemplate.replace(
 
 const pageTitle = buildServiceSeoTitle(title, seoTitle);
 const pageDescription = buildServiceMetaDescription(metaDescription);
-const canonical = buildServiceCanonicalUrl(Astro.url.pathname, Astro.site);
+const canonical = buildCanonicalUrl(Astro.url.pathname, Astro.site);
 const breadcrumbs = buildServiceBreadcrumbs(serviceName);
 const structuredData = buildServiceStructuredData({
   name: serviceName,

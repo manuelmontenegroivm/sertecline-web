@@ -11,10 +11,11 @@
  * anillo de foco— sin que nadie lo note.
  *
  * No decide qué contiene el rastro: recibe el array ya armado por la página.
- * Ese mismo array es el que alimenta el BreadcrumbList JSON-LD donde existe
- * (fichas de servicio, ver lib/seo/services.ts), de modo que lo estructurado no
- * puede declarar una jerarquía distinta de la visible. La página de detalle de
- * un trabajo no emite datos estructurados en este checkpoint.
+ * Ese mismo array es el que alimenta su BreadcrumbList JSON-LD, de modo que lo
+ * estructurado no puede declarar una jerarquía distinta de la visible. Desde
+ * EPIC 8 — Checkpoint 8.2 lo publican las tres superficies con rastro: las
+ * fichas de servicio dentro de su @graph (lib/seo/services.ts) y las dos rutas
+ * de trabajos como único nodo (lib/seo/page.ts).
  *
  * El separador va dentro del `<li>` y no como item propio: un `<li>` decorativo
  * alteraría el conteo de elementos que anuncia el lector de pantalla.

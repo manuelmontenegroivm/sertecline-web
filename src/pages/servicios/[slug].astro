@@ -1,9 +1,12 @@
 ---
 import { render } from 'astro:content';
 import ServiceLayout from '../../layouts/ServiceLayout.astro';
-import { getPublishedServices, getServiceBySlug } from '../../lib/content/services';
+import {
+  getPublishedServices,
+  getServiceBySlug,
+  getServiceCatalogEntry,
+} from '../../lib/content/services';
 import { getRelatedCases } from '../../lib/content/cases';
-import { services as serviceCatalog } from '../../data/services';
 import { servicesWithAccreditations } from '../../data/accreditations';
 
 export async function getStaticPaths() {
@@ -26,9 +29,16 @@ if (!service) {
   throw new Error(`Published service not found for slug: ${slug}`);
 }
 
-const catalogEntry = serviceCatalog.find((entry) => entry.id === service.id);
-const title = catalogEntry?.title ?? service.id;
-const seoTitle = catalogEntry?.seoTitle;
+// La identidad pública del servicio sale del catálogo, y el catálogo es
+// obligatorio (EPIC 8 — Checkpoint 8.2). Ya no hay `?? service.id`: ese fallback
+// publicaba una ficha titulada con su slug técnico cuando el archivo no
+// correspondía a ningún servicio del catálogo. Ahora ese contenido no llega
+// hasta aquí — getPublishedServices() falla el build antes, y esta llamada
+// devuelve la entrada sin `undefined` que rellenar. Ver
+// src/lib/content/services.ts#getServiceCatalogEntry.
+const catalogEntry = getServiceCatalogEntry(service.id);
+const title = catalogEntry.title;
+const seoTitle = catalogEntry.seoTitle;
 const { intro, metaDescription, faqs } = service.data;
 const { Content } = await render(service);
 

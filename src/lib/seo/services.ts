@@ -5,13 +5,13 @@ import {
   SERTECLINE_ORGANIZATION,
 } from './organization';
 import {
-  buildBreadcrumbListSchema,
   buildFaqPageSchema,
   buildServiceNodeId,
   buildServiceSchema,
   serializeJsonLdGraph,
   type JsonLdNode,
 } from './schema';
+import { buildBreadcrumbListNode } from './page';
 import type { Breadcrumb } from '../../types/breadcrumb';
 import type { ServiceFaq } from '../../types/serviceFaq';
 
@@ -43,13 +43,6 @@ export function buildServiceMetaDescription(
 ): string {
   const normalized = metaDescription.trim().replace(/\.?$/, '.');
   return `${normalized} ${siteConfig.name}, servicio técnico a domicilio en ${location}.`;
-}
-
-// Canónica de una ficha de servicio. Replica la derivación por defecto de
-// BaseLayout para que el layout la calcule una vez y la comparta con
-// <link rel="canonical"> y el JSON-LD: un solo valor, imposible que diverjan.
-export function buildServiceCanonicalUrl(pathname: string, site?: URL): string {
-  return new URL(pathname, site ?? siteConfig.url).toString();
 }
 
 /**
@@ -131,15 +124,10 @@ export function buildServiceStructuredData({
     nodes.push(faqPage);
   }
 
-  // Base explícita en la raíz del sitio, derivada de la propia canónica: los
-  // href del rastro son relativos al raíz, y tomar el origen de la canónica
-  // evita que las URLs del breadcrumb queden en un dominio distinto del que
-  // se acaba de declarar como canónico.
-  const breadcrumbList = buildBreadcrumbListSchema({
-    items: breadcrumbs,
-    url: canonical,
-    baseUrl: new URL('/', canonical).toString(),
-  });
+  // Mismo nodo y misma derivación de base que publican las rutas de trabajos —
+  // ver lib/seo/page.ts#buildBreadcrumbListNode. Aquí entra al @graph junto al
+  // Service y al FAQPage en vez de viajar solo.
+  const breadcrumbList = buildBreadcrumbListNode(breadcrumbs, canonical);
 
   if (breadcrumbList) {
     nodes.push(breadcrumbList);

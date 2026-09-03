@@ -17,10 +17,12 @@ import { siteConfig } from '../config/site';
  * dependencias ni JavaScript de cliente.
  *
  * Política: crawling general permitido, sin grupos por bot. El sitio es una web
- * comercial pública y no hay ruta que convenga ocultar al rastreo. En
- * particular /preview-comparador/ NO se bloquea: ya se excluye por `noindex`
- * (ver preview-comparador.astro) y un crawler necesita poder leer esa página
- * para descubrir la directiva. robots.txt no es una herramienta de noindex.
+ * comercial pública y no hay ruta que convenga ocultar al rastreo — desde
+ * EPIC 8 — Checkpoint 8.2 tampoco existe ya una ruta de QA: todas las páginas
+ * que el build genera son públicas. Si alguna vez conviene mantener una página
+ * fuera del índice, el mecanismo es su `noindex` (BaseLayout) y no una regla
+ * aquí: robots.txt no es una herramienta de noindex, y un crawler necesita
+ * poder leer la página para descubrir la directiva.
  *
  * Sobre crawlers de IA (CLAUDE.md exige que sea decisión revisada, no default):
  * el wildcard permite hoy tanto OAI-SearchBot —descubrimiento y citación en
