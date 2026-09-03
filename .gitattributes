@@ -1,0 +1,24 @@
+# Política de fin de línea del repositorio (EPIC 8 — Checkpoint 8.3, F-10).
+#
+# Sin este archivo, el fin de línea del working tree lo decidía la configuración
+# LOCAL de cada quien (`core.autocrlf`), no el repositorio: en la máquina de
+# desarrollo `core.autocrlf=true` hacía que Git escribiera CRLF al extraer, y
+# `prettier --check` —que exige LF— fallaba en los archivos recién extraídos
+# mientras pasaba en los que alguna herramienta había reescrito después. El
+# mismo commit daba resultados distintos según el sistema operativo y según el
+# git config de cada máquina, que es exactamente lo que un gate reproducible no
+# puede permitir.
+#
+# `text=auto eol=lf` normaliza a LF dentro del repositorio Y al extraer, en
+# Windows, macOS y Linux por igual, y tiene precedencia sobre `core.autocrlf`.
+# Coincide con `.editorconfig` (end_of_line = lf) y con el default de Prettier,
+# así que las tres herramientas exigen ahora lo mismo.
+* text=auto eol=lf
+
+# Binarios: excluidos de toda normalización textual para que ningún byte de una
+# imagen o una fuente pueda ser reinterpretado como fin de línea. `text=auto` ya
+# los detecta por heurística; declararlos es la garantía, no la heurística.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

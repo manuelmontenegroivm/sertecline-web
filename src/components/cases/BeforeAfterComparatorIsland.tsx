@@ -1,12 +1,12 @@
 /**
  * Isla del comparador antes/después (EPIC 3.6.1). Arrastre vía Pointer Events
- * unificados (mouse + touch + pen, mismo patrón que MobileMenu.tsx) sobre un
+ * unificados (mouse + touch + pen, mismo patrón que MobileMenu.astro) sobre un
  * useMotionValue: Framer Motion escribe clip-path/left directo al DOM sin
  * pasar por el ciclo de render de React en cada pointermove. Solo se
  * sincroniza a estado de React (throttled a 1x por frame) el valor entero
  * necesario para aria-valuenow/aria-valuetext.
  * Patrón de accesibilidad: WAI-ARIA APG "Slider" (mismo estándar que ya
- * sigue MobileMenu.tsx con el patrón "Disclosure").
+ * sigue MobileMenu.astro con el patrón "Disclosure").
  */
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
@@ -24,6 +24,16 @@ export interface ComparatorImage {
   src: string;
   width: number;
   height: number;
+  /**
+   * Candidatos de resolución y ancho de presentación (EPIC 8 — Checkpoint 8.3,
+   * F-15). Los arma el wrapper con getImage() en build —ver
+   * BeforeAfterComparator.astro— y aquí solo se imprimen: la isla sigue sin
+   * saber nada del pipeline de imágenes, igual que no conoce `ImageMetadata`.
+   * Opcionales: sin ellos el <img> queda con una sola densidad, que es el
+   * comportamiento de todos los checkpoints anteriores.
+   */
+  srcSet?: string;
+  sizes?: string;
 }
 
 // Unión cerrada (no CSS libre): única fuente del mapeo proporción → valor
@@ -195,6 +205,8 @@ export default function BeforeAfterComparatorIsland({
       >
         <img
           src={after.src}
+          srcSet={after.srcSet}
+          sizes={after.sizes}
           width={after.width}
           height={after.height}
           alt={afterAlt ?? `${alt} — ${afterLabel.toLowerCase()}`}
@@ -207,6 +219,8 @@ export default function BeforeAfterComparatorIsland({
         <motion.div className="pointer-events-none absolute inset-0" style={{ clipPath }}>
           <img
             src={before.src}
+            srcSet={before.srcSet}
+            sizes={before.sizes}
             width={before.width}
             height={before.height}
             alt={beforeAlt ?? `${alt} — ${beforeLabel.toLowerCase()}`}

@@ -75,13 +75,21 @@ const ogLocale = seoDefaults.locale.replace('-', '_');
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <!-- Tipografía de marca: Archivo + JetBrains Mono (ver src/config/design/tokens.json#font) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-    />
+    <!-- Tipografía de marca -->
+    {
+      /* Archivo, self-hosted desde EPIC 8 — Checkpoint 8.3 (F-03). Las
+        @font-face viven en src/styles/brand.css y los archivos en
+        public/fonts/, así que aquí ya no hay hoja de estilos de terceros en la
+        ruta crítica de render ni preconnects al CDN de Google. Este preload es
+        lo único que queda: la fuente se descubre DENTRO del CSS, o sea un
+        round-trip después de que el CSS llega, y adelantarlo evita ese salto
+        del texto que el `swap` produciría. Solo Archivo — JetBrains Mono no
+        tiene consumidores y precargarla sería pedir bytes que ninguna página
+        usa (ver la nota en brand.css). Va como comentario de expresión y no
+        como comentario HTML porque explica el código, no el documento: así no
+        viaja en las nueve páginas servidas. */
+    }
+    <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
 
     <slot name="head" />
   </head>

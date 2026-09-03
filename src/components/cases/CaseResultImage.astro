@@ -24,8 +24,21 @@
  * espacio a su alrededor. En este sitio el recorte cuesta evidencia — ver el
  * bloque PROPORCIÓN de FeaturedWork.astro y ServiceCase.astro.
  *
- * Sin `widths` ni `densities`: una sola densidad en formato moderno, sin
- * srcset, como el resto del pipeline de casos.
+ * SIN `widths` NI `densities`, a diferencia del comparador. Desde EPIC 8 —
+ * Checkpoint 8.3 (F-15) <BeforeAfterComparator> sí emite srcset, y esta
+ * asimetría es deliberada, no un olvido: se decidió con los bytes medidos de
+ * cada superficie.
+ *
+ *   CaseCard  → miniatura de 96/112px pedida a 256px. El archivo emitido pesa
+ *               8.542 B; una variante de 128px ahorraría ~4 KB a las pantallas
+ *               de densidad 1. No es material.
+ *   CaseEvidence (rama estática) → hoy no renderiza un solo byte: el único caso
+ *               publicado tiene fotografía previa y entra por el comparador.
+ *
+ * Es decir, todo el ahorro medible del sitio estaba en el comparador y ahí se
+ * corrigió. Agregar srcset aquí sería construir para un caso que todavía no
+ * existe; cuando se publique un trabajo sin fotografía previa, esta rama pasa a
+ * servir bytes reales y la decisión se vuelve a tomar con esos números.
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';

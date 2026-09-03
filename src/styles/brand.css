@@ -1,9 +1,80 @@
 /* ============================================================================
    SERTECLine · Brand Foundation
    Estilos fundacionales que activan el design system (tokens.css) a nivel
-   de documento. No redefine valores — todo se referencia vía var(--token).
+   de documento. No redefine valores del sistema — todo se referencia vía
+   var(--token). Lo único que declara por su cuenta son las @font-face de las
+   familias de marca, porque `--font-sans` y `--font-mono` nombran fuentes que
+   sin ellas ningún navegador sabría dónde buscar.
    Import order (ver global.css): tailwindcss → tokens.css → brand.css.
    ========================================================================== */
+
+/* ── TIPOGRAFÍA DE MARCA · self-hosted (EPIC 8 — Checkpoint 8.3, F-03) ──────
+   Hasta 8.3 las dos familias llegaban desde fonts.googleapis.com con un
+   <link rel="stylesheet"> en <head>: una hoja de estilos de tercero en la ruta
+   crítica de render, dos preconnects y una conexión de cada visitante a Google
+   sólo para ver el sitio. Ahora los archivos viven en public/fonts/ y se sirven
+   desde el mismo origen — sin request externo, sin round-trip de descubrimiento
+   contra otro dominio y sin que un visitante sea observable por un tercero al
+   cargar una página (Privacy First).
+
+   UN ARCHIVO POR FAMILIA. Google servía —y sigue sirviendo— el MISMO woff2
+   para las seis declaraciones de peso de Archivo (400 a 900) y para las cuatro
+   de JetBrains Mono: son fuentes variables, un solo archivo cubre todo el eje
+   `wght`. Por eso aquí hay una @font-face por familia con rango de peso y no
+   cinco archivos estáticos: es exactamente lo que el navegador descargaba
+   antes, sin la hoja de estilos intermedia.
+
+   SUBSET `latin` Y NADA MÁS. Los 73 codepoints distintos que hoy renderizan
+   las nueve rutas del sitio caben todos en el subset `latin` de Google
+   (medido sobre el build; el español —tildes, ñ, ¿, ¡— y los signos
+   tipográficos —«—», «·»— están dentro). Los subsets latin-ext y vietnamese
+   que la hoja de Google declaraba nunca se descargaban, porque `unicode-range`
+   los deja fuera mientras no aparezca un glifo suyo. Se conserva el
+   `unicode-range` por la misma razón: si algún día entra un carácter fuera del
+   rango, ese glifo cae al fallback del sistema en vez de renderizarse mal.
+
+   `font-display: swap` — igual que la hoja de Google (`&display=swap`): el
+   texto es legible desde el primer paint con la fuente de sistema y cambia a
+   Archivo al llegar el archivo. Ninguna palabra queda invisible esperando.
+
+   Licencias: ambas familias son SIL Open Font License 1.1, redistribuibles y
+   auto-hospedables. El texto de cada licencia acompaña a su archivo en
+   public/fonts/ (archivo-OFL.txt, jetbrains-mono-OFL.txt), que es la condición
+   que la OFL pone a la redistribución. Origen: fonts.gstatic.com, la
+   distribución oficial del repositorio google/fonts. */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/archivo-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* JetBrains Mono no tiene hoy ningún consumidor: no existe una sola clase
+   `font-mono` ni un `font-family: var(--font-mono)` en el código, ni un
+   <code>/<pre> en el contenido. Se declara igual —y no se elimina del token—
+   porque una @font-face es perezosa: el navegador NO descarga este archivo
+   mientras ningún glifo lo use, así que las nueve rutas cargan 0 bytes de
+   JetBrains Mono, exactamente como ya ocurría con la hoja de Google. Dejar el
+   token `--font-mono` nombrando una familia sin @font-face sí habría sido un
+   cambio real: la primera superficie que usara `font-mono` habría caído en
+   silencio a la monoespaciada del sistema. Retirar la familia de la identidad
+   es una decisión de marca, no de performance, y no corresponde a este
+   checkpoint. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 html {
   color-scheme: light;

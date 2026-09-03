@@ -4,8 +4,6 @@
  * de un `pair` de la collection `cases` con getImage() en build/SSG: React
  * solo recibe props serializables (src/width/height planos), nunca el
  * ImageMetadata de Astro (decisión aprobada, ver CLAUDE.md).
- * No es full-bleed (vive dentro de <Container size="content"> a lo sumo a
- * media columna) — una sola densidad en formato moderno basta, sin srcset.
  * Hidratación client:visible: no es above-the-fold crítico (regla de
  * CLAUDE.md sobre directivas de cliente).
  */
@@ -40,27 +38,58 @@ interface Props {
 const { pair, alt, beforeAlt, afterAlt, beforeLabel, afterLabel, aspectRatio } =
   Astro.props as Props;
 
-// Ancho objetivo del comparador en su uso más ancho. Se pide acotado al ancho
-// real del original (EPIC 6 — Checkpoint 6.4): Sharp nunca amplía —ante un
-// original más angosto devuelve el original—, pero getImage() sí construye sus
-// `attributes` con el ancho PEDIDO. Con las fotografías de 720x1280 del caso
-// publicado eso hacía que el archivo emitido midiera 720x1280 y el DOM
-// declarara 960x1707: las dimensiones que el navegador usa para reservar el
-// espacio no eran las de la imagen que recibía. Math.min() las vuelve a
-// coincidir sin tocar el archivo generado (mismos bytes, mismo pixel) y sin
-// introducir srcset ni una pipeline nueva. Un original más ancho que 960 sigue
-// reduciéndose a 960 como antes.
-const TARGET_WIDTH = 960;
+// Ancho CSS máximo del comparador. No es una estimación: las TRES superficies
+// que lo montan —FeaturedWork, ServiceCase y la ficha de /trabajos— envuelven
+// la figura en `w-full max-w-[24rem]`, así que 384px es el techo real y en
+// móvil el contenedor mide algo menos (100vw menos el gutter).
+const DISPLAY_WIDTH = 384;
+
+// EPIC 8 — Checkpoint 8.3 (F-15). Hasta aquí se emitía una sola densidad de
+// 720px —el ancho del original— para un contenedor de 384px. Eso es correcto
+// para una pantalla de densidad 2 (384x2 = 768 ≈ 720, el original es el techo)
+// y son cuatro veces los píxeles necesarios en una pantalla de densidad 1, que
+// es el caso común en escritorio. Medido sobre el caso publicado: 142.066 B
+// (antes) + 36.792 B (después) = 178.858 B servidos donde bastan 53.302 +
+// 14.882 = 68.184 B. 110.674 B (−62%) que hoy viajan sin que ningún píxel los
+// use.
+//
+// La corrección es un srcset de dos candidatos, no una pipeline nueva: el
+// navegador elige, el original sigue siendo el techo y ninguna imagen se
+// recorta ni se amplía. `Math.min` contra el ancho real del original se
+// conserva por la razón de EPIC 6 — Checkpoint 6.4: Sharp nunca amplía, pero
+// getImage() construye sus `attributes` con el ancho PEDIDO, así que sin el
+// tope el DOM declararía dimensiones que el archivo emitido no tiene. El `Set`
+// colapsa los candidatos cuando el original es más angosto que el contenedor:
+// un original de 300px emite una sola variante, no dos idénticas.
+const candidateWidths = (image: ImageMetadata) =>
+  [...new Set([DISPLAY_WIDTH, DISPLAY_WIDTH * 2].map((w) => Math.min(w, image.width)))].sort(
+    (a, b) => a - b
+  );
+
+// 24rem desde `md:`, donde la figura ya alcanza su tope. Por debajo ocupa el
+// ancho útil del <Container>, que es exactamente 100vw menos su `px-4` a cada
+// lado — de ahí `calc(100vw - 2rem)` y no `100vw`. La diferencia no es
+// cosmética: declarar 100vw en un teléfono de 390px pide 390px, el candidato de
+// 384w se queda 6px corto y el navegador sube al de 720w, perdiendo el ahorro
+// justo donde más importa. Medido en Chrome: con 100vw un móvil de densidad 1
+// descargaba 179.396 B; con este `calc` descarga 69.086 B.
+//
+// Sobreestimar sigue siendo el lado seguro (el navegador puede elegir de más,
+// nunca de menos) y aquí no se subestima nunca: la figura es `w-full
+// max-w-[24rem]` dentro del contenedor, así que nunca supera ese ancho.
+const SIZES = '(min-width: 48rem) 24rem, calc(100vw - 2rem)';
 
 const [beforeImage, afterImage] = await Promise.all([
   getImage({
     src: pair.before,
-    width: Math.min(TARGET_WIDTH, pair.before.width),
+    widths: candidateWidths(pair.before),
+    sizes: SIZES,
     format: 'webp',
   }),
   getImage({
     src: pair.after,
-    width: Math.min(TARGET_WIDTH, pair.after.width),
+    widths: candidateWidths(pair.after),
+    sizes: SIZES,
     format: 'webp',
   }),
 ]);
@@ -72,11 +101,15 @@ const [beforeImage, afterImage] = await Promise.all([
     src: beforeImage.src,
     width: beforeImage.attributes.width,
     height: beforeImage.attributes.height,
+    srcSet: beforeImage.srcSet.attribute,
+    sizes: SIZES,
   }}
   after={{
     src: afterImage.src,
     width: afterImage.attributes.width,
     height: afterImage.attributes.height,
+    srcSet: afterImage.srcSet.attribute,
+    sizes: SIZES,
   }}
   alt={alt}
   beforeAlt={beforeAlt}

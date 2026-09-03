@@ -1,0 +1,195 @@
+---
+/**
+ * Trigger + panel de navegación móvil. Patrón "disclosure" no modal
+ * (WAI-ARIA APG): no usa role="dialog", focus trap ni scrim — el resto de
+ * la página permanece interactivo. Cierra con Escape, clic exterior o al
+ * seleccionar un link, y devuelve el foco al trigger al cerrar con Escape.
+ *
+ * SIN REACT NI FRAMER MOTION (EPIC 8 — Checkpoint 8.3, F-04). Hasta 8.2 esto
+ * era un island `client:load` de React con AnimatePresence. Como el header vive
+ * en BaseLayout, ese island obligaba a TODAS las rutas —incluidas las que no
+ * tienen ninguna otra interacción— a descargar y ejecutar el runtime de React
+ * más el de Framer Motion para un botón que abre una lista de cinco enlaces.
+ * El menú sí necesita JavaScript; no necesitaba un framework de cliente.
+ *
+ * Lo que reemplaza a cada pieza:
+ *
+ *   useState/AnimatePresence → un atributo `data-open` en el panel; el estado
+ *     visible es el DOM, no una copia del DOM en memoria.
+ *   motion.div (height/opacity) → una transición CSS (ver <style> abajo).
+ *   useReducedMotion → la media query prefers-reduced-motion, que ya es la
+ *     fuente de verdad y no cuesta bytes de JavaScript.
+ *   useId → un id literal: Navbar renderiza este componente una vez por página.
+ *   props serializadas desde Astro → nada. `aria-current` se resuelve aquí
+ *     mismo en build, con la misma función que usa <NavLink> (ver
+ *     src/lib/utils/navigation.ts), así que desktop y móvil no pueden marcar
+ *     destinos distintos. Antes esa marca viajaba como prop `currentHref`
+ *     porque el island no podía leer el pathname del build; ahora el
+ *     componente ES build.
+ *
+ * ESTADO INICIAL SIN JS. El panel se sirve en el HTML —cerrado— en vez de no
+ * existir hasta que React hidrate. Eso corrige de paso un detalle del island:
+ * su `aria-controls` apuntaba a un id que no estaba en el documento mientras el
+ * menú estuviera cerrado, que es como se sirve siempre. Aquí el id existe desde
+ * el primer byte. Sin JavaScript el panel queda colapsado y fuera del árbol de
+ * accesibilidad (`visibility: hidden`), no hay destello de menú abierto, y la
+ * navegación desktop y el resto de la página siguen intactas.
+ */
+import { availableNav } from '../../data/navigation';
+import { isCurrentNavItem } from '../../lib/utils/navigation';
+
+const PANEL_ID = 'mobile-menu-panel';
+const { pathname } = Astro.url;
+---
+
+<div class="md:hidden" data-mobile-menu>
+  <button
+    type="button"
+    data-mobile-menu-trigger
+    aria-expanded="false"
+    aria-controls={PANEL_ID}
+    aria-label="Abrir menú"
+    class="text-ink hover:bg-paper-2 group inline-flex size-10 items-center justify-center rounded-md transition-colors [transition-duration:var(--duration-fast)]"
+  >
+    {
+      /* Un <svg> por estado en vez de reescribir el `d` desde JS: el icono lo
+        decide el mismo atributo que ya comunica el estado, y no queda una
+        segunda fuente de verdad capaz de desincronizarse. */
+    }
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="size-[var(--icon-lg)] group-aria-expanded:hidden"
+      aria-hidden="true"
+    >
+      <path d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="hidden size-[var(--icon-lg)] group-aria-expanded:block"
+      aria-hidden="true"
+    >
+      <path d="M6 6l12 12M18 6L6 18"></path>
+    </svg>
+  </button>
+
+  {
+    /* El truco de grid 0fr→1fr es lo que permite animar hasta la altura real
+      del contenido sin fijarla a mano ni medirla desde JS, que es lo que
+      resolvía `height: auto` de Framer. El hijo lleva el overflow. */
+  }
+  <div
+    id={PANEL_ID}
+    data-mobile-menu-panel
+    class="border-hairline bg-paper absolute inset-x-0 top-full border-b shadow-md"
+  >
+    <div class="min-h-0 overflow-hidden">
+      <nav aria-label="Principal (móvil)" class="flex flex-col gap-1 px-4 py-4">
+        {
+          availableNav.map((item) => (
+            <a
+              href={item.href}
+              aria-current={isCurrentNavItem(pathname, item.href) ? 'page' : undefined}
+              class="text-ink-2 hover:bg-paper-2 hover:text-ink aria-[current=page]:text-brand-ink rounded-md px-3 py-2 text-base font-medium transition-colors [transition-duration:var(--duration-fast)]"
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Cerrado: colapsado, transparente y fuera del árbol de accesibilidad.
+     `visibility` es lo que saca al panel del orden de tabulación y de los
+     lectores de pantalla mientras está cerrado. Se retrasa hasta el final de la
+     transición al cerrar (`0s linear var(--duration-base)`) para que el fundido
+     alcance a verse, y es inmediata al abrir. */
+  [data-mobile-menu-panel] {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      grid-template-rows var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out),
+      visibility 0s linear var(--duration-base);
+  }
+
+  [data-mobile-menu-panel][data-open] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition:
+      grid-template-rows var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out),
+      visibility 0s;
+  }
+
+  /* Sin transición: el panel aparece y desaparece de inmediato, `visibility`
+     incluida (el retraso de cierre se va con el resto). */
+  @media (prefers-reduced-motion: reduce) {
+    [data-mobile-menu-panel],
+    [data-mobile-menu-panel][data-open] {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-mobile-menu]');
+  const trigger = root?.querySelector<HTMLButtonElement>('[data-mobile-menu-trigger]');
+  const panel = root?.querySelector<HTMLElement>('[data-mobile-menu-panel]');
+
+  if (root && trigger && panel) {
+    // `aria-expanded` es a la vez el estado accesible, el que decide el icono
+    // (ver group-aria-expanded en el markup) y el que se consulta al alternar:
+    // no hay una variable paralela capaz de quedar desfasada del DOM.
+    const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
+
+    const setOpen = (open: boolean) => {
+      trigger.setAttribute('aria-expanded', String(open));
+      trigger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      panel.toggleAttribute('data-open', open);
+    };
+
+    trigger.addEventListener('click', () => setOpen(!isOpen()));
+
+    // Escape devuelve el foco al trigger; el clic exterior no, porque el foco
+    // ya se fue a donde el usuario apuntó. Mismo comportamiento que el island.
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      setOpen(false);
+      trigger.focus();
+    });
+
+    // `pointerdown` y no `click`: cierra apenas empieza el gesto, igual que
+    // antes. El trigger se excluye para que su propio click alterne en vez de
+    // cerrar aquí y reabrir allá.
+    document.addEventListener('pointerdown', (event) => {
+      if (!isOpen()) return;
+      const target = event.target as Node;
+      if (panel.contains(target) || trigger.contains(target)) return;
+      setOpen(false);
+    });
+
+    // Seleccionar un destino cierra el panel. No es redundante con la
+    // navegación: casi todos los ítems son anclas a secciones de home
+    // (`/#servicios`) y desde home no recargan la página — sin esto el panel
+    // quedaría abierto tapando justo la sección a la que se acaba de saltar.
+    panel.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+  }
+</script>

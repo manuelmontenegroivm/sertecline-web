@@ -4,29 +4,22 @@
  * ningún ítem tenga destino real, no se muestra nada (ni links ni hamburguesa)
  * — ver EPIC 3.5.
  *
- * PÁGINA ACTUAL EN MÓVIL (EPIC 8 — Checkpoint 8.2). El destino actual se
- * resuelve aquí, en Astro, que ya conoce el pathname del build, y viaja al
- * island como un dato: MobileMenu solo lo renderiza. No se descubre la
- * navegación en runtime —nada de `window.location`—, así que la marca es
- * correcta desde el HTML servido y no depende de que la hidratación ocurra;
- * tampoco se envía al cliente la regla de coincidencia.
+ * PÁGINA ACTUAL. Las dos navegaciones marcan el destino actual con la misma
+ * regla —coincidencia exacta, indiferente a la barra final— que vive en un
+ * único lugar (src/lib/utils/navigation.ts), de modo que desktop y móvil no
+ * pueden decir cosas distintas según el ancho de la pantalla. Cada componente
+ * la aplica sobre `Astro.url.pathname` en build; no se descubre la navegación
+ * en runtime, así que la marca es correcta desde el HTML servido.
  *
- * Se pasa el `href` del ítem actual y no un `pathname`: es el island renderizando
- * una comparación de igualdad, no reimplementando la semántica. Esa semántica
- * —coincidencia exacta, indiferente a la barra final— vive en un único lugar
- * (lib/utils/navigation.ts) y es exactamente la misma que aplica <NavLink> al
- * lado, de modo que desktop y móvil no pueden marcar destinos distintos.
+ * Hasta EPIC 8 — Checkpoint 8.2 este archivo resolvía además el `href` actual y
+ * se lo pasaba a <MobileMenu> como prop, porque el menú era un island de React
+ * que no podía leer el pathname del build. Desde CP 8.3 el menú es un
+ * componente de Astro (ver MobileMenu.astro, F-04) y lo resuelve por su cuenta:
+ * el nav ya no serializa estado para nadie ni monta ninguna island.
  */
 import NavLink from './NavLink.astro';
-import MobileMenu from './MobileMenu';
+import MobileMenu from './MobileMenu.astro';
 import { availableNav } from '../../data/navigation';
-import { isCurrentNavItem } from '../../lib/utils/navigation';
-
-// `undefined` cuando ninguno coincide —una ficha de servicio, la ficha de un
-// trabajo—, y entonces el panel móvil no marca nada, igual que el nav desktop.
-const currentHref = availableNav.find((item) =>
-  isCurrentNavItem(Astro.url.pathname, item.href)
-)?.href;
 ---
 
 {
@@ -37,7 +30,7 @@ const currentHref = availableNav.find((item) =>
           <NavLink item={item} />
         ))}
       </nav>
-      <MobileMenu items={availableNav} currentHref={currentHref} client:load />
+      <MobileMenu />
     </>
   )
 }

@@ -60,7 +60,9 @@
 
   /* ── TIPOGRAFÍA · FAMILIAS ───────────────────────────────────── [util]
      Archivo = grotesco industrial (display/UI/texto).
-     JetBrains Mono = datos técnicos, overlines, cifras (grabado de herramienta). */
+     JetBrains Mono = datos técnicos, overlines, cifras (grabado de herramienta).
+     Las dos se sirven desde el propio origen; sus @font-face y el detalle de
+     pesos, subset y licencia están en brand.css (EPIC 8 — Checkpoint 8.3). */
   --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
