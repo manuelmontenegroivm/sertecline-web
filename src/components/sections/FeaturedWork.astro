@@ -153,6 +153,20 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
      que `caseEntry` exista. */
   caseEntry && caseData && (
     <Section as="section" id="trabajos" background="paper-2" spacing="lg" class="scroll-mt-24">
+      {/* `lg:max-w-[53rem]` no es un valor suelto: es la suma exacta de la
+          composición en `lg:` — 26rem de texto + 4rem de `gap-x-16` + 23rem de
+          figura. Declara el bloque con el ancho que su propia grilla necesita
+          en vez de heredar los 75rem de `--container-content`.
+
+          Medido en 1024/1440/1920 (EPIC 8 — Checkpoint 8.4.1): con el tope, la
+          caja mide 848px y los tracks 416 y 368; sin tope, la caja crece a
+          1152px y los tracks siguen en 416 y 368 —ya están en su límite de
+          crecimiento—, así que subirlo no ensancha nada, solo deja la caja
+          corriendo hasta el contenedor. Bajarlo sí se nota: los dos tracks son
+          `minmax(0, …)`, y con `max-w-narrow` (45rem) caen a 328 y 328 —se
+          estrechan a la vez la copy y la fotografía—. `max-w-narrow` tampoco
+          corresponde por lo que es: esa medida existe para una columna de
+          lectura, y esto son dos columnas. */}
       <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,19rem)] md:grid-rows-[auto_1fr] md:items-start md:gap-x-10 lg:max-w-[53rem] lg:grid-cols-[minmax(0,26rem)_minmax(0,23rem)] lg:gap-x-16">
         <div class="max-w-prose md:col-start-1 md:row-start-1">
           <Badge>{featuredWorkContent.eyebrow}</Badge>

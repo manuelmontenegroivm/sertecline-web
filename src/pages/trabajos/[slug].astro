@@ -49,14 +49,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Container from '../../components/layout/Container.astro';
 import Breadcrumbs from '../../components/layout/Breadcrumbs.astro';
 import CaseEvidence from '../../components/cases/CaseEvidence.astro';
+import ServiceCta from '../../components/services/ServiceCta.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import { getPublishedCaseById, getPublishedCases } from '../../lib/content/cases';
 import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
 import { getServiceById } from '../../data/services';
 import { getPlaceById } from '../../data/places';
 import { brands } from '../../data/brands';
+import { serviceCtaContent } from '../../data/serviceCta';
 import { formatMonthYear } from '../../lib/utils/date';
 import { buildBreadcrumbStructuredData, buildCanonicalUrl } from '../../lib/seo/page';
+import { resolveServiceName } from '../../lib/seo/services';
 import type { Breadcrumb } from '../../types/breadcrumb';
 
 export async function getStaticPaths() {
@@ -106,6 +109,20 @@ const {
 const service = getServiceById(serviceId);
 const publishedService = await getServiceBySlug(serviceId);
 const serviceHref = publishedService ? buildServicePath(publishedService.id) : undefined;
+
+// Mensaje precargado del CTA de cierre. Misma plantilla y misma resolución de
+// nombre que usan las fichas de servicio (src/data/serviceCta.ts +
+// resolveServiceName), así que el chat abre nombrando el servicio al que
+// corresponde este trabajo y no el trabajo mismo: quien escribe pide ayuda con
+// su propio equipo, no con el de la fotografía. Si el catálogo no resolviera el
+// servicio, el prop se omite y <ContactActions> cae a su mensaje genérico — no
+// se inventa un contexto.
+const ctaWhatsappMessage = service
+  ? serviceCtaContent.whatsappMessageTemplate.replace(
+      '{servicio}',
+      resolveServiceName(service.title, service.seoTitle)
+    )
+  : undefined;
 
 // `area` es opcional. Si el caso no la declara, esta ficha no imprime ubicación
 // alguna: no se infiere desde el servicio, ni desde la cobertura comercial, ni
@@ -218,10 +235,23 @@ const structuredData = buildBreadcrumbStructuredData(breadcrumbs, canonical);
          estática, así que un caso de solo resultado no monta ninguna island.
          El tope de ancho es el mismo que aplican home y las fichas de servicio
          a las fotografías verticales del caso publicado: es un límite de ancho,
-         no un recorte, así que ninguna decisión de layout cuesta evidencia. */
+         no un recorte, así que ninguna decisión de layout cuesta evidencia.
+
+         `mx-auto` centra ese bloque dentro de la columna narrow y NO cambia su
+         medida (EPIC 8 — Checkpoint 8.4.1). Medido de 768 a 1920: la figura
+         mide 384px en los cuatro anchos, antes y después; lo que cambia es
+         dónde cae. Sin centrar quedaba a 24px del borde izquierdo con 312px de
+         vacío a su derecha, porque el contenedor narrow llega a 720px y ella
+         ocupa 384. Con `mx-auto` el sobrante se reparte, 168px por lado. El
+         desbalance solo existía en esta página: en home la misma figura es una
+         columna de la grilla y en la ficha de servicio va en un bloque más
+         estrecho. Por debajo de 384px de ancho disponible —móvil real, 343px a
+         375 de ventana— el tope no llega a aplicarse, la figura ocupa el ancho
+         completo y `mx-auto` no tiene nada que repartir: el layout móvil queda
+         idéntico al anterior, comprobado en 375 y 390. */
     }
     <Container size="narrow" class="py-12 md:py-16">
-      <div class="w-full max-w-[24rem]">
+      <div class="mx-auto w-full max-w-[24rem]">
         <CaseEvidence evidence={evidence} title={title} />
       </div>
     </Container>
@@ -273,6 +303,22 @@ const structuredData = buildBreadcrumbStructuredData(breadcrumbs, canonical);
         </div>
       </Container>
     </section>
+
+    {
+      /* Cierre de la ficha (EPIC 8 — Checkpoint 8.4.1). Hasta aquí la página
+         terminaba en dos enlaces de navegación y ninguna forma de contactar:
+         quien acababa de ver la evidencia de un trabajo tenía que volver al
+         menú o a home para escribir. Se reutiliza <ServiceCta> —el mismo cierre
+         de las fichas de servicio, y por debajo el mismo <ContactActions> que
+         la sección Contacto de home— en vez de escribir un CTA propio: su copy
+         invita a describir un equipo y lo que necesita, sin afirmar nada sobre
+         este trabajo ni sobre esta página. No declara precios, plazos,
+         garantías ni disponibilidad, y no publica teléfono ni correo por su
+         cuenta: los href salen de src/data/contact.ts. Va después de las
+         salidas y no antes porque los enlaces contextualizan (el servicio, el
+         resto de los trabajos) y el CTA cierra. */
+    }
+    <ServiceCta whatsappMessage={ctaWhatsappMessage} />
   </article>
 </BaseLayout>
 

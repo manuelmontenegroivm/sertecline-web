@@ -16,16 +16,45 @@ aprobada en EPIC 2). `logo-kit` es material fuente anterior y no se integró
 | Design tokens — Tailwind v4 `@theme`                                | `src/styles/tokens.css`               |
 | Design tokens — JSON (fuente de verdad, no-CSS)                     | `src/config/design/tokens.json`       |
 
-Ninguno de estos archivos está referenciado todavía desde el `<head>` del
-sitio ni desde componentes: la integración de uso (Layout, `<BrandHead>`,
-componente `<Logo>`) queda para un checkpoint posterior. Ver «Próximos pasos».
+### Consumidores actuales
+
+El sistema está integrado: estos assets se sirven hoy desde el sitio y no quedan
+a la espera de un checkpoint de uso.
+
+| Asset                                                      | Quién lo consume                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`       | `<head>` de `src/layouts/BaseLayout.astro`                                                                   |
+| `src/pages/brand/site.webmanifest.ts`                      | `<link rel="manifest">` de `BaseLayout`; su copia se deriva de `siteConfig`                                  |
+| `public/brand/pwa/icon-192 · icon-512 · icon-512-maskable` | array `icons` del webmanifest                                                                                |
+| `public/brand/social/og-image.png`                         | `siteConfig.logo.og` → `seoDefaults.defaultImage` → `og:image` y `twitter:image` en `BaseLayout`             |
+| `public/brand/logo/*.svg`                                  | mapa `LOGO_FILES` de `src/components/ui/Logo.astro`, montado por `Header.astro` y `Footer.astro` (`primary`) |
+| `/brand/logo/logo.svg` vía `siteConfig.logo.default`       | propiedad `logo` del nodo `Organization` (`src/lib/seo/organization.ts`)                                     |
+| `src/styles/tokens.css`                                    | importado por `src/styles/global.css`; define el `@theme` de Tailwind v4 del que salen las utilidades        |
+| `src/styles/brand.css`                                     | importado por `src/styles/global.css`; `@font-face` de las familias de marca + reglas de documento           |
+| `src/config/design/tokens.json`                            | fuente de verdad no-CSS de los valores y de los contrastes verificados; no se importa en runtime             |
+
+Sin consumidor a la fecha: `public/brand/social/twitter-card.png` y
+`whatsapp-preview.png` —`BaseLayout` sirve `og-image.png` también para
+`twitter:image`—, los PNG `favicon-16/32/48.png` —el `<head>` declara SVG +
+`.ico`— y `siteConfig.logo.icon`. Se conservan como parte del kit; ninguno
+representa trabajo pendiente.
+
+## Marca textual
+
+- **Marca textual canónica: `Sertecline`.** Es la forma que usan metadata,
+  datos estructurados, manifest, nombres accesibles, `alt`, copy y esta
+  documentación.
+- **Wordmark visual: `SERTECLine`.** Es intencional y vive únicamente dentro de
+  los SVG de `public/brand/logo/` y del favicon SVG, como forma dibujada de la
+  marca. No es un nombre alternativo y no se usa como texto en ninguna
+  superficie.
 
 ## Referencia (no producción)
 
 `reference-components/` contiene los componentes de ejemplo tal como los
 entregó el kit. Se guardan como referencia de implementación, **no se
-integraron a `src/`** porque la tarea actual es solo el asset system
-(EPIC 3.1) y no la creación de componentes:
+integraron a `src/`** porque la tarea de EPIC 3.1 era solo el asset system y no
+la creación de componentes:
 
 - `BrandHead.astro` — snippet de `<head>` (favicons, manifest, OG, Twitter).
 - `Logo.astro` / `Logo.tsx` — wrapper de logo por variante (Astro y React).
@@ -34,6 +63,10 @@ integraron a `src/`** porque la tarea actual es solo el asset system
   design system aprobado (p. ej. `--color-brand-dark` difiere de
   `brandOnDark` en `tokens.json`). Se conserva solo como referencia
   histórica; no debe usarse como fuente de tokens.
+
+Estos tres archivos escriben `SERTECLine` en sus encabezados y su copy porque
+así los entregó el kit. Es material histórico congelado y no se corrige: la
+marca textual del proyecto es la de arriba.
 
 ## Excluido
 
@@ -49,27 +82,37 @@ previo a `sertecline-brand-kit`. Se revisó y no se integró porque:
   `wordmark/sertecline-original.png`, `wordmark/sertecline-black.*`).
   Integrarlas ahora implicaría introducir variantes visuales que no están
   referenciadas ni aprobadas en el checkpoint 3.2 — fuera del alcance de
-  esta tarea ("no crear nuevas decisiones visuales").
+  esa tarea ("no crear nuevas decisiones visuales").
 
 Si alguna de esas variantes es necesaria a futuro, debe pasar primero por
 aprobación de Dirección Creativa y añadirse explícitamente al brand kit.
 
-## Próximos pasos (fuera de alcance de esta integración)
+## Integración completada
 
-1. Reemplazar los favicons placeholder de Astro (`public/favicon.ico`,
-   `public/favicon.svg`, generados por el scaffold) por los de
-   `public/brand/favicon/` en el `<head>` real del sitio.
-2. Crear el Layout base y montar `BrandHead.astro` (o su equivalente) usando
-   `reference-components/BrandHead.astro` como punto de partida.
-3. Crear el componente `<Logo>` de producción en `src/components/` a partir
-   de `reference-components/Logo.astro` / `Logo.tsx`.
-4. Actualizar `src/config/site.ts` (`logo.default`, `logo.icon`, `logo.og`)
-   para apuntar a `/brand/logo/logo.svg`, `/brand/favicon/favicon.svg` y
-   `/brand/social/og-image.png` respectivamente (hoy apuntan a rutas TODO
-   en `src/assets/images/brand/`).
-5. Decidir si `src/styles/brand.css` debe existir como capa aparte de
-   `tokens.css` (p. ej. solo para `@import` de fuentes Archivo/JetBrains
-   Mono) — no se creó en esta integración para no fabricar una decisión de
-   diseño no aprobada.
-6. Importar `tokens.css` desde `src/styles/global.css` cuando se decida
-   activar el design system (no se tocó `global.css` en esta integración).
+Los seis puntos que EPIC 3.1 dejó fuera de su alcance están resueltos. Se
+conservan aquí —con su resolución, no como pendientes— porque cada uno registra
+una decisión y dónde vive hoy:
+
+1. **Favicons de marca en el `<head>` real.** `BaseLayout.astro` declara
+   `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` y el manifest desde
+   `public/brand/`. Los placeholders del scaffold de Astro (`public/favicon.ico`,
+   `public/favicon.svg`) ya no existen en el repositorio.
+2. **Layout base con la metadata de marca.** `src/layouts/BaseLayout.astro`
+   sirve título/description/canónica, favicons y PWA, Open Graph y Twitter. No
+   se creó un `<BrandHead>` aparte: con un único layout base, ese componente
+   intermedio habría tenido un solo consumidor.
+3. **Componente `<Logo>` de producción.** `src/components/ui/Logo.astro`, con
+   las seis variantes del kit, `alt` `Sertecline` por defecto y modo
+   `decorative` para cuando ya hay un texto equivalente al lado. Lo montan
+   `Header.astro` y `Footer.astro`.
+4. **Rutas de `src/config/site.ts`.** `logo.default`, `logo.icon` y `logo.og`
+   apuntan a `/brand/logo/logo.svg`, `/brand/favicon/favicon.svg` y
+   `/brand/social/og-image.png`. Ya no quedan rutas TODO hacia
+   `src/assets/images/brand/`.
+5. **`src/styles/brand.css` como capa aparte de `tokens.css`.** Existe, y su
+   responsabilidad quedó acotada: las `@font-face` de Archivo y JetBrains Mono
+   —self-hosted desde EPIC 8, checkpoint 8.3— y las reglas de documento
+   (`body`, `::selection`, `:focus-visible`, `scroll-behavior`). No redefine
+   ningún valor del sistema: todo lo referencia vía `var(--token)`.
+6. **`tokens.css` importado desde `global.css`.** El design system está activo.
+   El orden de import es `tailwindcss` → `tokens.css` → `brand.css`.

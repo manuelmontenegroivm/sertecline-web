@@ -6,14 +6,14 @@ Esta guía rige cualquier trabajo de Claude Code en este repositorio. Ante confl
 
 Sitio web de **Sertecline**: servicio técnico de línea blanca a domicilio (reparación y mantención de lavadoras, refrigeradores y otros artefactos) en comunas de Santiago, Región Metropolitana, Chile.
 
-El sitio es una **landing premium orientada a conversión y SEO local**, con un blog técnico para posicionamiento orgánico. Debe estar preparado para crecer (más servicios, más comunas, más contenido) sin rehacer la arquitectura base.
+El sitio es una **landing premium orientada a conversión y SEO local**, con fichas de servicio y un registro de trabajos realizados publicados, y un **blog técnico planificado** para posicionamiento orgánico —la colección existe y está vacía; todavía no hay superficie publicada—. Debe estar preparado para crecer (más servicios, más comunas, más contenido) sin rehacer la arquitectura base.
 
 ## Stack técnico actual
 
 - **Astro** — framework principal, salida 100% estática (SSG), sin adapter SSR.
 - **React** (`@astrojs/react`) — únicamente para componentes que requieren interactividad real.
 - **Tailwind CSS v4** — vía plugin de Vite (`@tailwindcss/vite`), no la integración legacy `@astrojs/tailwind`.
-- **MDX** (`@astrojs/mdx`) — contenido del blog.
+- **MDX** (`@astrojs/mdx`) — contenido editorial de las colecciones. Hoy lo usan `services/` y `cases/`; `blog/` está declarada y vacía.
 - **Framer Motion** — animaciones.
 - **`@astrojs/sitemap`** — sitemap automático.
 - **TypeScript** (modo estricto, heredado de `astro/tsconfigs/strict`).
@@ -25,31 +25,51 @@ No asumas otras librerías o integraciones salvo que ya estén en `package.json`
 
 El proyecto sigue una versión ligera de Clean Architecture adaptada a un sitio mayormente estático: el contenido y las reglas de negocio no dependen de Astro ni de un proveedor externo concreto.
 
-| Capa                    | Qué es                                                  | Dónde vive                        |
-| ----------------------- | ------------------------------------------------------- | --------------------------------- |
-| Entidades               | Esquemas de contenido (Post, Servicio, Testimonio)      | `src/content.config.ts`           |
-| Casos de uso            | Funciones puras que consultan/transforman ese contenido | `src/lib/`                        |
-| Adaptadores de interfaz | Componentes que presentan esos datos                    | `src/components/`, `src/layouts/` |
-| Detalles/Frameworks     | Astro, hosting, proveedor de email/CRM del formulario   | `astro.config.mjs`, integraciones |
+| Capa                    | Qué es                                                  | Dónde vive                           |
+| ----------------------- | ------------------------------------------------------- | ------------------------------------ |
+| Entidades               | Modelo de dominio: Service, Case, Place/Area, Brand     | `src/content.config.ts`, `src/data/` |
+| Casos de uso            | Funciones puras que consultan/transforman ese contenido | `src/lib/`                           |
+| Adaptadores de interfaz | Componentes que presentan esos datos                    | `src/components/`, `src/layouts/`    |
+| Detalles/Frameworks     | Astro, hosting, proveedor de email/CRM del formulario   | `astro.config.mjs`, integraciones    |
 
 **Regla de dependencia:** nada en `src/lib/` importa un componente `.astro` o `.tsx`. Los componentes importan de `src/lib/`, `src/data/` y `src/config/` — nunca al revés.
+
+### Modelo de dominio
+
+| Entidad     | Qué representa                                                  | Fuente de verdad                                                             |
+| ----------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Service** | Una intención de contratación sobre un equipo                   | catálogo `src/data/services.ts` + ficha editorial en la colección `services` |
+| **Case**    | Un trabajo que Sertecline realizó, con su evidencia fotográfica | colección `cases` (`src/content/cases/`)                                     |
+| **Place**   | Vocabulario geográfico: dónde ocurrió un trabajo                | `src/data/places.ts`                                                         |
+| **Area**    | Cobertura comercial declarada: dónde el negocio atiende         | `src/data/areas.ts`                                                          |
+| **Brand**   | Marcas de línea blanca atendidas                                | `src/data/brands.ts`                                                         |
+
+`Place` y `Area` son entidades distintas a propósito: un trabajo realizado en un lugar no convierte ese lugar en plaza declarada. `cases.area` se valida contra `places.ts`, nunca contra `areas.ts`.
+
+Colecciones editoriales declaradas en `src/content.config.ts`: `services` y `cases` (con contenido), `blog` y `testimonials` (declaradas y vacías). Una colección vacía no es una superficie publicada.
 
 ## Convenciones de carpetas
 
 ```
 src/
 ├── assets/       # Imágenes/íconos procesados por Astro (astro:assets)
-├── components/   # Organizados por ROL, no por página: ui/ layout/ sections/ blog/ forms/ seo/
-├── layouts/      # Layouts base de página
-├── content/      # Content Collections (blog, services, testimonials) — contenido editorial
-├── data/         # Datos tipados del negocio: navigation, services, areas, brands, contact
-├── config/       # Configuración técnica: site, seo, motion
+├── components/   # Organizados por ROL, no por página:
+│                 #   ui/ layout/ sections/ services/ cases/ contact/ faq/
+│                 #   blog/ forms/ seo/ (creadas, aún sin componentes)
+├── layouts/      # BaseLayout, ServiceLayout
+├── content/      # Content Collections: services/ cases/ (con contenido), blog/ testimonials/ (vacías)
+├── data/         # Datos tipados del negocio: navigation, services, areas, places, brands, contact
+│                 # y el copy por sección (hero, servicesSection, coverageSection, faqSection…)
+├── config/       # Configuración técnica: site, seo, motion + design/tokens.json
 ├── types/        # Tipos TypeScript compartidos
-├── hooks/        # Hooks de React (solo consumidos por islands React)
-├── lib/          # Lógica de aplicación: content/ seo/ forms/ utils/
-├── styles/       # global.css (Tailwind) y fuentes
-└── pages/        # Rutas del sitio
+├── hooks/        # Hooks de React (solo consumidos por islands React) — vacía hoy
+├── lib/          # Lógica de aplicación: content/ seo/ utils/ (forms/ vacía)
+├── styles/       # global.css (entrada) + tokens.css (design tokens) + brand.css (fuentes/documento)
+└── pages/        # Rutas del sitio: index, servicios/[slug], trabajos/ (índice + [slug]),
+                  # robots.txt.ts, brand/site.webmanifest.ts
 ```
+
+Las carpetas vacías conservan un `.gitkeep`: reservan el sitio de una capa acordada (blog, forms, hooks) sin fingir que ya existe.
 
 Reglas:
 
@@ -62,7 +82,7 @@ Reglas:
 
 - Rutas planas en `src/pages/`, sin prefijo de idioma (el sitio es mono-idioma `es-CL`) salvo instrucción explícita en contrario.
 - La lógica de obtención/transformación de datos vive en `src/lib/`, no inline en el frontmatter de un `.astro`.
-- `getStaticPaths()` para rutas dinámicas (`servicios/[slug]`, `blog/[slug]`) resuelto desde Content Collections.
+- `getStaticPaths()` para rutas dinámicas (hoy `servicios/[slug]` y `trabajos/[slug]`) resuelto desde Content Collections, a través de la capa de acceso de `src/lib/content/` — una entrada en `draft` no genera ruta ni entra al sitemap.
 - Al levantar el servidor de desarrollo, usar modo background:
   ```
   astro dev --background
@@ -78,19 +98,23 @@ Reglas:
 
 ## Reglas para Tailwind
 
-- Todo estilo nuevo usa utilities de Tailwind sobre los tokens definidos en `src/styles/global.css`. No introducir valores mágicos de color/espaciado sueltos.
+- Todo estilo nuevo usa utilities de Tailwind sobre los tokens definidos en `src/styles/tokens.css` (bloque `@theme` de Tailwind v4). No introducir valores mágicos de color/espaciado sueltos.
+- Reparto de las tres hojas de `src/styles/`: `global.css` es solo la entrada de composición (`@import` de `tailwindcss` → `tokens.css` → `brand.css`, en ese orden); `tokens.css` define los design tokens; `brand.css` declara las `@font-face` de marca y las reglas de documento. Un token nuevo va en `tokens.css`, nunca en `global.css`.
 - Si un valor se repite, se extiende el tema/tokens — no se parchea con clases arbitrarias (`w-[123px]`) como primera opción.
 - Diseño mobile-first; validar en los breakpoints estándar antes de dar una tarea de UI por cerrada.
 
 ## Reglas para MDX
 
-- Todo artículo de blog vive en `src/content/blog/` y debe cumplir el schema de `src/content.config.ts` (Zod): `title`, `description`, `pubDate`, `author`, `tags`, `draft` (obligatorios), más `updatedDate` y `heroImage` (opcionales).
-- No publicar un post con `draft` sin definir o con campos del schema incompletos.
+- El MDX del proyecto es el cuerpo editorial de las Content Collections. Superficies con contenido hoy: `src/content/services/` (ficha extensa de cada servicio publicado) y `src/content/cases/` (nota sobre un trabajo realizado; su cuerpo es opcional). `src/content/blog/` está declarada en `src/content.config.ts` pero vacía: el blog técnico es contenido planificado, no una superficie publicada.
+- Todo archivo debe cumplir el schema Zod de su colección en `src/content.config.ts`. Los objetos de frontmatter son `z.strictObject()`: una clave que el schema no declara **falla el build** en vez de descartarse en silencio. No agregar campos al frontmatter sin agregarlos también al schema y darles un consumidor.
+- Un campo opcional que no se conoce se **omite**; no se rellena con `N/A`, `Sin información` ni prosa genérica — el schema de `cases` rechaza explícitamente esos marcadores en los campos factuales.
+- Cuando el blog se active: todo artículo vive en `src/content/blog/` y cumple `title`, `description`, `pubDate`, `author`, `tags`, `draft` (obligatorios), más `updatedDate` y `heroImage` (opcionales). No publicar un post con `draft` sin definir o con campos del schema incompletos.
 - Componentes usados dentro de un `.mdx` se importan explícitamente en ese archivo; no depender de globals.
 
 ## Reglas de SEO, SEO local, GEO y AEO
 
-- Ninguna página se cierra sin `SeoHead` (title, description, canonical, Open Graph) correctamente completado.
+- **Dónde vive el SEO:** no existe un componente `SeoHead`. El `<head>` lo emite `src/layouts/BaseLayout.astro` —title, description, canónica, `noindex`, favicons/PWA, Open Graph y Twitter—, con los valores por defecto de `src/config/seo.ts`. La política y los builders viven en `src/lib/seo/` (`page.ts` para canónica y `BreadcrumbList`, `services.ts` para las fichas de servicio, `organization.ts` para la entidad canónica, `schema.ts` para el vocabulario schema.org). Cada página o layout entrega sus datos: pasa `title`/`description`/`canonical` a `BaseLayout` e inyecta su JSON-LD por el `slot="head"`.
+- Ninguna página se cierra sin title, description, canónica y Open Graph correctamente resueltos por esa vía. Si la página necesita datos estructurados, se construyen con los builders de `src/lib/seo/` — nunca con JSON-LD escrito a mano en el `.astro`.
 - JSON-LD obligatorio: `Organization` (home), `Service` en cada página de servicio, `Article` en cada post de blog, `BreadcrumbList` donde exista jerarquía de navegación.
 - **Entidad de negocio canónica:** el sitio declara `Organization` —no `LocalBusiness`—, definida en `src/lib/seo/organization.ts` y publicada únicamente en home. Su `@id` (`SERTECLINE_ORGANIZATION_ID`) es estable; cada `Service` la referencia vía `provider` con ese mismo `@id`, nunca redeclarando una organización aparte.
 - **No migrar a `LocalBusiness` por defecto:** mientras SERTECLINE no disponga de una dirección comercial real, confirmada y publicable, la entidad canónica se mantiene en `Organization`. `src/data/contact.ts` omite dirección, horarios y email deliberadamente porque el negocio no los ha confirmado. `LocalBusiness` solo se evalúa mediante una decisión arquitectónica explícita, cuando existan datos reales suficientes para representarlo correctamente.

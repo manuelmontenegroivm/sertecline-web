@@ -1,5 +1,5 @@
 /* ============================================================================
-   SERTECLine · Brand Foundation
+   Sertecline · Brand Foundation
    Estilos fundacionales que activan el design system (tokens.css) a nivel
    de documento. No redefine valores del sistema — todo se referencia vía
    var(--token). Lo único que declara por su cuenta son las @font-face de las

@@ -6,7 +6,7 @@ Sitio web oficial de **Sertecline**, servicio técnico de línea blanca a domici
 
 ## Objetivo
 
-Landing page premium orientada a conversión y SEO local, con blog técnico para posicionamiento orgánico, preparada para escalar (más servicios, más comunas, más contenido) sin rehacer la arquitectura base.
+Landing page premium orientada a conversión y SEO local, con fichas de servicio y un registro público de trabajos realizados. El blog técnico para posicionamiento orgánico está **planificado**: la colección existe y está vacía, todavía sin superficie publicada. La arquitectura está preparada para escalar (más servicios, más comunas, más contenido) sin rehacerla.
 
 ## Stack tecnológico
 
@@ -55,37 +55,59 @@ npm run format:check
 
 ```
 sertecline/
-├── public/                  # Assets estáticos sin procesar (favicon, fuentes)
+├── docs/                    # Documentación operativa (sistema de marca, contrato de Cases)
+├── public/                  # Assets estáticos sin procesar
+│   ├── brand/               # logo/ favicon/ pwa/ social/ (brand asset system)
+│   └── fonts/               # Archivo y JetBrains Mono self-hosted (.woff2 + licencias)
+├── scripts/
+│   └── validate-case-images.mjs   # Compuerta de privacidad de las fotos de Cases
 ├── src/
 │   ├── assets/              # Imágenes e íconos procesados por Astro (astro:assets)
-│   │   └── images/          # brand/ hero/ services/ blog/ og/
-│   ├── components/          # Componentes .astro y .tsx organizados por rol
-│   │   ├── ui/               # Átomos sin significado de negocio (Button, Card, Badge)
-│   │   ├── layout/            # Header, Footer, Nav, Container
-│   │   ├── sections/          # Bloques de la landing (Hero, ServicesGrid, CTA...)
-│   │   ├── blog/               # PostCard, TableOfContents, RelatedPosts
-│   │   ├── forms/               # Formularios (interactivos, React donde corresponda)
-│   │   └── seo/                  # SeoHead, JsonLd
-│   ├── layouts/              # Layouts base de página (BaseLayout, BlogPostLayout...)
-│   ├── content/              # Content Collections (contenido editorial versionado)
-│   │   ├── blog/               # Artículos .mdx
-│   │   ├── services/            # Fichas de servicio extensas (si aplica)
-│   │   └── testimonials/         # Testimonios de clientes
-│   ├── data/                 # Datos estructurados del negocio (no editoriales vía CMS)
-│   │   ├── navigation.ts       # Enlaces de menú
-│   │   ├── services.ts          # Catálogo liviano de servicios
-│   │   ├── areas.ts              # Comunas/zonas de cobertura
-│   │   ├── brands.ts              # Marcas de línea blanca atendidas
-│   │   └── contact.ts              # Datos de contacto (NAP)
-│   ├── config/               # Configuración técnica de la app
-│   │   ├── site.ts              # Configuración global del sitio
-│   │   ├── seo.ts                # Valores SEO por defecto
-│   │   └── motion.ts              # Presets de Framer Motion
-│   ├── types/                # Tipos TypeScript compartidos
-│   ├── hooks/                # Hooks de React (solo para componentes interactivos)
-│   ├── lib/                  # Lógica de aplicación (consultas de contenido, SEO, forms, utils)
-│   ├── styles/                # global.css (Tailwind) y fuentes
-│   └── pages/                 # Rutas del sitio (index, servicios/, blog/, etc.)
+│   │   └── images/          # brand/ hero/ services/ cases/ og/ blog/
+│   ├── components/          # Componentes .astro y .tsx organizados por ROL
+│   │   ├── ui/              # Átomos sin significado de negocio (Button, ButtonLink, Badge, Logo, TextLink, VisuallyHidden)
+│   │   ├── layout/          # Header, Navbar, NavLink, MobileMenu, Footer, Container, Section, Breadcrumbs
+│   │   ├── sections/        # Bloques de la home (Hero, Services, FeaturedWork, Coverage, FAQ, Accreditations, Contact)
+│   │   ├── services/        # ServiceCard, ServiceCta, ServiceIcon
+│   │   ├── cases/           # CaseCard, CaseEvidence, CaseResultImage, ServiceCase, BeforeAfterComparator (+ island React)
+│   │   ├── contact/         # ContactActions (par WhatsApp + llamada)
+│   │   ├── faq/             # FaqItem
+│   │   ├── blog/            # (reservada, sin componentes todavía)
+│   │   ├── forms/           # (reservada, sin componentes todavía)
+│   │   └── seo/             # (reservada, sin componentes todavía)
+│   ├── layouts/             # BaseLayout (documento + metadata) y ServiceLayout (ficha de servicio)
+│   ├── content/             # Content Collections (contenido editorial versionado)
+│   │   ├── services/        # Fichas de servicio extensas (.mdx)
+│   │   ├── cases/           # Trabajos realizados (.mdx)
+│   │   ├── blog/            # (declarada y vacía)
+│   │   └── testimonials/    # (declarada y vacía)
+│   ├── data/                # Datos estructurados del negocio y copy por sección
+│   │   ├── navigation.ts    # Enlaces de menú
+│   │   ├── services.ts      # Catálogo liviano de servicios
+│   │   ├── areas.ts         # Comunas/zonas de cobertura comercial declarada
+│   │   ├── places.ts        # Vocabulario geográfico (dónde ocurrió un trabajo)
+│   │   ├── brands.ts        # Marcas de línea blanca atendidas
+│   │   └── contact.ts       # Datos de contacto (NAP)
+│   ├── config/              # Configuración técnica de la app
+│   │   ├── site.ts          # Configuración global del sitio
+│   │   ├── seo.ts           # Valores SEO por defecto
+│   │   ├── motion.ts        # Presets de Framer Motion
+│   │   └── design/          # tokens.json — fuente de verdad no-CSS de los design tokens
+│   ├── types/               # Tipos TypeScript compartidos
+│   ├── hooks/               # Hooks de React (reservada, sin hooks todavía)
+│   ├── lib/                 # Lógica de aplicación
+│   │   ├── content/         # Consultas a las colecciones (cases, services)
+│   │   ├── seo/             # Política y builders de metadata/JSON-LD
+│   │   ├── utils/           # contact, date, navigation
+│   │   └── forms/           # (reservada)
+│   ├── styles/              # global.css (entrada) · tokens.css (design tokens) · brand.css (fuentes y documento)
+│   ├── content.config.ts    # Schemas Zod de las colecciones
+│   └── pages/               # Rutas del sitio
+│       ├── index.astro
+│       ├── servicios/[slug].astro
+│       ├── trabajos/        # index.astro + [slug].astro
+│       ├── robots.txt.ts
+│       └── brand/site.webmanifest.ts
 ├── astro.config.mjs
 ├── tsconfig.json
 └── package.json
@@ -93,15 +115,41 @@ sertecline/
 
 ## Scripts disponibles
 
-| Script                 | Descripción                                                |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm run dev`          | Levanta el servidor de desarrollo con recarga en caliente  |
-| `npm run build`        | Genera el sitio estático en `dist/`                        |
-| `npm run preview`      | Sirve el build de producción localmente                    |
-| `npm run astro`        | Acceso directo al CLI de Astro (`npm run astro -- --help`) |
-| `npm run check`        | Corre `astro check` (tipos y diagnósticos de `.astro`)     |
-| `npm run format`       | Formatea todo el proyecto con Prettier                     |
-| `npm run format:check` | Verifica el formato sin modificar archivos                 |
+| Script                         | Descripción                                                            |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `npm run dev`                  | Levanta el servidor de desarrollo con recarga en caliente              |
+| `npm run build`                | **Build canónico**: corre `validate:case-images` y luego `astro build` |
+| `npm run preview`              | Sirve el build de producción localmente                                |
+| `npm run astro`                | Acceso directo al CLI de Astro (`npm run astro -- --help`)             |
+| `npm run check`                | Corre `astro check` (tipos y diagnósticos de `.astro`)                 |
+| `npm run format`               | Formatea todo el proyecto con Prettier                                 |
+| `npm run format:check`         | Verifica el formato sin modificar archivos                             |
+| `npm run validate:case-images` | Compuerta de privacidad de las fotografías de Cases (ver abajo)        |
+
+## Build y compuerta de privacidad de imágenes
+
+El build de producción es **`npm run build`**, y son dos pasos encadenados:
+
+```
+npm run build
+  → npm run validate:case-images     # node scripts/validate-case-images.mjs
+  → astro build
+```
+
+`validate:case-images` revisa todo archivo bajo `src/assets/images/cases/` y **falla el build** si encuentra metadata incrustada (EXIF, XMP o IPTC — donde una foto de teléfono guarda GPS, fecha exacta, modelo del equipo y dueño del dispositivo) o un formato fuera de la lista permitida.
+
+Por eso `astro build` a secas **no** es equivalente al build canónico: se salta la compuerta. Cualquier pipeline de CI o despliegue debe invocar `npm run build`.
+
+La compuerta cubre solo la metadata del archivo. Lo que se ve _dentro_ de la imagen —rostros, documentos, números de serie, direcciones, consentimiento del cliente— es revisión humana obligatoria: ver [`docs/cases/privacidad-fotografias.md`](./docs/cases/privacidad-fotografias.md).
+
+## Documentación del repositorio
+
+| Documento                                                                        | Contenido                                              |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`CLAUDE.md`](./CLAUDE.md)                                                       | Guía permanente de arquitectura, SEO, estilo y alcance |
+| [`docs/brand/README.md`](./docs/brand/README.md)                                 | Sistema de marca: assets, tokens y sus consumidores    |
+| [`docs/cases/README.md`](./docs/cases/README.md)                                 | Contrato de captura y publicación de un Case           |
+| [`docs/cases/privacidad-fotografias.md`](./docs/cases/privacidad-fotografias.md) | Política de privacidad de la evidencia fotográfica     |
 
 ## Licencia
 

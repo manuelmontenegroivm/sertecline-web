@@ -28,6 +28,16 @@
  * permitiría que el mensaje del hero y el del cierre divergieran al editar uno
  * solo. `whatsappMessageTemplate` sigue viviendo en el mismo archivo de copy
  * que el resto de este bloque; quien lo interpola ahora es ServiceLayout.
+ *
+ * TERCER CONSUMIDOR (EPIC 8 — Checkpoint 8.4.1): la ficha de un trabajo
+ * realizado (src/pages/trabajos/[slug].astro), que hasta ahora terminaba en dos
+ * enlaces de texto y ninguna salida de contacto. Se reutiliza tal cual, sin
+ * variante ni componente paralelo, porque su copy no afirma nada sobre la
+ * superficie que lo monta: invita a describir un equipo y lo que necesita, que
+ * es exactamente lo que un lector quiere hacer al terminar de ver un trabajo.
+ * El `id="cta-servicio"` se conserva —es un ancla interna para el
+ * `aria-labelledby`, única por página, no una afirmación sobre el contenido— y
+ * el nombre del componente sigue nombrando su origen, no su único destino.
  */
 import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
@@ -35,8 +45,13 @@ import ContactActions from '../contact/ContactActions.astro';
 import { serviceCtaContent } from '../../data/serviceCta';
 
 interface Props {
-  /** Mensaje ya interpolado — ver ServiceLayout.astro, bloque CONTACTO TEMPRANO. */
-  whatsappMessage: string;
+  /**
+   * Mensaje ya interpolado — ver ServiceLayout.astro, bloque CONTACTO TEMPRANO.
+   * Opcional: sin él, <ContactActions> usa el mensaje genérico de
+   * lib/utils/contact.ts. Una superficie que no puede nombrar un servicio con
+   * certeza omite el prop en vez de inventar un contexto.
+   */
+  whatsappMessage?: string;
 }
 
 const { whatsappMessage } = Astro.props as Props;
