@@ -49,6 +49,29 @@ representa trabajo pendiente.
   marca. No es un nombre alternativo y no se usa como texto en ninguna
   superficie.
 
+## Geometría del wordmark (EPIC 8 — Checkpoint 8.4.2)
+
+Los siete SVG de marca dibujan el wordmark y el monograma como **contornos
+vectoriales**, no como `<text>` vivo. Hasta 8.4.2 declaraban
+`font-family: 'Arial Black', Arial, Helvetica, sans-serif`, así que el dibujo de
+cada glifo lo resolvía la fuente instalada en el equipo del visitante: sólo
+Windows veía la forma aprobada, y los demás sistemas recibían una sustitución
+que perdía entre 12 % y 29 % del área de tinta.
+
+La geometría actual proviene de **Archivo 900**, la familia que el sitio ya
+self-hostea bajo SIL OFL 1.1 (`public/fonts/archivo-OFL.txt`), convertida a
+`<path>`. Consecuencias que conviene no reabrir por accidente:
+
+- Los assets no dependen de ninguna fuente instalada ni embebida: el render es
+  idéntico en Windows, macOS, Linux, Android e iOS.
+- `logo.svg`, `logo-dark.svg`, `logo-light.svg` y `logo-mono.svg` comparten la
+  misma geometría y sólo difieren en los `fill`. `favicon.svg` y
+  `logo-monogram.svg` siguen siendo el mismo archivo.
+- Editar el wordmark ya no es editar texto: exige regenerar los contornos desde
+  Archivo 900 y vuelve a requerir aprobación de marca.
+- La marca textual canónica sigue siendo `Sertecline`, y es la que usan `alt`,
+  `aria-label` y toda la metadata.
+
 ## Referencia (no producción)
 
 `reference-components/` contiene los componentes de ejemplo tal como los
