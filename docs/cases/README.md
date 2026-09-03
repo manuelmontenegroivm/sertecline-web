@@ -127,8 +127,11 @@ Reglas del frontmatter:
 - **Entra siempre con `draft: true`.** Pasa a `false` solo en el paso 6.
 - **Un campo sin dato se omite**, no se rellena. La ausencia de un dato se
   representa como ausencia.
-- El cuerpo MDX es opcional. Hoy ninguna superficie lo renderiza (queda para la
-  página de detalle, CP 7.3), así que no se escribe prosa por escribirla.
+- El cuerpo MDX es opcional. Desde CP 7.3 la ficha del trabajo
+  (`/trabajos/[slug]`) lo renderiza cuando existe, y omite la sección entera
+  cuando el archivo no trae cuerpo. Que ahora tenga superficie no lo vuelve
+  obligatorio ni autoriza a llenarlo: se escribe solo si hay algo real que
+  contar sobre ese trabajo, nunca prosa por escribirla.
 
 ## 5. Aprobación humana
 

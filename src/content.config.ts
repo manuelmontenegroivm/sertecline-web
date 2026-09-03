@@ -130,9 +130,11 @@ const cases = defineCollection({
       title: z.string(),
       shortDescription: z.string(),
       // No usa reference('services'): eso validaría contra la content collection
-      // `services`, que está vacía hoy. La fuente real es el catálogo liviano
-      // src/data/services.ts — el enum se deriva de sus IDs (serviceIds arriba)
-      // para no duplicarlos a mano y mantener una sola fuente de verdad.
+      // `services`, que solo reúne las fichas editoriales de los servicios que
+      // ya tienen una — un subconjunto del catálogo, no la lista de servicios
+      // que existen. La fuente real es el catálogo liviano src/data/services.ts
+      // — el enum se deriva de sus IDs (serviceIds arriba) para no duplicarlos
+      // a mano y mantener una sola fuente de verdad.
       service: z.enum(serviceIds),
       // `brand` se valida contra el catálogo de src/data/brands.ts (brandIds
       // arriba): una marca inexistente falla el build en vez de publicarse.

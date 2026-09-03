@@ -31,9 +31,23 @@
  * existir hasta que React hidrate. Eso corrige de paso un detalle del island:
  * su `aria-controls` apuntaba a un id que no estaba en el documento mientras el
  * menú estuviera cerrado, que es como se sirve siempre. Aquí el id existe desde
- * el primer byte. Sin JavaScript el panel queda colapsado y fuera del árbol de
- * accesibilidad (`visibility: hidden`), no hay destello de menú abierto, y la
- * navegación desktop y el resto de la página siguen intactas.
+ * el primer byte. Sin JavaScript el panel queda colapsado, inerte y fuera del
+ * árbol de accesibilidad, no hay destello de menú abierto, y la navegación
+ * desktop y el resto de la página siguen intactas.
+ *
+ * ESTADO INTERACTIVO ≠ ESTADO VISUAL (EPIC 8 — CP 8.5.1). Cerrar el menú es
+ * instantáneo; verlo cerrarse dura lo que dure la transición. Mientras esas
+ * dos cosas compartieron un solo mecanismo —`visibility: hidden` retrasada
+ * hasta el final del fundido— existía una ventana de ~180 ms en la que el
+ * panel ya declaraba `aria-expanded="false"` pero sus enlaces seguían en el
+ * orden de tabulación: un Tab inmediatamente después de cerrar podía entrar a
+ * un menú cerrado y, al terminar la transición, dejar el foco en `body`.
+ *
+ * `inert` separa las dos capas. Es el estado interactivo y se conmuta en el
+ * mismo tick que `aria-expanded`; la transición sigue siendo asunto del CSS y
+ * puede terminar después. No se marca `tabindex="-1"` enlace por enlace —sería
+ * una segunda copia del estado, en N lugares— ni se instala un focus trap: el
+ * patrón sigue siendo un disclosure no modal.
  */
 import { availableNav } from '../../data/navigation';
 import { isCurrentNavItem } from '../../lib/utils/navigation';
@@ -90,6 +104,7 @@ const { pathname } = Astro.url;
   <div
     id={PANEL_ID}
     data-mobile-menu-panel
+    inert
     class="border-hairline bg-paper absolute inset-x-0 top-full border-b shadow-md"
   >
     <div class="min-h-0 overflow-hidden">
@@ -111,11 +126,14 @@ const { pathname } = Astro.url;
 </div>
 
 <style>
-  /* Cerrado: colapsado, transparente y fuera del árbol de accesibilidad.
-     `visibility` es lo que saca al panel del orden de tabulación y de los
-     lectores de pantalla mientras está cerrado. Se retrasa hasta el final de la
-     transición al cerrar (`0s linear var(--duration-base)`) para que el fundido
-     alcance a verse, y es inmediata al abrir. */
+  /* Cerrado: colapsado y transparente. Esta es la capa VISUAL; quien saca al
+     panel del orden de tabulación y del árbol de accesibilidad es `inert` (ver
+     el <script>), que no espera a la transición. `visibility` se conserva
+     porque cierra el mismo hueco en navegadores sin soporte de `inert` y
+     porque termina de ocultar el panel al lector de pantalla; sigue
+     retrasándose hasta el final de la transición al cerrar
+     (`0s linear var(--duration-base)`) para que el fundido alcance a verse, y
+     es inmediata al abrir. */
   [data-mobile-menu-panel] {
     display: grid;
     grid-template-rows: 0fr;
@@ -161,6 +179,12 @@ const { pathname } = Astro.url;
     const setOpen = (open: boolean) => {
       trigger.setAttribute('aria-expanded', String(open));
       trigger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      // `inert` viaja con `aria-expanded`, no con la animación: al cerrar, los
+      // enlaces salen del orden de tabulación en el mismo tick en que el menú
+      // pasa a cerrado, aunque el panel todavía se esté desvaneciendo. Y se
+      // retira ANTES de agregar `data-open`, para que el panel nunca llegue a
+      // estar visible y a la vez inerte.
+      panel.inert = !open;
       panel.toggleAttribute('data-open', open);
     };
 

@@ -11,7 +11,7 @@ export interface NavItem {
 // que `available` pase a `true`.
 export const primaryNav: NavItem[] = [
   { label: 'Servicios', href: '/#servicios', available: true }, // EPIC 3.7: ancla a la sección Services en home; promover a /servicios cuando exista esa página
-  { label: 'Trabajos', href: '/trabajos', available: true }, // EPIC 7 — CP 7.3: índice de trabajos realizados. Antes era el ancla /#trabajos a la sección FeaturedWork de home, que sigue existiendo con ese id
+  { label: 'Trabajos', href: '/trabajos/', available: true }, // EPIC 7 — CP 7.3: índice de trabajos realizados. Antes era el ancla /#trabajos a la sección FeaturedWork de home, que sigue existiendo con ese id. Barra final: es la forma canónica que emite el build (CP 8.5.1)
   { label: 'Cobertura', href: '/#cobertura', available: true }, // EPIC 3.8: ancla a la sección Coverage en home; promover a /comunas cuando exista esa página
   { label: 'Mantención', href: '#mantencion', available: false },
   { label: 'Contacto', href: '/#contacto', available: true }, // EPIC 3.10: ancla a la sección Contact en home; phone/whatsapp confirmados en src/data/contact.ts

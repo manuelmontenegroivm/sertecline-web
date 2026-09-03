@@ -51,7 +51,7 @@ import Breadcrumbs from '../../components/layout/Breadcrumbs.astro';
 import CaseEvidence from '../../components/cases/CaseEvidence.astro';
 import ServiceCta from '../../components/services/ServiceCta.astro';
 import TextLink from '../../components/ui/TextLink.astro';
-import { getPublishedCaseById, getPublishedCases } from '../../lib/content/cases';
+import { CASES_INDEX_PATH, getPublishedCaseById, getPublishedCases } from '../../lib/content/cases';
 import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
 import { getServiceById } from '../../data/services';
 import { getPlaceById } from '../../data/places';
@@ -186,7 +186,7 @@ const hasBody = Boolean(caseEntry.body?.trim());
 // el de una ficha de servicio usa el nombre completo del servicio.
 const breadcrumbs: Breadcrumb[] = [
   { name: 'Inicio', href: '/' },
-  { name: 'Trabajos realizados', href: '/trabajos' },
+  { name: 'Trabajos realizados', href: CASES_INDEX_PATH },
   { name: title },
 ];
 
@@ -299,7 +299,9 @@ const structuredData = buildBreadcrumbStructuredData(breadcrumbs, canonical);
               </TextLink>
             )
           }
-          <TextLink href="/trabajos" class="py-1.5"> Ver todos los trabajos realizados </TextLink>
+          <TextLink href={CASES_INDEX_PATH} class="py-1.5">
+            Ver todos los trabajos realizados
+          </TextLink>
         </div>
       </Container>
     </section>

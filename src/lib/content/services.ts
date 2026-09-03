@@ -106,9 +106,15 @@ export interface ServiceCardModel {
  * getStaticPaths() usa como `params.slug` —, nunca el `slug` del catálogo: hoy
  * son idénticos, pero solo el primero es el que el build realmente genera, así
  * que un enlace construido así no puede apuntar a una ruta inexistente.
+ *
+ * Termina en barra porque esa es la forma canónica de la ruta: es la que el
+ * build emite (`servicios/<id>/index.html`), la que declara
+ * `<link rel="canonical">` y la que publica el sitemap. Enlazar sin ella
+ * mandaba a cada visita —y a cada rastreador— por una redirección hacia la
+ * URL que el propio sitio declara como autoritativa (EPIC 8 — CP 8.5.1).
  */
 export function buildServicePath(id: string): string {
-  return `/servicios/${id}`;
+  return `/servicios/${id}/`;
 }
 
 // IDs con ficha publicada. Set y no array: quien arma una grilla consulta una

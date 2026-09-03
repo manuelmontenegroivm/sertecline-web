@@ -122,7 +122,7 @@ import Section from '../layout/Section.astro';
 import Badge from '../ui/Badge.astro';
 import TextLink from '../ui/TextLink.astro';
 import CaseEvidence from '../cases/CaseEvidence.astro';
-import { buildCasePath, getPublishedCaseById } from '../../lib/content/cases';
+import { buildCasePath, CASES_INDEX_PATH, getPublishedCaseById } from '../../lib/content/cases';
 import { buildServicePath, getServiceBySlug } from '../../lib/content/services';
 import { services } from '../../data/services';
 import { getPlaceById } from '../../data/places';
@@ -209,7 +209,7 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
             </TextLink>
           )}
 
-          <TextLink href="/trabajos">Ver todos los trabajos realizados</TextLink>
+          <TextLink href={CASES_INDEX_PATH}>Ver todos los trabajos realizados</TextLink>
         </div>
       </div>
     </Section>

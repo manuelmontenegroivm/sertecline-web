@@ -94,6 +94,19 @@ export async function getRelatedCases(serviceId: string): Promise<CollectionEntr
 }
 
 /**
+ * Ruta pública del índice de trabajos. Espeja src/pages/trabajos/index.astro.
+ *
+ * Es una constante y no un builder porque la ruta no depende de ningún dato:
+ * la enlazan la home ("Ver todos los trabajos realizados"), la ficha de un
+ * trabajo y su rastro de navegación, y hasta CP 8.5.1 cada una repetía el
+ * literal —con lo que la barra final podía quedar en unas y no en otras—.
+ * El ítem "Trabajos" del menú lo declara aparte, en src/data/navigation.ts:
+ * los datos de navegación no importan de esta capa (ver regla de dependencia
+ * en CLAUDE.md).
+ */
+export const CASES_INDEX_PATH = '/trabajos/';
+
+/**
  * Ruta pública de un caso. Espeja src/pages/trabajos/[slug].astro: si esa
  * carpeta se renombra, este es el único punto a corregir.
  *
@@ -104,8 +117,9 @@ export async function getRelatedCases(serviceId: string): Promise<CollectionEntr
  * sería una segunda fuente de verdad para el mismo dato.
  *
  * Mismo criterio y misma forma que buildServicePath() en
- * src/lib/content/services.ts.
+ * src/lib/content/services.ts, barra final incluida: esa es la forma canónica
+ * que emite el build y que declaran la canónica y el sitemap.
  */
 export function buildCasePath(id: string): string {
-  return `/trabajos/${id}`;
+  return `/trabajos/${id}/`;
 }

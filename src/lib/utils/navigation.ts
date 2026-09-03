@@ -11,9 +11,11 @@
  * que se agregue al menú; con una sola función, las dos navegaciones no pueden
  * responder distinto.
  *
- * La comparación ignora la barra final porque el build emite `/trabajos/` y el
- * ítem del menú declara `/trabajos`: sin normalizar, el único destino de
- * navegación que hoy es una página propia nunca obtendría su `aria-current`.
+ * La comparación ignora la barra final. Desde EPIC 8 — CP 8.5.1 el ítem del
+ * menú declara la forma canónica de la ruta (`/trabajos/`), la misma que emite
+ * el build, así que hoy ambos lados ya coinciden; normalizar queda como
+ * garantía de que un destino escrito sin la barra —o un pathname servido con
+ * ella— no pierda su `aria-current` en silencio.
  *
  * Es coincidencia EXACTA y no un prefijo: `/trabajos/limpieza-profunda-lavadora`
  * es una página distinta —la ficha de un trabajo, no el índice— y marcarla como
