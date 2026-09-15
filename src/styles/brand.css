@@ -54,17 +54,10 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* JetBrains Mono no tiene hoy ningún consumidor: no existe una sola clase
-   `font-mono` ni un `font-family: var(--font-mono)` en el código, ni un
-   <code>/<pre> en el contenido. Se declara igual —y no se elimina del token—
-   porque una @font-face es perezosa: el navegador NO descarga este archivo
-   mientras ningún glifo lo use, así que las nueve rutas cargan 0 bytes de
-   JetBrains Mono, exactamente como ya ocurría con la hoja de Google. Dejar el
-   token `--font-mono` nombrando una familia sin @font-face sí habría sido un
-   cambio real: la primera superficie que usara `font-mono` habría caído en
-   silencio a la monoespaciada del sistema. Retirar la familia de la identidad
-   es una decisión de marca, no de performance, y no corresponde a este
-   checkpoint. */
+/* CP 9.2.1: JetBrains Mono — DORMANT-BUT-INTENTIONAL por decisión CTO.
+   Sin consumidores actuales ni preload: esta @font-face no genera peticiones.
+   Se conservan archivo, licencia y token para un futuro uso técnico aprobado
+   que respete el presupuesto total de fuentes de 60 KiB. */
 @font-face {
   font-family: 'JetBrains Mono';
   font-style: normal;
@@ -108,4 +101,13 @@ body {
 :focus-visible {
   outline: var(--border-emphasis) solid var(--color-ring);
   outline-offset: 2px;
+}
+
+/* Nuevos tokens de movimiento: ningún estado depende de una animación. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro: 0ms;
+    --duration-editorial: 0ms;
+    --duration-signature: 0ms;
+  }
 }

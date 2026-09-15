@@ -47,6 +47,7 @@ const ASPECT_RATIO_CSS: Record<Exclude<AspectRatio, 'natural'>, string> = {
 };
 
 interface Props {
+  presentation?: 'default' | 'editorial';
   before: ComparatorImage;
   after: ComparatorImage;
   /** Base del texto alternativo cuando `beforeAlt`/`afterAlt` no se declaran. */
@@ -85,6 +86,7 @@ export default function BeforeAfterComparatorIsland({
   afterLabel = 'Después',
   caption,
   aspectRatio = 'natural',
+  presentation = 'default',
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -195,7 +197,7 @@ export default function BeforeAfterComparatorIsland({
         // horizontal para el arrastre del divisor, que es el único eje que este
         // componente necesita. Cuando el navegador se queda el gesto emite
         // pointercancel, que onPointerCancel ya trata como fin de arrastre.
-        className="border-hairline bg-paper-2 relative w-full touch-pan-y overflow-hidden rounded-2xl border select-none"
+        className={`bg-paper-2 relative w-full touch-pan-y overflow-hidden select-none ${presentation === 'editorial' ? 'rounded-photo' : 'border-hairline rounded-2xl border'}`}
         style={{
           aspectRatio:
             aspectRatio === 'natural'

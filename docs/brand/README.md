@@ -1,5 +1,7 @@
 # Sistema de marca — integración (EPIC 3.1)
 
+Dirección visual vigente: [CP 9.2 — El oficio, a la vista](visual-foundations.md).
+
 Origen: `sertecline-brand-kit` (checkpoint 3.2, derivado de la Dirección Creativa
 aprobada en EPIC 2). `logo-kit` es material fuente anterior y no se integró
 (ver «Excluido» abajo).
@@ -31,7 +33,7 @@ a la espera de un checkpoint de uso.
 | `/brand/logo/logo.svg` vía `siteConfig.logo.default`       | propiedad `logo` del nodo `Organization` (`src/lib/seo/organization.ts`)                                     |
 | `src/styles/tokens.css`                                    | importado por `src/styles/global.css`; define el `@theme` de Tailwind v4 del que salen las utilidades        |
 | `src/styles/brand.css`                                     | importado por `src/styles/global.css`; `@font-face` de las familias de marca + reglas de documento           |
-| `src/config/design/tokens.json`                            | fuente de verdad no-CSS de los valores y de los contrastes verificados; no se importa en runtime             |
+| `src/config/design/tokens.json`                            | fuente no-CSS; `motion.ts` importa sus duraciones y CSS mantiene los mismos valores                          |
 
 Sin consumidor a la fecha: `public/brand/social/twitter-card.png` y
 `whatsapp-preview.png` —`BaseLayout` sirve `og-image.png` también para

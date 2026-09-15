@@ -1,0 +1,17 @@
+---
+/** Factual captions only. No generated IDs, dates, locations or measurements. */
+export interface Props extends astroHTML.JSX.HTMLAttributes {
+  as?: 'p' | 'figcaption';
+}
+const { as = 'p', class: className } = Astro.props as Props;
+const Tag = as;
+---
+
+<Tag
+  class:list={[
+    'border-hairline-strong text-ink-2 border-t pt-3 font-sans text-xs leading-relaxed font-medium tracking-wide',
+    className,
+  ]}
+>
+  <slot />
+</Tag>

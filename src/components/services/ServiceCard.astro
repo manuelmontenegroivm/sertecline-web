@@ -1,106 +1,10 @@
 ---
-/**
- * Un servicio dentro de la grilla de Services.astro. Deliberadamente sin
- * `border`/`shadow`/fondo propio (Dirección Creativa: nada de tarjetas
- * pesadas) — la separación entre ítems la da el `border-t` + el gap del
- * grid contenedor.
- *
- * Enlace (EPIC 4.0 — Checkpoint 14): `href` llega ya resuelto desde
- * lib/content/services.ts#getFeaturedServiceCards y solo está presente si el
- * servicio tiene ficha publicada. Este componente no consulta astro:content ni
- * decide qué está publicado: presenta las dos formas que puede tomar la misma
- * tarjeta. Sin `href` el markup es exactamente el que tenía antes de existir
- * /servicios/[slug].
- *
- * Afordancia deliberadamente mínima, porque durante la publicación progresiva
- * del catálogo conviven tarjetas enlazadas y no enlazadas en la misma grilla:
- * en reposo, una flecha terciaria junto al título; al recorrer con el puntero
- * o el teclado, el hairline superior —el mismo primitivo con que el sistema
- * separa, ver tokens.css— se marca, el título toma el verde de acento y la
- * flecha avanza. Sin sombra ni fondo (el sistema los prohíbe para tarjetas) ni
- * etiqueta "Ver servicio": la diferencia se percibe, no interrumpe.
- *
- * COMPOSICIÓN (EPIC 5 — Checkpoint 5.4). Antes el ítem era una columna de tres
- * bloques apilados —ícono, título, descripción— separados por `gap-4`. Esa
- * forma le daba al ícono una fila propia de 24px + 16px de separación: 40px por
- * servicio, 240px en los seis de home, gastados en un glifo que el lector no usa
- * para elegir. Ahora el ítem es una fila de directorio con sangría francesa: el
- * ícono ocupa una gotera de ancho automático y el texto una columna fluida, con
- * la descripción alineada bajo el título y no bajo el ícono.
- *
- *     [icono]  Reparación de Lavadoras →
- *              Diagnóstico y reparación de fallas comunes...
- *
- * El ícono deja de ser un encabezado decorativo y pasa a leerse en la misma
- * línea que el sustantivo del equipo: la vista aterriza en un objeto por
- * servicio ("lavadora", "calefón") en vez de dos. `self-start` + `mt-1` lo
- * centran ópticamente contra la primera línea del título (20px de ícono en una
- * caja de línea de 28px), y siguen alineados aunque el título ocupe dos líneas.
- *
- * `content-start` es lo que mantiene ese ritmo constante entre tarjetas. Cada
- * <article> es a su vez celda de la grilla de la sección y se estira al alto de
- * la fila; sin esta regla el sobrante se reparte entre sus dos filas internas y
- * la separación entre título y descripción cambia según lo alto que sea el
- * vecino —medidas a 1440px: 11px en la fila baja y 25px en la fila que comparte
- * con "Mantención y Limpieza de Lavadoras", con la misma tarjeta rindiéndose de
- * dos maneras distintas—. Anclando el contenido arriba, el sobrante cae entero
- * al pie de la tarjeta, que es donde se lee como aire antes del filete
- * siguiente, y las descripciones se alinean a lo ancho de la fila.
- *
- * JERARQUÍA. El título conserva `text-lg font-bold` —la receta que
- * Accreditations.astro cita como el h3 de este componente— y la descripción baja
- * a `text-sm`. No es una compresión por espacio: en cinco de los seis servicios
- * destacados la descripción del catálogo repite el título en minúsculas
- * ("Reparación de Secadoras" / "Diagnóstico y reparación de fallas comunes en
- * secadoras"), así que a igual tamaño el lector recorre dos veces el mismo dato
- * y el bloque que sí decide —el título— pesa menos que el que no aporta. Con
- * 20px contra 14px el título domina y la descripción queda donde le corresponde:
- * confirmación, no titular. El copy no se toca (CP 5.4 §8); lo que cambia es
- * cuánta superficie recibe. `ink-2` sobre papel es 6.87:1, AA a cualquier
- * tamaño (ver tokens.css).
- *
- * La flecha va inline y no vía <ServiceIcon>: ese componente es el único punto
- * que importa de '@lucide/astro' y su record mapea íconos *de servicio*
- * (src/data/services.ts#icon); una flecha de UI no pertenece a ese catálogo.
- * Mismo criterio que el ícono externo de TextLink.astro.
- *
- * Viaja pegada a la última palabra del título dentro de un tramo
- * `whitespace-nowrap`, y por eso el título se parte aquí en dos: el cuerpo, que
- * fluye y salta de línea como cualquier texto, y la última palabra, que ya no
- * puede separarse de la flecha. Es la única forma determinista de evitar que
- * quede huérfana: el compilador de Astro emite un salto de línea entre
- * elementos hermanos —espacio en blanco real, y por tanto un punto de salto
- * válido—, así que ponerlos adyacentes en el código fuente no basta y el
- * formateador tampoco lo garantizaría. Sin `ml-*`: la separación la da ese
- * mismo espacio, que es además la distancia tipográficamente correcta para un
- * glifo que sigue a una palabra.
- *
- * La receta anterior (`inline-flex items-center` sobre el <a>, con el título y
- * la flecha como ítems flex hermanos) no tenía puntos de salto, pero producía
- * algo peor en el único título que ocupa dos líneas: la flecha se centraba
- * verticalmente contra el bloque completo y quedaba a media altura y a un
- * centenar de píxeles del texto, leyéndose como un adorno suelto en el margen.
- * El subrayado de hover vive en el <span> del título y no en el <a>, para que
- * no se dibuje bajo la flecha.
- *
- * Su avance transiciona sobre `translate` y ya no sobre `transform`: en Tailwind
- * v4 `translate-x-*` escribe la propiedad `translate`, así que la lista anterior
- * —`transition-[transform,color]`— no cubría lo que efectivamente cambia y los
- * 2px del hover saltaban de golpe mientras el color sí atenuaba. `motion-reduce`
- * sigue anulando la transición completa.
- *
- * El <a> envuelve solo el título y se extiende sobre la tarjeta con un
- * pseudo-elemento (`after:inset-0`): toda la superficie es clickeable, pero el
- * nombre accesible del enlace es únicamente el título, no el título más la
- * descripción. El anillo de foco lo aporta la regla global `:focus-visible` de
- * src/styles/brand.css — no se redefine aquí.
- */
 import ServiceIcon from './ServiceIcon.astro';
 import type { Service } from '../../data/services';
 
 interface Props {
   service: Service;
-  /** Ausente mientras el servicio no tenga ficha publicada. */
+
   href?: string;
 }
 
@@ -115,28 +19,28 @@ const titleTail = titleWords[titleWords.length - 1];
 
 <article
   class:list={[
-    'border-hairline grid grid-cols-[auto_1fr] content-start gap-x-3 border-t pt-5',
+    'border-hairline grid grid-cols-[auto_1fr] content-start gap-x-4 border-t py-6',
     href && [
-      'group relative transition-colors [transition-duration:var(--duration-fast)]',
+      'group relative transition-colors [transition-duration:var(--duration-micro)] motion-reduce:transition-none',
       'hover:border-hairline-strong focus-within:border-hairline-strong',
     ],
   ]}
 >
-  <ServiceIcon name={service.icon} class="text-brand-ink mt-1 size-[var(--icon-lg)] self-start" />
+  <ServiceIcon name={service.icon} class="text-brand-ink mt-1 size-[var(--icon-2xl)] self-start" />
 
-  <h3 class="text-ink text-lg font-bold">
+  <h3 class="text-ink text-xl font-bold md:text-2xl">
     {
       href ? (
         <a
           href={href}
-          class="group-hover:text-brand-ink transition-colors [transition-duration:var(--duration-fast)] after:absolute after:inset-0"
+          class="group-hover:text-brand-ink transition-colors [transition-duration:var(--duration-fast)] after:absolute after:inset-0 motion-reduce:transition-none"
         >
           <span class="underline-offset-4 group-hover:underline">
             {titleLead}{' '}
             <span class="whitespace-nowrap">
               {titleTail}
               <svg
-                class="text-ink-3 group-hover:text-brand-ink group-focus-within:text-brand-ink inline-block size-[var(--icon-sm)] align-middle transition-[translate,color] [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out)] group-focus-within:translate-x-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                class="text-ink-3 group-hover:text-brand-ink group-focus-within:text-brand-ink inline-block size-[var(--icon-sm)] align-middle transition-[translate,color] [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out)] motion-safe:group-focus-within:translate-x-0.5 motion-safe:group-hover:translate-x-0.5 motion-reduce:transition-none"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -154,5 +58,5 @@ const titleTail = titleWords[titleWords.length - 1];
     }
   </h3>
 
-  <p class="text-ink-2 col-start-2 mt-2 text-sm">{service.shortDescription}</p>
+  <p class="text-ink-2 col-start-2 mt-3 max-w-prose text-base">{service.shortDescription}</p>
 </article>

@@ -9,7 +9,6 @@
  */
 import {
   WashingMachine,
-  Sparkles,
   Refrigerator,
   Wind,
   Flame,
@@ -33,7 +32,6 @@ import {
 // distinguen la mantención y la instalación de calefones de su reparación.
 const ICONS = {
   'washing-machine': WashingMachine,
-  sparkles: Sparkles,
   refrigerator: Refrigerator,
   wind: Wind,
   flame: Flame,
@@ -46,7 +44,7 @@ const ICONS = {
   microwave: Microwave,
 } as const;
 
-export type ServiceIconName = keyof typeof ICONS;
+export type ServiceIconName = keyof typeof ICONS | 'sparkles';
 
 interface Props extends Omit<IconProps, 'name'> {
   name: string;
@@ -54,7 +52,28 @@ interface Props extends Omit<IconProps, 'name'> {
 
 const { name, class: className, ...rest } = Astro.props as Props;
 
-const IconComponent = ICONS[name as ServiceIconName] ?? Wrench;
+// CP 9.2 example: a cleaning brush and water line, on the existing 24px grid.
+const IconComponent = ICONS[name as keyof typeof ICONS] ?? Wrench;
 ---
 
-<IconComponent class={className} stroke-width={1.75} aria-hidden="true" {...rest} />
+{
+  name === 'sparkles' ? (
+    <svg
+      class={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      {...rest}
+    >
+      <path d="M14 3 9 8m-3 0 10 10m-8-8-5 5 6 6 5-5M5 17l3-3m0 6 3-3M16 7c0-1 2-4 2-4s2 3 2 4a2 2 0 0 1-4 0ZM16 21h5" />
+    </svg>
+  ) : (
+    <IconComponent class={className} stroke-width={1.75} aria-hidden="true" {...rest} />
+  )
+}

@@ -1,0 +1,38 @@
+---
+/** Content precedes real media in the DOM. Without media, no empty column. */
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  class?: string;
+}
+const { class: className, ...rest } = Astro.props as Props;
+const hasMedia = Astro.slots.has('media');
+---
+
+<div class:list={['editorial-split', className]} data-has-media={hasMedia} {...rest}>
+  <div class="min-w-0"><slot /></div>
+  {
+    hasMedia && (
+      <div class="editorial-split__media">
+        <slot name="media" />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .editorial-split {
+    display: grid;
+    align-items: start;
+    gap: var(--composition-gap);
+  }
+  .editorial-split__media {
+    width: 100%;
+    max-width: var(--media-portrait);
+    justify-self: end;
+    min-width: 0;
+  }
+  @media (min-width: 64rem) {
+    .editorial-split[data-has-media='true'] {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    }
+  }
+</style>

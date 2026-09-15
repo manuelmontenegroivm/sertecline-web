@@ -57,12 +57,13 @@ export interface CaseEvidenceData {
 }
 
 interface Props {
+  presentation?: 'default' | 'editorial';
   evidence: CaseEvidenceData;
   /** Título del caso: base del texto alternativo cuando la evidencia no lo declara. */
   title: string;
 }
 
-const { evidence, title } = Astro.props as Props;
+const { evidence, title, presentation = 'default' } = Astro.props as Props;
 
 // Mismo ancho objetivo y misma razón que BeforeAfterComparator.astro: la
 // fotografía estática ocupa el mismo lugar que ocuparía el comparador, así que
@@ -76,6 +77,7 @@ const TARGET_WIDTH = 960;
   evidence.before ? (
     <BeforeAfterComparator
       pair={{ before: evidence.before, after: evidence.result, caption: evidence.caption }}
+      presentation={presentation}
       alt={title}
       beforeAlt={evidence.beforeAlt}
       afterAlt={evidence.resultAlt}
@@ -87,7 +89,10 @@ const TARGET_WIDTH = 960;
         title={title}
         resultAlt={evidence.resultAlt}
         width={TARGET_WIDTH}
-        class="border-hairline bg-paper-2 w-full rounded-2xl border"
+        class:list={[
+          'bg-paper-2 w-full',
+          presentation === 'editorial' ? 'rounded-photo' : 'border-hairline rounded-2xl border',
+        ]}
       />
 
       {evidence.caption && <figcaption class="text-ink-2 text-sm">{evidence.caption}</figcaption>}

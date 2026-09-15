@@ -1,125 +1,6 @@
 ---
-/**
- * Sección "Trabajos reales" (EPIC 3.6.2). Vive debajo del Hero en home.
- * Muestra exactamente un caso, seleccionado editorialmente vía
- * `featuredWorkContent.caseId` (src/data/featuredWork.ts) y resuelto con
- * getPublishedCaseById() — única fuente de consulta a la collection `cases`
- * (regla de dependencia, ver CLAUDE.md). Si el caso no existe o está en
- * `draft`, la sección no se renderiza.
- * El `id="trabajos"` y su `scroll-mt-24` se conservan tras EPIC 7 —
- * Checkpoint 7.3, aunque el ítem "Trabajos" del menú ya no apunte a este ancla
- * sino a la página /trabajos (ver src/data/navigation.ts): la sección sigue
- * siendo un destino válido dentro de home y `/#trabajos` puede estar enlazado
- * desde fuera del sitio. Quitar el id rompería esos enlaces sin ganar nada.
- *
- * COMPOSICIÓN (EPIC 5 — Checkpoint 5.3). Antes esta sección delegaba el caso a
- * FeaturedCase.astro, que traía su propio bloque de encabezado: <Badge> con el
- * nombre del servicio + <h3> + párrafo, justo debajo del <Badge> + <h2> +
- * párrafo de la sección. Eran dos encabezados apilados con dos insignias, y el
- * lector recorría ~9 líneas de texto —dos de ellas redundantes— antes de llegar
- * a la fotografía, que es lo único que esta sección existe para mostrar. Ese
- * componente tenía un solo consumidor (este archivo) y su separación no
- * sostenía ninguna reutilización, así que se absorbió aquí: el caso es la
- * sección, no un widget dentro de ella.
- *
- * La insignia del servicio no se recupera en ninguna forma. Repetía como
- * etiqueta decorativa un dato que ahora entrega el enlace del final, que además
- * lleva a alguna parte.
- *
- * GRILLA. La fotografía es vertical (ver el bloque PROPORCIÓN más abajo), así
- * que la composición no puede ser la de una imagen apaisada. A partir de `md:`
- * el texto ocupa una columna fluida y la imagen una columna acotada a la
- * derecha, y la imagen abarca las dos filas del texto:
- *
- *     +----------------------+----------+
- *     | eyebrow · h2 · intro |          |
- *     +----------------------+  figura  |
- *     | h3 · descripción · > |          |
- *     +----------------------+----------+
- *
- * El orden del DOM es encabezado -> figura -> contexto, que es también el orden
- * en que se apila en móvil: la fotografía entra inmediatamente después del
- * intro, no al final de todo el texto. El h3 queda después de la imagen en ese
- * apilado por la misma razón; encabeza el bloque que explica lo que se acaba de
- * ver, y nadie llega a la fotografía sin saber qué es, porque su texto
- * alternativo ya nombra el caso ("<título> — antes/después", lo compone la
- * island).
- *
- * `grid-rows-[auto_1fr]` es lo que evita el hueco: la primera fila se ajusta al
- * encabezado y la segunda absorbe el alto sobrante de la imagen, de modo que el
- * espacio libre queda al final de la columna de texto —junto al tramo bajo de
- * la fotografía— y no repartido entre los dos bloques. El `md:items-center` que
- * usaba FeaturedCase hacía justo lo contrario: centraba un bloque de texto
- * corto contra una imagen alta y abría ~200px de vacío por encima y por debajo.
- *
- * El h2 sube a `text-4xl` recién en `lg:` y no en `md:` como el de
- * Services.astro: aquel encabeza una sección a todo el ancho del contenedor y
- * este comparte fila con la imagen desde 768px, donde 49px de titular en una
- * columna de ~376px caían en cuatro líneas. Es un ajuste local de esta sección,
- * no de la escala tipográfica.
- *
- * EVIDENCIA (EPIC 7 — Checkpoint 7.2). La figura ya no invoca el comparador
- * directamente: pasa por CaseEvidence, que decide entre comparador interactivo
- * y fotografía estática según exista o no `evidence.before`. Esta sección no
- * conoce esa distinción. Nota editorial: `featuredWorkContent.intro` describe
- * hoy un antes/después y dice cómo usar el control, así que apunta a un caso
- * CON `before`; si algún día `caseId` seleccionara un caso de sola fotografía
- * de resultado, ese copy es lo que habría que revisar — no este componente.
- *
- * PROPORCIÓN. El comparador ya no recibe `aspectRatio="square"`: usa la
- * proporción real de la fotografía (`natural`, el valor por defecto del
- * wrapper). Las dos imágenes del caso son de 720x1280 —9:16, tomadas en
- * vertical— y encuadran el tambor completo de la lavadora. Forzarlas a 1:1 con
- * `object-fit: cover` recortaba el 43,75% del alto (21,9% arriba y 21,9%
- * abajo), y en la foto del "antes" esa banda superior es justo donde está la
- * suciedad más marcada: el recorte debilitaba el lado de la comparación que
- * sostiene la evidencia. Con la proporción real el tambor se ve entero y el
- * divisor parte un mismo círculo en mitad sucia y mitad limpia, que es la
- * lectura que hace entendible el antes/después de un golpe. Ver CP 5.3 §7: la
- * imagen real tiene prioridad sobre una proporción estética.
- *
- * El ancho de la columna de la imagen (19rem -> 23rem) es lo que mantiene esa
- * verticalidad dentro de un alto razonable: es un tope de ancho, no un
- * recorte, así que ninguna decisión de layout cuesta evidencia.
- *
- * El `max-w-[24rem]` de la figura cubre el tramo que la grilla no alcanza: por
- * debajo de `md:` la composición es de una sola columna, y sin tope una
- * proporción 9:16 crece con el contenedor —a 767px de ventana la fotografía
- * medía 735x1307px, más de un viewport y medio de alto—. Con el tope se queda
- * en 384x683 desde los ~384px de contenedor hacia arriba. En móvil real (343px
- * de contenedor a 375px de ventana) el tope no llega a aplicarse y la
- * fotografía sigue ocupando el ancho completo. Dentro de la grilla tampoco
- * hace nada: 19rem y 23rem ya son menores que 24rem.
- *
- * ENLACE. Sale del propio caso: `service` de su frontmatter, resuelto contra
- * las fichas realmente publicadas con getServiceBySlug() —la misma consulta con
- * la que src/pages/servicios/[slug].astro genera sus rutas— y construido con
- * buildServicePath(). Por eso no puede apuntar a una página inexistente: si esa
- * ficha pasa a `draft`, el enlace desaparece en el mismo build.
- *
- * SALIDAS (EPIC 7 — Checkpoint 7.3). Desde que cada trabajo publicado tiene URL
- * propia, esta sección deja de ser el final del camino y pasa a ser su entrada:
- *
- *   1. El h3 —el título del caso— es ahora el enlace a su ficha. Va en el
- *      encabezado y no como una cuarta línea de texto porque el nombre del
- *      trabajo ya es la afordancia más descriptiva posible: un lector de
- *      pantalla que recorre los enlaces de home escucha el trabajo, no "ver
- *      más". La sección no gana una sola línea de alto por esto.
- *   2. Un enlace al índice /trabajos, para quien quiera ver el resto.
- *
- * Los tres destinos —ficha del trabajo, ficha del servicio e índice— son
- * distintos y ninguno reemplaza a otro; el criterio para no sobrecargar la
- * sección fue no agregar bloques ni botones: dos enlaces de texto bajo el
- * párrafo y el título, que ya estaba, convertido en enlace.
- *
- * La selección del caso NO cambia: sigue siendo editorial y explícita
- * (`featuredWorkContent.caseId`), nunca "el último caso publicado". Si ese caso
- * pasa a `draft` o desaparece, getPublishedCaseById() devuelve undefined y la
- * sección entera no se renderiza — sin enlaces rotos y sin caer a otro caso
- * automáticamente.
- */
 import Section from '../layout/Section.astro';
-import Badge from '../ui/Badge.astro';
+import TechnicalNote from '../ui/TechnicalNote.astro';
 import TextLink from '../ui/TextLink.astro';
 import CaseEvidence from '../cases/CaseEvidence.astro';
 import { buildCasePath, CASES_INDEX_PATH, getPublishedCaseById } from '../../lib/content/cases';
@@ -133,7 +14,7 @@ const caseData = caseEntry?.data;
 
 // Rótulo del enlace: el `title` del catálogo, el mismo que imprime la tarjeta
 // de la sección Servicios. El href, en cambio, no se deriva del catálogo sino
-// de la ficha publicada (ver el bloque ENLACE arriba).
+// de la ficha publicada.
 const service = caseData ? services.find((item) => item.id === caseData.service) : undefined;
 const publishedService = caseData ? await getServiceBySlug(caseData.service) : undefined;
 const serviceHref = publishedService ? buildServicePath(publishedService.id) : undefined;
@@ -148,43 +29,30 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
 ---
 
 {
-  /* El guard nombra las dos referencias que el bloque usa —la entrada, para su
-     ruta, y sus datos— porque comprobar solo `caseData` no le dice a TypeScript
-     que `caseEntry` exista. */
   caseEntry && caseData && (
-    <Section as="section" id="trabajos" background="paper-2" spacing="lg" class="scroll-mt-24">
-      {/* `lg:max-w-[53rem]` no es un valor suelto: es la suma exacta de la
-          composición en `lg:` — 26rem de texto + 4rem de `gap-x-16` + 23rem de
-          figura. Declara el bloque con el ancho que su propia grilla necesita
-          en vez de heredar los 75rem de `--container-content`.
-
-          Medido en 1024/1440/1920 (EPIC 8 — Checkpoint 8.4.1): con el tope, la
-          caja mide 848px y los tracks 416 y 368; sin tope, la caja crece a
-          1152px y los tracks siguen en 416 y 368 —ya están en su límite de
-          crecimiento—, así que subirlo no ensancha nada, solo deja la caja
-          corriendo hasta el contenedor. Bajarlo sí se nota: los dos tracks son
-          `minmax(0, …)`, y con `max-w-narrow` (45rem) caen a 328 y 328 —se
-          estrechan a la vez la copy y la fotografía—. `max-w-narrow` tampoco
-          corresponde por lo que es: esa medida existe para una columna de
-          lectura, y esto son dos columnas. */}
-      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,19rem)] md:grid-rows-[auto_1fr] md:items-start md:gap-x-10 lg:max-w-[53rem] lg:grid-cols-[minmax(0,26rem)_minmax(0,23rem)] lg:gap-x-16">
+    <Section as="section" id="trabajos" background="paper" spacing="md" class="scroll-mt-24">
+      <div class="evidence-stage border-hairline border-t pt-10">
         <div class="max-w-prose md:col-start-1 md:row-start-1">
-          <Badge>{featuredWorkContent.eyebrow}</Badge>
-          <h2 class="text-ink mt-4 text-3xl font-black tracking-tight lg:text-4xl">
+          <TechnicalNote class="border-t-0 pt-0">{featuredWorkContent.eyebrow}</TechnicalNote>
+          <h2 class="text-ink text-editorial mt-4 font-extrabold tracking-tight">
             {featuredWorkContent.heading}
           </h2>
           <p class="text-ink-2 mt-4 text-lg">{featuredWorkContent.intro}</p>
         </div>
 
-        <div class="w-full max-w-[24rem] md:col-start-2 md:row-span-2 md:row-start-1">
-          <CaseEvidence evidence={caseData.evidence} title={caseData.title} />
+        <div class="evidence-stage__media md:col-start-2 md:row-span-2 md:row-start-1">
+          <CaseEvidence
+            evidence={caseData.evidence}
+            title={caseData.title}
+            presentation="editorial"
+          />
         </div>
 
         <div class="flex max-w-prose flex-col items-start gap-3 md:col-start-1 md:row-start-2">
           <h3 class="text-ink text-xl font-bold tracking-tight">
             <a
               href={buildCasePath(caseEntry.id)}
-              class="hover:text-brand-ink underline-offset-4 transition-colors [transition-duration:var(--duration-fast)] hover:underline"
+              class="hover:text-brand-ink underline-offset-4 transition-colors [transition-duration:var(--duration-micro)] hover:underline motion-reduce:transition-none"
             >
               {caseData.title}
             </a>
@@ -192,11 +60,6 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
 
           <p class="text-ink-2">{caseData.shortDescription}</p>
 
-          {/* `ink-2` y no `ink-3`, misma razón y misma corrección que
-              ServiceCase.astro (EPIC 7 — Checkpoint 7.3): sobre `paper-2` el
-              tono decorativo mide 3.60:1 y falla el mínimo AA para texto, contra
-              los 7.48:1 de `ink-2` en esa misma superficie. La línea no se ve hoy
-              porque el caso destacado no declara `area`. */}
           {area && (
             <p class="text-ink-2 text-sm">
               Trabajo realizado en {area.name}, {area.region}.
@@ -215,3 +78,25 @@ const area = caseData?.area ? getPlaceById(caseData.area) : undefined;
     </Section>
   )
 }
+
+<style>
+  .evidence-stage {
+    display: grid;
+    gap: 2rem;
+  }
+  .evidence-stage__media {
+    width: 100%;
+    max-width: var(--media-portrait);
+    justify-self: end;
+  }
+  @media (min-width: 48rem) {
+    .evidence-stage {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 2rem var(--composition-gap);
+    }
+    .evidence-stage__media {
+      max-width: var(--media-evidence);
+    }
+  }
+</style>

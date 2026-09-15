@@ -1,7 +1,7 @@
 /* ============================================================================
-   Sertecline · Design Token System — Checkpoint 3.2
+   Sertecline · Design Token System — Checkpoint 9.2
    Tailwind CSS v4 @theme · fuente de verdad para implementación.
-   Todos los valores derivan de la Dirección Creativa aprobada (Epic 2).
+   Paleta Epic 2 conservada; composición A «El oficio, a la vista» aprobada en CP 9.2.
    Contraste verificado WCAG 2.1 sobre papel #F4F1EB y stage #141210.
 
    Uso:  @import "./tokens.css";  (una sola vez, antes de tus estilos)
@@ -22,7 +22,7 @@
 
   /* ── COLOR · SUPERFICIES ─────────────────────────────────────── [util] */
   --color-paper: #f4f1eb; /* fondo de aplicación */
-  --color-paper-2: #fcfbf7; /* tarjetas / superficie elevada */
+  --color-paper-2: #fcfbf7; /* pausa narrativa / contacto; no alternancia automática */
   --color-stage: #141210; /* secciones oscuras · "evidence stage" */
 
   /* ── COLOR · TINTA / TEXTO (sobre papel) ─────────────────────── [util]
@@ -91,6 +91,12 @@
   --text-6xl: 4.75rem; /* 76px · hero display */
   --text-6xl--line-height: 0.94;
 
+  /* CP 9.2: escala editorial fluida, con extremos de la escala existente. */
+  --text-display: clamp(2.4375rem, 1.95rem + 2.05vw, 3.8125rem);
+  --text-display--line-height: 1.05;
+  --text-editorial: clamp(1.9375rem, 1.4rem + 1.8vw, 3.0625rem);
+  --text-editorial--line-height: 1.1;
+
   /* ── TIPOGRAFÍA · PESOS ──────────────────────────────────────── [util]
      900 reservado a hero display y al logo. */
   --font-weight-normal: 400;
@@ -112,6 +118,7 @@
   --spacing: 0.25rem;
 
   /* ── RADIOS ──────────────────────────────────────────────────── [util] */
+  --radius-photo: 2px; /* imagen editorial; controles mantienen md/sm */
   --radius-xs: 6px; /* chips pequeños, tags mono */
   --radius-sm: 8px; /* botones compactos */
   --radius-md: 12px; /* inputs, botones */
@@ -161,12 +168,16 @@
   --duration-fast: 120ms; /* micro: hover, color */
   --duration-base: 180ms; /* tempo de la casa */
   --duration-slow: 260ms; /* drawers, transiciones mayores */
-  --duration-slower: 400ms; /* revelados de sección (raro) */
+  --duration-slower: 400ms; /* legacy: no usar en nuevas composiciones */
+  --duration-micro: var(--duration-fast); /* 120ms: color/foco */
+  --duration-editorial: var(--duration-slow); /* 260ms: cambio de estado */
+  --duration-signature: 200ms; /* reservado; sin interacción nueva */
 
   /* Z-index · capas nombradas (nunca 9999 arbitrario) */
   --z-base: 0;
   --z-raised: 10;
   --z-sticky: 50; /* nav */
+  --z-contact: 75; /* futuro CTA: sobre nav, bajo dropdown/drawer */
   --z-dropdown: 100;
   --z-overlay: 200; /* scrim */
   --z-drawer: 300;
@@ -193,6 +204,20 @@
   --icon-xl: 22px;
   --icon-2xl: 24px;
   --icon-stroke: 1.75px;
+
+  /* Composición: máximos de presentación, nunca permiso para ampliar originales. */
+  --composition-gap: clamp(2rem, 4vw, 4rem);
+  --media-portrait: 24rem;
+  --media-evidence: 30rem;
+
+  /* CP 9.9 reservado: activar el espacio SOLO junto al futuro CTA. */
+  --contact-target: 3rem;
+  --contact-offset: 1rem;
+  --contact-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --contact-safe-inline: env(safe-area-inset-right, 0px);
+  --contact-reserve: calc(
+    var(--contact-target) + 2 * var(--contact-offset) + var(--contact-safe-bottom)
+  );
 
   /* Grid editorial */
   --grid-columns: 12;

@@ -1,44 +1,8 @@
 ---
 /**
- * Fotografía del resultado de un Case, estática (EPIC 7 — Checkpoint 7.3).
- *
- * Existe porque dos superficies muestran esta misma imagen con la misma regla y
- * distinto tamaño: CaseEvidence, cuando el caso no tiene fotografía previa, y
- * CaseCard, siempre —el índice de trabajos no hidrata un comparador por
- * tarjeta—. Lo que se centraliza son las dos reglas del dominio, no un sistema
- * de imágenes:
- *
- *   1. El ancho pedido se acota al ancho real del original (`Math.min`). Sharp
- *      nunca amplía, pero getImage()/<Image> sí construyen los atributos con el
- *      ancho PEDIDO: sin este tope el DOM declararía dimensiones que el archivo
- *      emitido no tiene y el navegador reservaría un espacio equivocado. Misma
- *      razón y misma forma que BeforeAfterComparator.astro (EPIC 6 — CP 6.4).
- *   2. El texto alternativo se compone desde el título del caso —"<título> —
- *      resultado"— salvo que el propio caso declare `resultAlt`. Es la regla que
- *      ya aplicaba CaseEvidence; ahora la aplica un solo archivo para las dos
- *      superficies, así que no pueden divergir.
- *
- * NO decide proporción, recorte ni contenedor: emite la imagen con su
- * proporción real (`width`/`height` del original, sin `aspect-ratio` ni
- * `object-fit`) y quien la compone define cuánto mide y cómo se recorta el
- * espacio a su alrededor. En este sitio el recorte cuesta evidencia — ver el
- * bloque PROPORCIÓN de FeaturedWork.astro y ServiceCase.astro.
- *
- * SIN `widths` NI `densities`, a diferencia del comparador. Desde EPIC 8 —
- * Checkpoint 8.3 (F-15) <BeforeAfterComparator> sí emite srcset, y esta
- * asimetría es deliberada, no un olvido: se decidió con los bytes medidos de
- * cada superficie.
- *
- *   CaseCard  → miniatura de 96/112px pedida a 256px. El archivo emitido pesa
- *               8.542 B; una variante de 128px ahorraría ~4 KB a las pantallas
- *               de densidad 1. No es material.
- *   CaseEvidence (rama estática) → hoy no renderiza un solo byte: el único caso
- *               publicado tiene fotografía previa y entra por el comparador.
- *
- * Es decir, todo el ahorro medible del sitio estaba en el comparador y ahí se
- * corrigió. Agregar srcset aquí sería construir para un caso que todavía no
- * existe; cuando se publique un trabajo sin fotografía previa, esta rama pasa a
- * servir bytes reales y la decisión se vuelve a tomar con esos números.
+ * Real result, natural ratio, no crop or enlargement of the approved source.
+ * Alt uses the case override or its existing title. Optional responsive widths
+ * serve the CP 9.2 Hero and Work Strip; CaseEvidence keeps its current default.
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -51,14 +15,17 @@ interface Props extends Omit<astroHTML.JSX.ImgHTMLAttributes, 'src' | 'width' | 
   resultAlt?: string;
   /** Ancho objetivo en px. Se acota al ancho real del original. */
   width: number;
+  /** Optional responsive candidates, capped to the approved source. */
+  widths?: number[];
 }
 
-const { result, title, resultAlt, width, ...rest } = Astro.props as Props;
+const { result, title, resultAlt, width, widths, ...rest } = Astro.props as Props;
 ---
 
 <Image
   src={result}
   width={Math.min(width, result.width)}
+  widths={widths && [...new Set(widths.map((candidate) => Math.min(candidate, result.width)))]}
   format="webp"
   alt={resultAlt ?? `${title} — resultado`}
   loading="lazy"
